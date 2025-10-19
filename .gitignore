@@ -1,0 +1,69 @@
+# ─── Sistema operativo ───
+.DS_Store
+.Trash
+*.swp
+*.swo
+
+# ─── Artefatti C ───
+*.o
+*.a
+*.so
+*.dylib
+*.out
+*.exe
+*.dll
+*.obj
+*.lib
+core
+
+# ─── IDE / Editor ───
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ─── IntelliJ / JetBrains ───
+out/
+cmake-build-*/
+
+# ─── Eclipse ───
+.project
+.classpath
+.settings/
+bin/
+
+# ─── NetBeans ───
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ─── Maven ───
+**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Logs ───
+*.log
+
+# ─── Altro ───
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ─── Custom ───
+.obsidian
