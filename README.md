@@ -5,7 +5,7 @@ Permette di segnalare, assegnare, monitorare e risolvere problemi, con un’inte
 ## 👥 Team
 - 🧑🏻‍💻 **Simone Parente Martone** — N86004297  
 - 👨🏻‍💻 **Mario Penna** — N86003308  
-- 👩🏻‍💻 **Michela Pollio** — N86003697  
+- 👩🏼‍💻 **Michela Pollio** — N86003697  
 
 ## 🏫 Info
 - Università degli Studi di Napoli “Federico II”  
