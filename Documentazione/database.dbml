@@ -1,0 +1,99 @@
+
+Table users {
+    id integer [primary key]
+    username varchar [unique, not null]
+    email varchar [unique, not null]
+    password_hash varchar [not null]
+    role varchar [default: 'user']
+}
+
+Table issues {
+    id integer [primary key]
+    title varchar [not null]
+    description text [not null]
+    status statuses [default: 'TO_BE_ASSIGNED']
+    priority varchar
+    attachment integer
+    type types [not null]
+    created_at timestamp [default: `CURRENT_TIMESTAMP`]
+    updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+    assigned_to integer
+    reported_by integer [not null]
+}
+
+Table attachments {
+    id integer [primary key]
+    issue_id integer [not null]
+    file_path varchar [not null]
+    type varchar [not null]
+    uploaded_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// CASO 1 LABELS
+Table label {
+    id integer [primary key]
+    name varchar [not null]
+    color varchar
+}
+
+Table issue_labels {
+    issue_id integer [not null]
+    label_id integer [not null]
+    primary key (issue_id, label_id)
+}
+
+
+//CASO 2 LABELS
+Table labels {
+    name varchar
+    issue_id integer
+    color varchar
+    primary key (name, issue_id)   
+}
+
+Table projects {
+    id integer [primary key]
+    name varchar [not null]
+    description text
+    created_at timestamp [default: `CURRENT_TIMESTAMP`]
+    updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table project_issues {
+    project_id integer [not null]
+    issue_id integer [not null]
+    primary key (project_id, issue_id)
+}
+
+enum statuses {
+    TO_BE_ASSIGNED
+    ASSIGNED
+    IN_PROGRESS
+    MARKED_FOR_REVIEW
+    COMPLETED
+    NOT_FIXED
+    CLOSED
+}
+
+enum types {
+    BUG
+    FEATURE
+    QUESTION
+    DOCUMENTATION
+}
+
+
+Ref issues_users: issues.assigned_to > users.id // many-to-one
+Ref issues_reporters: issues.reported_by > users.id // many-to-one
+Ref attachments_issues: attachments.issue_id > issues.id // many-to-one
+
+Ref project_issues_issues: project_issues.issue_id > issues.id // many-to-one
+Ref project_issues_projects: project_issues.project_id > projects.id // many-to-one
+
+
+//Caso 1 labels
+Ref issue_labels_issues: issue_labels.issue_id > issues.id // many-to-one
+Ref issue_labels_label: issue_labels.label_id > label.id // many-to-one
+
+//Caso 2 labels
+Ref labels_issues: labels.issue_id > issues.id // many-to-one
