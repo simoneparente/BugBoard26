@@ -12,7 +12,7 @@ Table issues {
     title varchar [not null]
     description text [not null]
     status statuses [default: 'TO_BE_ASSIGNED']
-    priority varchar
+    priority priorities
     attachment integer
     type types [not null]
     created_at timestamp [default: `CURRENT_TIMESTAMP`]
@@ -80,6 +80,14 @@ enum types {
     FEATURE
     QUESTION
     DOCUMENTATION
+}
+
+enum priorities {
+    LOWEST
+    LOW
+    MEDIUM
+    HIGH
+    HIGHEST
 }
 
 
