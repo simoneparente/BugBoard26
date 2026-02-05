@@ -4,7 +4,7 @@ Table users {
     username varchar [unique, not null]
     email varchar [unique, not null]
     password_hash varchar [not null]
-    role varchar [default: 'user']
+    role roles [default: 'USER']
 }
 
 Table issues {
@@ -57,6 +57,11 @@ Table project_users {
     project_id integer [not null]
     user_id integer [not null]
     primary key (project_id, user_id)
+}
+
+enum roles {
+    ADMIN
+    USER
 }
 
 enum statuses {
