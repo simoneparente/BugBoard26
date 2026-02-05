@@ -13,11 +13,11 @@ Table issues {
     description text [not null]
     status statuses [default: 'TO_BE_ASSIGNED']
     priority priorities
-    attachment integer
     type types [not null]
     created_at timestamp [default: `CURRENT_TIMESTAMP`]
     updated_at timestamp [default: `CURRENT_TIMESTAMP`]
     assigned_to integer
+    project_id integer
     reported_by integer [not null]
 }
 
@@ -25,13 +25,15 @@ Table attachments {
     id integer [primary key]
     issue_id integer [not null]
     file_path varchar [not null]
-    type varchar [not null]
+    file_name varchar [not null]
+    file_extension varchar
+    file_size integer //bytes
     uploaded_at timestamp [default: `CURRENT_TIMESTAMP`]
 }
 
-// CASO 1 LABELS
 Table label {
     id integer [primary key]
+    project_id integer [not null]
     name varchar [not null]
     color varchar
 }
@@ -43,14 +45,6 @@ Table issue_labels {
 }
 
 
-//CASO 2 LABELS
-Table labels {
-    name varchar
-    issue_id integer
-    color varchar
-    primary key (name, issue_id)   
-}
-
 Table projects {
     id integer [primary key]
     name varchar [not null]
@@ -59,10 +53,10 @@ Table projects {
     updated_at timestamp [default: `CURRENT_TIMESTAMP`]
 }
 
-Table project_issues {
+Table project_users {
     project_id integer [not null]
-    issue_id integer [not null]
-    primary key (project_id, issue_id)
+    user_id integer [not null]
+    primary key (project_id, user_id)
 }
 
 enum statuses {
@@ -95,13 +89,14 @@ Ref issues_users: issues.assigned_to > users.id // many-to-one
 Ref issues_reporters: issues.reported_by > users.id // many-to-one
 Ref attachments_issues: attachments.issue_id > issues.id // many-to-one
 
-Ref project_issues_issues: project_issues.issue_id > issues.id // many-to-one
-Ref project_issues_projects: project_issues.project_id > projects.id // many-to-one
+
+Ref issues_projects: issues.project_id > projects.id // many-to-one
+
+Ref project_users_projects: project_users.project_id > projects.id 
+Ref project_users_users: project_users.user_id > users.id
 
 
-//Caso 1 labels
 Ref issue_labels_issues: issue_labels.issue_id > issues.id // many-to-one
 Ref issue_labels_label: issue_labels.label_id > label.id // many-to-one
 
-//Caso 2 labels
-Ref labels_issues: labels.issue_id > issues.id // many-to-one
+Ref label_projects: label.project_id > projects.id // many-to-one
