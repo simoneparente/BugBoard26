@@ -6,6 +6,7 @@ skinparam packageStyle rectangle
 
 ' --- CONTROLLER LAYER ---
 package "Controller Layer (Interface)" {
+
     class AuthController {
         - userService: UserService
         + login(request: LoginDTO): ResponseEntity
@@ -20,10 +21,28 @@ package "Controller Layer (Interface)" {
         - issueService: IssueService
         + createIssue(request: IssueDTO): ResponseEntity
     }
+
+    class ReportController {
+        - reportService: ReportService
+        + generateReport(projectId: int): ResponseEntity
+    }
+
+    class LabelController {
+        - labelService: LabelService
+        + createLabel(request: LabelDTO): ResponseEntity
+    }
+
+    class AttachmentController {
+        - attachmentService: AttachmentService
+        + uploadAttachment(issueId: int, file: MultipartFile): ResponseEntity
+    }
+
+
 }
 
 ' --- SERVICE LAYER ---
 package "Service Layer (Business Logic)" {
+
     class UserService {
         - userRepository: UserRepository
     }
@@ -35,9 +54,20 @@ package "Service Layer (Business Logic)" {
     class IssueService {
         - issueRepository: IssueRepository
         - labelRepository: LabelRepository
-        + assignLabel(issueId: int, labelId: int): void
-        + addAttachment(issueId: int, file: File): Attachment
     }
+
+    class ReportService {
+        - reportRepository: ReportRepository
+    }
+
+    class LabelService {
+        - labelRepository: LabelRepository
+    }
+
+    class AttachmentService {
+        - attachmentRepository: AttachmentRepository
+    }
+
 }
 
 ' --- REPOSITORY LAYER ---
@@ -88,6 +118,53 @@ package "Entity Layer (Data Model)" {
         - id: Integer
         - filePath: String
         - fileName: String
+        - fileSize: Integer
+    }
+}
+
+' ===========================================
+' DTO LAYER (Data Transfer Objects)
+' TODO: ADD RELATIONS WITH OTHER LAYERS
+' ===========================================
+
+package "DTO Layer (Data Transfer Objects)" {
+    class LoginDTO {
+        - email: String
+        - password: String
+    }
+
+    class RegisterDTO {
+        - username: String
+        - email: String
+        - password: String
+        - role : RoleEnum
+    }
+
+    class IssueDTO {
+        - projectId: Integer
+        - title: String
+        - description: String
+        - status: StatusEnum
+        - priority: PriorityEnum
+        - type: TypeEnum
+        - attachmentIds: List<Integer>
+        - assignedToUserId: Integer
+    }
+
+    ' ==================================
+    'TODO: SISTEMARE QUESTO DTO
+    class LabelDTO { 
+        - name: String
+        - color: String
+    }
+    ' ==================================
+
+
+    class AttachmentDTO {
+        - issueId: Integer
+        - filePath: String
+        - fileName: String
+        - fileExtension: String
         - fileSize: Integer
     }
 }
