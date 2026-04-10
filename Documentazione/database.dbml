@@ -71,7 +71,7 @@ enum statuses {
     MARKED_FOR_REVIEW
     COMPLETED
     NOT_FIXED
-    CLOSED
+    CLOSED //TODO: issue is closed but not fixed (e.g. won't fix, duplicate, etc.) [delete after X time]
 }
 
 enum types {
