@@ -1,57 +1,148 @@
-@startuml CD-BugBoard26
+@startuml
+' --- Configurazione Stile ---
+skinparam classAttributeIconSize 0
 skinparam linetype ortho
-interface IUtente {
-    +getId(): int
-    +login(): boolean
-    +logout(): void
+skinparam packageStyle rectangle
+
+' --- CONTROLLER LAYER ---
+package "Controller Layer (Interface)" {
+    class AuthController {
+        - userService: UserService
+        + login(request: LoginDTO): ResponseEntity
+    }
+    
+    class ProjectController {
+        - projectService: ProjectService
+        + getProjects(): ResponseEntity
+    }
+    
+    class IssueController {
+        - issueService: IssueService
+        + createIssue(request: IssueDTO): ResponseEntity
+    }
 }
 
-class Utente implements IUtente {
-    -id: int
-    -email: String
-    -passwordHash: String
-
-    +getWorkLoad(): int
-    +reportIssue(i: Issue): void
-    +editIssue(i: IIssue): void
-
+' --- SERVICE LAYER ---
+package "Service Layer (Business Logic)" {
+    class UserService {
+        - userRepository: UserRepository
+    }
+    
+    class ProjectService {
+        - projectRepository: ProjectRepository
+    }
+    
+    class IssueService {
+        - issueRepository: IssueRepository
+        - labelRepository: LabelRepository
+        + assignLabel(issueId: int, labelId: int): void
+        + addAttachment(issueId: int, file: File): Attachment
+    }
 }
 
-class Admin extends Utente {
-    +createUser(): Utente
-    +assignIssue(u: IUtente, i: IIssue): void
+' --- REPOSITORY LAYER ---
+package "Repository Layer (Data Access)" {
+    interface JpaRepository <<Spring Data Base>> {
+    }
+
+    interface UserRepository <<interface>>
+    interface ProjectRepository <<interface>>
+    interface IssueRepository <<interface>>
+    interface LabelRepository <<interface>>
+    interface AttachmentRepository <<interface>>
 }
 
+' --- ENTITY LAYER ---
+package "Entity Layer (Data Model)" {
+    class User {
+        - id: Integer
+        - username: String
+        - email: String
+        - passwordHash: String
+        - role: RoleEnum
+    }
 
-interface IIssue {
-    +getDetails(): String
-    +setAssignee(u: IUtente): void
-    +setReporter(u: IUtente): void
-    +changeStatus(newStatus: String): void
-    +addLabel(label: String): void
-    +removeLabel(label: String): void
+    class Project {
+        - id: Integer
+        - name: String
+        - description: String
+        - createdAt: Timestamp
+    }
+
+    class Issue {
+        - id: Integer
+        - title: String
+        - description: String
+        - status: StatusEnum
+        - priority: PriorityEnum
+        - type: TypeEnum
+    }
+
+    class Label {
+        - id: Integer
+        - name: String
+        - color: String
+    }
+
+    class Attachment {
+        - id: Integer
+        - filePath: String
+        - fileName: String
+        - fileSize: Integer
+    }
 }
 
-class Issue implements IIssue {
-    -id: int
-    -title: String
-    -description: String
-    -creationDate: DateTime
-    -priority: String
-    -attachment: File
-    -status: String
-    -labels: List<String>
-    -reporter: Utente
-    -assignee: Utente
+' ==========================================
+' RELAZIONI TRA I LIVELLI (Top-Down)
+' ==========================================
 
-    +getDetails(): String
-    +setAssignee(u: IUtente): void
-    +setReporter(u: IUtente): void
-    +changeStatus(newStatus: String): void
-    +addLabel(label: String): void
-    +removeLabel(label: String): void
-}
+' Controllers usano Services
+AuthController --> UserService : usa
+ProjectController --> ProjectService : usa
+IssueController --> IssueService : usa
 
-Utente "0..1"--"*" Issue : "assigned to"
-Utente "1"--"*" Issue : "reports"
+' Services usano Repositories
+UserService --> UserRepository : usa
+ProjectService --> ProjectRepository : usa
+IssueService --> IssueRepository : usa
+IssueService --> LabelRepository : usa
+
+' Repositories estendono JpaRepository
+JpaRepository <|-- UserRepository
+JpaRepository <|-- ProjectRepository
+JpaRepository <|-- IssueRepository
+JpaRepository <|-- LabelRepository
+JpaRepository <|-- AttachmentRepository
+
+' Repositories gestiscono Entities
+UserRepository --> User : gestisce
+ProjectRepository --> Project : gestisce
+IssueRepository --> Issue : gestisce
+LabelRepository --> Label : gestisce
+AttachmentRepository --> Attachment : gestisce
+
+
+' ==========================================
+' RELAZIONI TRA LE ENTITÀ (Database)
+' ==========================================
+
+' User <-> Project (Molti a Molti)
+User "*" -- "*" Project : partecipa
+
+' Project <-> Issue (1 a Molti)
+Project "1" *-- "*" Issue : contiene
+
+' User <-> Issue (1 a Molti, x2)
+User "1" -- "*" Issue : reportedBy >
+User "1" -- "*" Issue : assignedTo >
+
+' Project <-> Label (1 a Molti)
+Project "1" *-- "*" Label : definisce
+
+' Label <-> Issue (Molti a Molti)
+Label "*" -- "*" Issue : associata >
+
+' Issue <-> Attachment (1 a Molti)
+Issue "1" *-- "*" Attachment : contiene
+
 @enduml
