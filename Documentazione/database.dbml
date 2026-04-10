@@ -18,7 +18,7 @@ Table issues {
     updated_at timestamp [default: `CURRENT_TIMESTAMP`]
     assigned_to integer
     project_id integer
-    reported_by integer [not null]
+    //reported_by integer [not null]
 }
 
 Table attachments {
@@ -91,7 +91,7 @@ enum priorities {
 
 
 Ref issues_users: issues.assigned_to > users.id // many-to-one
-Ref issues_reporters: issues.reported_by > users.id // many-to-one
+//Ref issues_reporters: issues.reported_by > users.id // many-to-one
 Ref attachments_issues: attachments.issue_id > issues.id // many-to-one
 
 
