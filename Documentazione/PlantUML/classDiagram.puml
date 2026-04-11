@@ -97,6 +97,9 @@ package "Entity Layer (Data Model)" {
         - name: String
         - description: String
         - createdAt: Timestamp
+        - issues: List<Issue>
+        - members: List<User>
+        - labels: List<Label>
     }
 
     class Issue {
@@ -106,6 +109,11 @@ package "Entity Layer (Data Model)" {
         - status: StatusEnum
         - priority: PriorityEnum
         - type: TypeEnum
+        - createdAt: Timestamp
+        - updatedAt: Timestamp
+        - assignedTo: User
+        - attachments: List<Attachment>
+        - labels: List<Label>
     }
 
     class Label {
@@ -119,33 +127,34 @@ package "Entity Layer (Data Model)" {
         - filePath: String
         - fileName: String
         - fileSize: Integer
+        - fileExtension: String
     }
 
-    class Report {
+    class ProjectReport {
         - id: Integer
-        - openedBugs: Integer
-        - managedBugs: Integer
+        - project: Project
         - averageResolutionTime: Double
     }
 
-    class MonthlyReport extends Report {
+    class MonthlyProjectReport extends ProjectReport {
         - referenceMonth: Integer
         - referenceYear: Integer
     }
 
-    class UserMonthlyReport extends MonthlyReport {
-        - userId: Integer
-        - userName: String
+    class UserMonthlyProjectReport extends MonthlyProjectReport {
+        - user: User
     }
 
-    class ProjectMonthlyReport extends MonthlyReport {
-        - projectId: Integer
-    }
+    'class ProjectMonthlyReport extends MonthlyReport {
+    '    - projectId: Integer
+    '   - projectName: String
+    '    - userMonthlyReports: List<UserMonthlyReport>
+    '}
 }
 
 ' ===========================================
 ' DTO LAYER (Data Transfer Objects)
-' TODO: ADD RELATIONS WITH OTHER LAYERS
+' TODO: SISTEMARE IN CASO DI MODIFICHE/AGGIUNTE LATO CODICE
 ' ===========================================
 
 package "DTO Layer (Data Transfer Objects)" {
@@ -169,17 +178,14 @@ package "DTO Layer (Data Transfer Objects)" {
         - priority: PriorityEnum
         - type: TypeEnum
         - attachmentIds: List<Integer>
-        - assignedToUserId: Integer
+        - assignedToUser: String
     }
 
-    ' ==================================
-    'TODO: SISTEMARE QUESTO DTO
-    class LabelDTO { 
+    class LabelDTO {
+        - id: Integer
         - name: String
         - color: String
     }
-    ' ==================================
-
 
     class AttachmentDTO {
         - issueId: Integer
@@ -187,6 +193,27 @@ package "DTO Layer (Data Transfer Objects)" {
         - fileName: String
         - fileExtension: String
         - fileSize: Integer
+    }
+
+    class ProjectMonthlyReportDTO {
+        - projectId: Integer
+        - projectName: String
+        - referenceMonth: Integer
+        - referenceYear: Integer
+        - openedBugs: Integer
+        - managedBugs: Integer
+        - averageResolutionTime: Double
+        - userMonthlyReports: List<UserMonthlyReportMetricDTO>
+    }
+
+    class UserMonthlyReportMetricDTO {
+        - userId: Integer
+        - userName: String
+        - referenceMonth: Integer
+        - referenceYear: Integer
+        - openedBugs: Integer
+        - managedBugs: Integer
+        - averageResolutionTime: Double
     }
 }
 
@@ -246,5 +273,12 @@ Label "*" -- "*" Issue : associata >
 
 ' Issue <-> Attachment (1 a Molti)
 Issue "1" *-- "*" Attachment : contiene
+
+' ==========================================
+' RELAZIONE ENTITY - SERVICES (Business Logic)
+' ==========================================
+ReportService --> MonthlyProjectReport : genera
+ReportService --> UserMonthlyProjectReport : genera
+
 
 @enduml
