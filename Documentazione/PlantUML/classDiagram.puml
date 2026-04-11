@@ -120,6 +120,27 @@ package "Entity Layer (Data Model)" {
         - fileName: String
         - fileSize: Integer
     }
+
+    class Report {
+        - id: Integer
+        - openedBugs: Integer
+        - managedBugs: Integer
+        - averageResolutionTime: Double
+    }
+
+    class MonthlyReport extends Report {
+        - referenceMonth: Integer
+        - referenceYear: Integer
+    }
+
+    class UserMonthlyReport extends MonthlyReport {
+        - userId: Integer
+        - userName: String
+    }
+
+    class ProjectMonthlyReport extends MonthlyReport {
+        - projectId: Integer
+    }
 }
 
 ' ===========================================
@@ -177,12 +198,16 @@ package "DTO Layer (Data Transfer Objects)" {
 AuthController --> UserService : usa
 ProjectController --> ProjectService : usa
 IssueController --> IssueService : usa
+AttachmentController --> AttachmentService : usa
+LabelController --> LabelService : usa
+ReportController --> ReportService : usa
 
 ' Services usano Repositories
 UserService --> UserRepository : usa
 ProjectService --> ProjectRepository : usa
 IssueService --> IssueRepository : usa
 IssueService --> LabelRepository : usa
+AttachmentService --> AttachmentRepository : usa
 
 ' Repositories estendono JpaRepository
 JpaRepository <|-- UserRepository
