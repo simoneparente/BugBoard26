@@ -27,9 +27,9 @@ package "Controller Layer (Interface)" {
         + generateReport(projectId: int): ResponseEntity
     }
 
-    class LabelController {
-        - labelService: LabelService
-        + createLabel(request: LabelDTO): ResponseEntity
+    class TagController {
+        - tagService: TagService
+        + createTag(request: TagDTO): ResponseEntity
     }
 
     class AttachmentController {
@@ -53,15 +53,15 @@ package "Service Layer (Business Logic)" {
     
     class IssueService {
         - issueRepository: IssueRepository
-        - labelRepository: LabelRepository
+        - tagRepository: TagRepository
     }
 
     class ReportService {
         - reportRepository: ReportRepository
     }
 
-    class LabelService {
-        - labelRepository: LabelRepository
+    class TagService {
+        - tagRepository: TagRepository
     }
 
     class AttachmentService {
@@ -78,7 +78,7 @@ package "Repository Layer (Data Access)" {
     interface UserRepository <<interface>>
     interface ProjectRepository <<interface>>
     interface IssueRepository <<interface>>
-    interface LabelRepository <<interface>>
+    interface TagRepository <<interface>>
     interface AttachmentRepository <<interface>>
 }
 
@@ -99,7 +99,7 @@ package "Entity Layer (Data Model)" {
         - createdAt: Timestamp
         - issues: List<Issue>
         - members: List<User>
-        - labels: List<Label>
+        - tags: List<Tag>
     }
 
     class Issue {
@@ -113,10 +113,10 @@ package "Entity Layer (Data Model)" {
         - updatedAt: Timestamp
         - assignedTo: User
         - attachments: List<Attachment>
-        - labels: List<Label>
+        - tags: List<Tag>
     }
 
-    class Label {
+    class Tag {
         - id: Integer
         - name: String
         - color: String
@@ -181,7 +181,7 @@ package "DTO Layer (Data Transfer Objects)" {
         - assignedToUser: String
     }
 
-    class LabelDTO {
+    class TagDTO {
         - id: Integer
         - name: String
         - color: String
@@ -226,28 +226,28 @@ AuthController --> UserService : usa
 ProjectController --> ProjectService : usa
 IssueController --> IssueService : usa
 AttachmentController --> AttachmentService : usa
-LabelController --> LabelService : usa
+TagController --> TagService : usa
 ReportController --> ReportService : usa
 
 ' Services usano Repositories
 UserService --> UserRepository : usa
 ProjectService --> ProjectRepository : usa
 IssueService --> IssueRepository : usa
-IssueService --> LabelRepository : usa
+IssueService --> TagRepository : usa
 AttachmentService --> AttachmentRepository : usa
 
 ' Repositories estendono JpaRepository
 JpaRepository <|-- UserRepository
 JpaRepository <|-- ProjectRepository
 JpaRepository <|-- IssueRepository
-JpaRepository <|-- LabelRepository
+JpaRepository <|-- TagRepository
 JpaRepository <|-- AttachmentRepository
 
 ' Repositories gestiscono Entities
 UserRepository --> User : gestisce
 ProjectRepository --> Project : gestisce
 IssueRepository --> Issue : gestisce
-LabelRepository --> Label : gestisce
+TagRepository --> Tag : gestisce
 AttachmentRepository --> Attachment : gestisce
 
 
@@ -265,11 +265,11 @@ Project "1" *-- "*" Issue : contiene
 User "1" -- "*" Issue : reportedBy >
 User "1" -- "*" Issue : assignedTo >
 
-' Project <-> Label (1 a Molti)
-Project "1" *-- "*" Label : definisce
+' Project <-> Tag (1 a Molti)
+Project "1" *-- "*" Tag : definisce
 
-' Label <-> Issue (Molti a Molti)
-Label "*" -- "*" Issue : associata >
+' Tag <-> Issue (Molti a Molti)
+Tag "*" -- "*" Issue : associata >
 
 ' Issue <-> Attachment (1 a Molti)
 Issue "1" *-- "*" Attachment : contiene
