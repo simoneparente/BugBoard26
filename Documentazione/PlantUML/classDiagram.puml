@@ -181,6 +181,7 @@ package "DTO Layer (Data Transfer Objects)" {
         - assignedToUser: String
     }
 
+    'TODO: SISTEMARE QUESTO DTO
     class TagDTO {
         - id: Integer
         - name: String
