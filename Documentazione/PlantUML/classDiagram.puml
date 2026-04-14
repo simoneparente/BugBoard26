@@ -4,36 +4,66 @@ skinparam classAttributeIconSize 0
 skinparam linetype ortho
 skinparam packageStyle rectangle
 
+' ===========================================
+
+' --- ENUMS ---
+
+package "Enums" {
+    enum roleEnum {
+        ADMIN
+        USER
+    }
+
+    enum statusEnum {
+        TO_BE_ASSIGNED
+        ASSIGNED
+        IN_PROGRESS
+        MARKED_FOR_REVIEW
+        COMPLETED
+        NOT_FIXED
+        CLOSED //TODO: issue is closed but not fixed (e.g. won't fix, duplicate, etc.) [delete after X time]
+    }
+
+    enum typeEnum {
+        BUG
+        FEATURE
+        QUESTION
+        DOCUMENTATION
+    }
+
+    enum priorityEnum {
+        LOWEST
+        LOW
+        MEDIUM
+        HIGH
+        HIGHEST
+    }
+}
+
 ' --- CONTROLLER LAYER ---
 package "Controller Layer (Interface)" {
 
     class AuthController {
-        - userService: UserService
         + login(request: LoginDTO): ResponseEntity
     }
     
     class ProjectController {
-        - projectService: ProjectService
         + getProjects(): ResponseEntity
     }
     
     class IssueController {
-        - issueService: IssueService
         + createIssue(request: IssueDTO): ResponseEntity
     }
 
     class ReportController {
-        - reportService: ReportService
         + generateReport(projectId: int): ResponseEntity
     }
 
     class TagController {
-        - tagService: TagService
         + createTag(request: TagDTO): ResponseEntity
     }
 
     class AttachmentController {
-        - attachmentService: AttachmentService
         + uploadAttachment(issueId: int, file: MultipartFile): ResponseEntity
     }
 
@@ -44,31 +74,38 @@ package "Controller Layer (Interface)" {
 package "Service Layer (Business Logic)" {
 
     class UserService {
-        - userRepository: UserRepository
     }
     
     class ProjectService {
-        - projectRepository: ProjectRepository
     }
     
     class IssueService {
-        - issueRepository: IssueRepository
-        - tagRepository: TagRepository
+        + exportIssues(format: String): String
     }
 
     class ReportService {
-        - reportRepository: ReportRepository
     }
 
     class TagService {
-        - tagRepository: TagRepository
     }
 
     class AttachmentService {
-        - attachmentRepository: AttachmentRepository
     }
 
+    interface IssueExportStrategy <<interface>> {
+        + export(issues: List<Issue>): String
+    }
+
+    class CSVExportStrategy implements IssueExportStrategy {
+        + export(issues: List<Issue>): String
+    }
+
+    class JSONExportStrategy implements IssueExportStrategy {
+        + export(issues: List<Issue>): String
+    }
 }
+
+
 
 ' --- REPOSITORY LAYER ---
 package "Repository Layer (Data Access)" {
@@ -97,9 +134,6 @@ package "Entity Layer (Data Model)" {
         - name: String
         - description: String
         - createdAt: Timestamp
-        - issues: List<Issue>
-        - members: List<User>
-        - tags: List<Tag>
     }
 
     class Issue {
@@ -112,8 +146,6 @@ package "Entity Layer (Data Model)" {
         - createdAt: Timestamp
         - updatedAt: Timestamp
         - assignedTo: User
-        - attachments: List<Attachment>
-        - tags: List<Tag>
     }
 
     class Tag {
@@ -132,7 +164,6 @@ package "Entity Layer (Data Model)" {
 
     class ProjectReport {
         - id: Integer
-        - project: Project
         - averageResolutionTime: Double
     }
 
@@ -142,7 +173,6 @@ package "Entity Layer (Data Model)" {
     }
 
     class UserMonthlyProjectReport extends MonthlyProjectReport {
-        - user: User
     }
 
     'class ProjectMonthlyReport extends MonthlyReport {
@@ -216,6 +246,10 @@ package "DTO Layer (Data Transfer Objects)" {
         - managedBugs: Integer
         - averageResolutionTime: Double
     }
+
+    class MonthlyProjectReportDTO {
+
+    }
 }
 
 ' ==========================================
@@ -223,19 +257,21 @@ package "DTO Layer (Data Transfer Objects)" {
 ' ==========================================
 
 ' Controllers usano Services
-AuthController --> UserService : usa
-ProjectController --> ProjectService : usa
-IssueController --> IssueService : usa
-AttachmentController --> AttachmentService : usa
-TagController --> TagService : usa
-ReportController --> ReportService : usa
+AuthController --> UserService : - userService
+ProjectController --> ProjectService : - projectService
+IssueController --> IssueService : - issueService
+AttachmentController --> AttachmentService : - attachmentService
+TagController --> TagService : - tagService
+ReportController --> ReportService : - reportService
 
 ' Services usano Repositories
-UserService --> UserRepository : usa
-ProjectService --> ProjectRepository : usa
-IssueService --> IssueRepository : usa
-IssueService --> TagRepository : usa
-AttachmentService --> AttachmentRepository : usa
+UserService --> UserRepository : - userRepository
+ProjectService --> ProjectRepository : - projectRepository
+IssueService --> IssueRepository : - issueRepository
+IssueService --> TagRepository : - tagRepository
+IssueService o-- IssueExportStrategy : - strategy
+AttachmentService --> AttachmentRepository : - attachmentRepository
+TagService --> TagRepository : - tagRepository
 
 ' Repositories estendono JpaRepository
 JpaRepository <|-- UserRepository
@@ -257,29 +293,43 @@ AttachmentRepository --> Attachment : gestisce
 ' ==========================================
 
 ' User <-> Project (Molti a Molti)
-User "*" -- "*" Project : partecipa
+User "*" -- "*" Project : partecipazione
 
 ' Project <-> Issue (1 a Molti)
-Project "1" *-- "*" Issue : contiene
+Project "1" *-- "*" Issue : - issues
 
-' User <-> Issue (1 a Molti, x2)
-User "1" -- "*" Issue : reportedBy >
-User "1" -- "*" Issue : assignedTo >
+' User <-> Issue (1 a Molti)
+User "1" -- "*" Issue : assegnazione
 
 ' Project <-> Tag (1 a Molti)
-Project "1" *-- "*" Tag : definisce
+Project "1" *-- "*" Tag : - tags
 
 ' Tag <-> Issue (Molti a Molti)
-Tag "*" -- "*" Issue : associata >
+Tag "*" -- "*" Issue : associazione
 
 ' Issue <-> Attachment (1 a Molti)
-Issue "1" *-- "*" Attachment : contiene
+Issue "1" *-- "*" Attachment : - attachment
+
+' User <-> UserMonthlyProjectReport (Molti a 1)
+UserMonthlyProjectReport *-- "1" User : - user
+
+' Project <-> ProjectReport (1 a 1)
+ProjectReport *-- "1" Project : - project
+
 
 ' ==========================================
 ' RELAZIONE ENTITY - SERVICES (Business Logic)
 ' ==========================================
 ReportService --> MonthlyProjectReport : genera
 ReportService --> UserMonthlyProjectReport : genera
+
+' ==========================================
+' RELAZIONI DI DIPENDENZA (USO DEI DTO)
+' ==========================================
+' I Controller ricevono o restituiscono DTO
+AuthController ..> LoginDTO : riceve
+IssueController ..> IssueDTO : riceve/restituisce
+ReportController ..> MonthlyProjectReportDTO : restituisce
 
 
 @enduml
