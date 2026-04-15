@@ -1,0 +1,112 @@
+\documentclass[a4paper,12pt]{report}
+
+% ===== PACCHETTI BASE =====
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{import}
+\usepackage{svg}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{ltablex}
+\usepackage{amssymb}
+\usepackage[backend=biber, style=ieee, sorting=none]{biblatex}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+\addbibresource{bibliography.bib}
+
+% ===== IMPOSTAZIONI DI BASE =====
+\geometry{margin=2.5cm}
+\setstretch{1.15}
+\setlength{\parskip}{0.8em}
+\setlength{\parindent}{0pt}
+
+% ===== IMPOSTAZIONI UTILI =====
+\graphicspath{{media/}}
+\keepXColumns
+
+% ===== COLORI =====
+\definecolor{uninaBlue}{HTML}{003366}
+\definecolor{lightBlue}{HTML}{B3C7E6}
+
+% ===== LINK COLORATI =====
+\hypersetup{
+  colorlinks=true,
+  linkcolor=uninaBlue,
+  urlcolor=uninaBlue,
+  citecolor=uninaBlue
+}
+
+% ===== TITOLI COLORATI =====
+\titleformat{\chapter}[hang]
+  {\Huge\bfseries\color{uninaBlue}}
+  {\thechapter\quad}
+  {0pt}{}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{uninaBlue}}{\thesection}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{8pt}
+
+% ===== INTESTAZIONI E PIÈ DI PAGINA =====
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{uninaBlue}{BugBoard26}}
+\fancyhead[R]{\textcolor{uninaBlue}{Progetto di Ingegneria del Software}}
+\fancyfoot[C]{\thepage}
+
+% ===== FRONTESPIZIO =====
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    \includegraphics[width=4cm]{symbol.png}\\[1.2cm]
+    
+    {\Huge\bfseries\color{uninaBlue} BugBoard26 \\[0.5cm]}
+    {\Large Progetto di Ingegneria del Software – A.A. 2025/2026}\\[2cm]
+    
+    \textbf{Autori:}\\[0.3cm]
+    Simone Parente Martone - N86004297 \\
+    Mario Penna - N86003308\\
+    Michela Pollio - N86003697\\[2cm]
+    \large
+
+    
+
+    {\color{uninaBlue}\rule{10cm}{1pt}}\\[0.3cm]
+    {\Large Dipartimento di Ingegneria Elettrica e delle Tecnologie dell'Informazione (DIETI)}\\
+    {\large Università degli Studi di Napoli Federico II}\\[1.5cm]
+    
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ===== CAPITOLI IMPORTATI =====
+\import{chapters/}{01-introduzione.tex}
+\import{chapters/}{02-requisiti.tex}
+\import{chapters/}{03-architettura.tex}
+\import{chapters/}{04-DesignPatterns.tex}
+
+\import{chapters/}{00-Glossario.tex}
+
+\printbibliography[title=Riferimenti Bibliografici]
+\end{document}
