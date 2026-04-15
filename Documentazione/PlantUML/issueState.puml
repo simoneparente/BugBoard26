@@ -66,8 +66,9 @@ class MarkedForReview extends BaseStatus {
 }
 
 class NotFixed extends BaseStatus {
-    + assign(issue: Issue, user: User): void
+    + startProgress(issue: Issue): void
     + close(issue: Issue): void
+    - removeAssignee(issue: Issue): void
 }
 
 class Completed extends BaseStatus {
