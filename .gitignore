@@ -89,7 +89,7 @@ buildNumber.properties
 *.mtc0
 
 # Il PDF finale (opzionale: commentalo se vuoi invece caricarlo su Git)
-# *.pdf
+*.pdf
 
 # ─── Altro ───
 *.class
