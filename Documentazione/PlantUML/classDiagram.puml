@@ -12,6 +12,7 @@ package "Enums" {
     enum roleEnum {
         ADMIN
         USER
+        GUEST
     }
 
 
