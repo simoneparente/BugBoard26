@@ -17,7 +17,6 @@ A -down-|> U
 ' Funzionalità base (Guest)
 usecase "Effettuare Login" as UC1
 usecase "Filtrare elenco" as UC5
-usecase "Visualizzare Commenti" as UC_COMM
 usecase UC8 as "Visualizzare Elenco Issues
 --
 **extension points**
@@ -55,7 +54,6 @@ usecase "Ordinare Elenco" as UC_EXT4
 G -- UC1
 G -- UC8
 G -- UC5
-G -- UC_COMM
 
 ' L'Utente (e l'Admin) aggiunge queste azioni
 U -- UC2
