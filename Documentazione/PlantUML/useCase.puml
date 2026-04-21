@@ -1,5 +1,6 @@
 @startuml
 skinparam actorStyle stickman
+skinparam linetype ortho
 left to right direction
 
 ' Definizione Attori
