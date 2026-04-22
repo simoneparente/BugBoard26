@@ -18,7 +18,7 @@ services:
       timeout: 3s
       retries: 20
 
-  app:
+  backend:
     build:
       context: ./bugboard-backend
       dockerfile: Dockerfile
@@ -32,6 +32,17 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-change_me}
     ports:
       - "8080:8080"
+
+  frontend:
+    build:
+      context: ./bugboard-frontend
+      dockerfile: Dockerfile
+    image: bugboard-frontend:local
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "4200:4200"
 
 volumes:
   db_data:
