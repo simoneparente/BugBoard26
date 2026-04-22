@@ -67,6 +67,11 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200,
+            "allowedHosts": ["localhost"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "bugboard-frontend:build:production"
