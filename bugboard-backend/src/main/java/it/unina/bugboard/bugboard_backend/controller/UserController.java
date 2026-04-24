@@ -1,13 +1,13 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import it.unina.bugboard.bugboard_backend.dto.UserRegistrationRequest;
 import it.unina.bugboard.bugboard_backend.dto.UserResponse;
 import it.unina.bugboard.bugboard_backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,5 +26,12 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegistrationRequest registrationDTO) {
+        // TODO: Call userService for real registration logic
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
