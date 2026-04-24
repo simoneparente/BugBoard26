@@ -60,6 +60,35 @@ buildNumber.properties
 *.vpp.lck
 *.vpp.bak_*
 
+# ─── LaTeX (File ausiliari e artefatti) ───
+# File principali di log e ausiliari
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+
+# Bibliografia (BibTeX / Biber)
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Liste di figure, tabelle e indici
+*.lof
+*.lot
+*.out
+
+# File temporanei di vari pacchetti (es. hyperref, listings, etc.)
+*.snm
+*.nav
+*.vrb
+*.maf
+*.mtc
+*.mtc0
+# *.pdf
+
 # ─── Altro ───
 *.class
 *.jar
@@ -68,9 +97,7 @@ buildNumber.properties
 *.zip
 *.tar.gz
 *.rar
-
-# ─── Custom ───
 .obsidian
 
-# Environment variables
+# ─── Environment variables ───
 .env
