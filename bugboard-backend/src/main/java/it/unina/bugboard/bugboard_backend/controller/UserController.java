@@ -29,9 +29,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegistrationRequest registrationDTO) {
-        // TODO: Call userService for real registration logic
-
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
+        UserResponse createdUser = userService.registerUser(request);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 }
