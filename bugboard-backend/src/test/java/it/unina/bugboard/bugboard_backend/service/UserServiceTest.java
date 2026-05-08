@@ -2,10 +2,14 @@ package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.dto.UserRegistrationRequest;
 import it.unina.bugboard.bugboard_backend.dto.UserResponse;
+import it.unina.bugboard.bugboard_backend.entity.Invitation;
 import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.exception.InvalidInvitationException;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.repository.InvitationRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -14,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +36,9 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private InvitationRepository invitationRepository;
 
     @InjectMocks
     private UserService userService;
@@ -135,6 +143,9 @@ class UserServiceTest {
                 "token", "username", "email@test.com", "password123"
         );
 
+        Invitation mockInvitation = getMockInvitation();
+
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
@@ -147,17 +158,19 @@ class UserServiceTest {
         assertEquals(Role.TECHNICAL, response.getRole());
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
+        verify(invitationRepository).delete(mockInvitation);
 
         User capturedUser = userCaptor.getValue();
         assertEquals("hash_sicuro_123", capturedUser.getPasswordHash());
         assertNotEquals("password123", capturedUser.getPasswordHash());
     }
 
+
     @Test
     void registerUser_UsernameAlreadyExists() {
-        UserRegistrationRequest request = new UserRegistrationRequest(
-                "token", "username", "email@test.com", "password123"
-        );
+        UserRegistrationRequest request = getRegistrationRequest();
+        Invitation mockInvitation = getMockInvitation();
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
         when(userRepository.existsByUsername(anyString())).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> userService.registerUser(request));
@@ -165,14 +178,53 @@ class UserServiceTest {
 
     @Test
     void registerUser_EmailAlreadyExists() {
-        UserRegistrationRequest request = new UserRegistrationRequest(
-                "token", "username", "email@test.com", "password123"
-        );
+        UserRegistrationRequest request = getRegistrationRequest();
+        Invitation mockInvitation = getMockInvitation();
 
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> userService.registerUser(request));
     }
+
+    @Test
+    void registerUser_ThrowsInvalidInvitationException_WhenTokenNotFound() {
+        UserRegistrationRequest request = getRegistrationRequest();
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.empty());
+        assertThrows(InvalidInvitationException.class, () -> userService.registerUser(request));
+    }
+
+    @Test
+    void registerUser_ThrowsInvalidInvitationException_WhenTokenIsExpired() {
+        UserRegistrationRequest request = getRegistrationRequest();
+        Invitation mockInvitation = getExpiredMockInvitation();
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
+
+        assertThrows(InvalidInvitationException.class, () -> userService.registerUser(request));
+        verify(invitationRepository).delete(mockInvitation);
+    }
+
+    private static @NonNull UserRegistrationRequest getRegistrationRequest() {
+        return new UserRegistrationRequest(
+                "token", "username", "email@test.com", "password123"
+        );
+    }
+    private static Invitation getMockInvitation() {
+        return Invitation.builder()
+                .token("token")
+                .role(Role.TECHNICAL)
+                .expiresAt(LocalDateTime.now().plusDays(1))
+                .build();
+    }
+
+    private static Invitation getExpiredMockInvitation() {
+        return Invitation.builder()
+                .token("token")
+                .role(Role.TECHNICAL)
+                .expiresAt(LocalDateTime.now().minusDays(1))
+                .build();
+    }
+
 
 }

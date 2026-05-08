@@ -2,15 +2,19 @@ package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.dto.UserRegistrationRequest;
 import it.unina.bugboard.bugboard_backend.dto.UserResponse;
-import it.unina.bugboard.bugboard_backend.entity.Role;
+import it.unina.bugboard.bugboard_backend.entity.Invitation;
 import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.exception.InvalidInvitationException;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.repository.InvitationRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final InvitationRepository invitationRepository;
     private final PasswordEncoder passwordEncoder;
 
     public List<UserResponse> getAllUsers() {
@@ -33,10 +38,15 @@ public class UserService {
         return mapToResponse(user);
     }
 
+    @Transactional //Transactional to ensure that the invitation is deleted even if something goes wrong during user registration
     public UserResponse registerUser(UserRegistrationRequest dto) {
-        /*TODO: When we have the Invitation module, here we will look for the token in the DB.
-        If token does not exist, throw ResourceNotFoundException 
-        For now, we will just create the user without checking the token */
+        Invitation invitation = invitationRepository.findByToken(dto.getToken())
+                .orElseThrow(() -> new InvalidInvitationException("Invalid invitation token"));
+
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            invitationRepository.delete(invitation);
+            throw new InvalidInvitationException("Invitation expired.");
+        }
         if(userRepository.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username already in use");
         }
@@ -47,12 +57,12 @@ public class UserService {
         User newUser = User.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
-                //TODO: For now, all registered users will have the TECHNICAL role. In the future, we will assign roles based on the invitation token.
-                .role(Role.TECHNICAL)
+                .role(invitation.getRole())
                 .passwordHash(passwordEncoder.encode(dto.getPassword()))
                 .build();
 
         User savedUser = userRepository.save(newUser);
+        invitationRepository.delete(invitation);
         return mapToResponse(savedUser);
     }
 
