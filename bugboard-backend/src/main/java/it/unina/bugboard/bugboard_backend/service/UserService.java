@@ -38,7 +38,10 @@ public class UserService {
         return mapToResponse(user);
     }
 
-    @Transactional //Transactional to ensure that the invitation is deleted even if something goes wrong during user registration
+    @Transactional
+    // Transactional to ensure atomicity of the registration process,
+    // registration is successful only if the invitation is valid and the user is created, 
+    // otherwise any changes are rolled back
     public UserResponse registerUser(UserRegistrationRequest dto) {
         Invitation invitation = invitationRepository.findByToken(dto.getToken())
                 .orElseThrow(() -> new InvalidInvitationException("Invalid invitation token"));
