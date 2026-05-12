@@ -30,7 +30,7 @@ public class AuthService {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(authRequest.getEmail());
+        String token = jwtService.generateToken(user.getId());
         return new AuthResponse(token, user.getEmail());
     }
 }

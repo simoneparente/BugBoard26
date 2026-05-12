@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,9 +26,9 @@ class JwtServiceTest {
 
     @Test
     void generateToken_Success_ReturnsValidJwtString() {
-        String email = "simone@test.com";
+        UUID userId = UUID.randomUUID();
 
-        String token = jwtService.generateToken(email);
+        String token = jwtService.generateToken(userId);
 
         assertNotNull(token);
         assertFalse(token.trim().isEmpty());
@@ -39,8 +40,8 @@ class JwtServiceTest {
 
     @Test
     void generateToken_Success_ContainsCorrectSubjectAndExpiration() {
-        String email = "simone@test.com";
-        String token = jwtService.generateToken(email);
+        UUID userId = UUID.randomUUID();
+        String token = jwtService.generateToken(userId);
 
         SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 
@@ -52,7 +53,7 @@ class JwtServiceTest {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        assertEquals(email, claims.getSubject());
+        assertEquals(userId.toString(), claims.getSubject());
 
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());

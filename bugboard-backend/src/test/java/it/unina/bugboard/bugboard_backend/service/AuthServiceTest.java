@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,8 +40,9 @@ class AuthServiceTest {
     void login_Success_ReturnsAuthResponseWithToken() {
         AuthRequest request = new AuthRequest("mario@example.com", "SafePassword123#!");
 
+        UUID userId = UUID.randomUUID();
         User mockUser = User.builder()
-                .id(UUID.randomUUID())
+                .id(userId)
                 .email("mario@example.com")
                 .passwordHash("hash_in_db")
                 .role(Role.TECHNICAL)
@@ -49,7 +50,7 @@ class AuthServiceTest {
         
         when(userRepository.findByEmail("mario@example.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches("SafePassword123#!", "hash_in_db")).thenReturn(true);
-        when(jwtService.generateToken("mario@example.com")).thenReturn("mocked.jwt.token");
+        when(jwtService.generateToken(userId)).thenReturn("mocked.jwt.token");
         
         AuthResponse response = authService.login(request);
         assertNotNull(response);
@@ -69,7 +70,7 @@ class AuthServiceTest {
 
         assertEquals("Invalid email or password", ex.getMessage());
 
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(any(UUID.class));
     }
 
     @Test
@@ -88,6 +89,6 @@ class AuthServiceTest {
         });
 
         assertEquals("Invalid email or password", ex.getMessage());
-        verify(jwtService, never()).generateToken(anyString());
+        verify(jwtService, never()).generateToken(any(UUID.class));
     }
 }
