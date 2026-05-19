@@ -1,5 +1,6 @@
 package it.unina.bugboard.bugboard_backend.config;
 
+import it.unina.bugboard.bugboard_backend.security.CustomAccessDeniedHandler;
 import it.unina.bugboard.bugboard_backend.security.JwtAuthenticationEntryPoint;
 import it.unina.bugboard.bugboard_backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -18,19 +19,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exc -> exc
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/invitations/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/register").permitAll()
-                        .requestMatchers("/api/admin/invitations").permitAll() // TODO: Lock this down to ADMIN role later
 
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exc -> exc
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
