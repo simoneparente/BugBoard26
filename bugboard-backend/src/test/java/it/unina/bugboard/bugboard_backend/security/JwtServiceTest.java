@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 class JwtServiceTest {
 
@@ -62,5 +64,35 @@ class JwtServiceTest {
         long diffInHours = diffInMillies / (1000 * 60 * 60);
 
         assertEquals(24, diffInHours);
+    }
+
+    @Test
+    void isTokenValid_Success_ReturnsTrue() {
+        UUID userId = UUID.randomUUID();
+        String token = jwtService.generateToken(userId);
+        boolean tokenValid = jwtService.isTokenValid(token, userId);
+
+        assertTrue(tokenValid);
+    }
+
+    @Test
+    void isTokenValid_Success_ReturnsFalse() {
+        UUID userId = UUID.randomUUID();
+        String token = jwtService.generateToken(userId);
+        boolean tokenValid = jwtService.isTokenValid(token, UUID.randomUUID());
+
+        assertFalse(tokenValid);
+    }
+
+    @Test
+    void isTokenValid_Success_ReturnsFalse_WhenTokenIsExpired() {
+        JwtService spyJwtService = spy(jwtService);
+        UUID userId = UUID.randomUUID();
+
+        String token = spyJwtService.generateToken(userId);
+        doReturn(true).when(spyJwtService).isTokenExpired(token);
+
+        boolean tokenValid = spyJwtService.isTokenValid(token, userId);
+        assertFalse(tokenValid);
     }
 }
