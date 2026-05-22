@@ -18,12 +18,12 @@ class JwtServiceTest {
 
     private JwtService jwtService;
 
-    // TODO: remove from code and use environment variable instead
-    private static final String SECRET_KEY = "TO_BE_REMOVED_FROM_CODE_32_CHARACTERS";
+    // Test-only secret; not used in production. Must be at least 32 bytes for HS256.
+    private static final String SECRET_KEY = "test-secret-key-for-unit-tests-only-32b";
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService();
+        jwtService = new JwtService(SECRET_KEY);
     }
 
     @Test

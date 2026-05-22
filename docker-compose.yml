@@ -30,6 +30,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-bugboard_db}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-bugboard}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-change_me}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
     ports:
       - "8080:8080"
 

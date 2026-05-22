@@ -4,6 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.constraints.NotNull;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -15,13 +16,17 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class JwtService {
-    //TODO: Remove from code and use environment variable instead
-    private static final String SECRET_KEY = "TO_BE_REMOVED_FROM_CODE_32_CHARACTERS";
     private static final int EXPIRATION_HOURS = 24;
     private static final long EXP_TIME_MILLISECONDS = TimeUnit.HOURS.toMillis(EXPIRATION_HOURS);
 
+    private final String secretKey;
+
+    public JwtService(@Value("${jwt.secret}") String secretKey) {
+        this.secretKey = secretKey;
+    }
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(@NotNull UUID userId) {
