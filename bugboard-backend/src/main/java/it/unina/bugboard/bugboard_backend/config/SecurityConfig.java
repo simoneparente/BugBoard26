@@ -23,6 +23,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
+        // CSRF protection is safely disabled here because:
+        //  - this is a stateless REST API (SessionCreationPolicy.STATELESS, no session cookies);
+        //  - authentication relies on a JWT sent in the "Authorization: Bearer ..." header,
+        //    which browsers do NOT attach automatically to cross-origin requests, so a
+        //    third-party site cannot forge an authenticated request on the user's behalf.
+        // If cookie-based auth is ever introduced, CSRF protection MUST be re-enabled.
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
