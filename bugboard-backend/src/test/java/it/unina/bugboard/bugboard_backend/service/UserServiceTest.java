@@ -165,6 +165,22 @@ class UserServiceTest {
         assertNotEquals("password123", capturedUser.getPasswordHash());
     }
 
+    @Test
+    void registerUser_Success_DeletesInvitation() {
+        UserRegistrationRequest request = getRegistrationRequest();
+        Invitation mockInvitation = getMockInvitation();
+
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula il comportamento di save restituendo l'utente passato come argomento
+
+        userService.registerUser(request);
+
+        verify(invitationRepository).delete(mockInvitation);
+    }
+
 
     @Test
     void registerUser_UsernameAlreadyExists() {
@@ -201,8 +217,8 @@ class UserServiceTest {
         Invitation mockInvitation = getExpiredMockInvitation();
         when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
 
+        // Expired invitations are now deleted by a scheduled cleanup job, not during registration
         assertThrows(InvalidInvitationException.class, () -> userService.registerUser(request));
-        verify(invitationRepository).delete(mockInvitation);
     }
 
     private static @NonNull UserRegistrationRequest getRegistrationRequest() {

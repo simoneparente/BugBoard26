@@ -47,7 +47,6 @@ public class UserService {
                 .orElseThrow(() -> new InvalidInvitationException("Invalid invitation token"));
 
         if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
-            invitationRepository.delete(invitation);
             throw new InvalidInvitationException("Invitation expired.");
         }
         if(userRepository.existsByUsername(dto.getUsername())) {
