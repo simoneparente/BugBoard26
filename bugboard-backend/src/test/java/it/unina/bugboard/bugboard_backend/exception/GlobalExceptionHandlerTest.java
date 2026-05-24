@@ -106,9 +106,7 @@ class GlobalExceptionHandlerTest {
     void handleGenericException_Returns500() {
         ResponseEntity<ErrorResponse> response =
                 handler.handleGenericException(new RuntimeException("boom"), request);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ErrorResponse body = response.getBody();
-        assertNotNull(body);
-        assertTrue(body.getMessage().contains("boom"));
+        assertErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error");
+        assertFalse(response.getBody().getMessage().contains("boom"));
     }
 }
