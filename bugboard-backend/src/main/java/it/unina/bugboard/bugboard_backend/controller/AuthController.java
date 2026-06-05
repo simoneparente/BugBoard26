@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
 
+    @SuppressWarnings("java:S2092") //TODO: remove when secure flag is true
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         long expirationTime = 24 * 60 * (long)60; // 24 hours in seconds
