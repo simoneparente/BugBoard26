@@ -11,13 +11,13 @@ import java.util.UUID;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, UUID> {
 
-    // Recupera tutti i tag associati a un determinato progetto
+    // Retrieve all tags associated with a given project
     List<Tag> findByProjectId(UUID projectId);
 
-    // Verifica se esiste già un tag con un certo nome all'interno di un progetto specifico
-    // Molto utile per la validazione in fase di creazione (evita duplicati nello stesso progetto)
+    // Check if a tag with a given name already exists within a specific project
+    // Useful during creation validation (prevents duplicates within the same project)
     boolean existsByNameAndProjectId(String name, UUID projectId);
 
-    // Recupera un tag specifico cercando per nome e ID del progetto
+    // Retrieve a specific tag by name and project ID
     Optional<Tag> findByNameAndProjectId(String name, UUID projectId);
 }

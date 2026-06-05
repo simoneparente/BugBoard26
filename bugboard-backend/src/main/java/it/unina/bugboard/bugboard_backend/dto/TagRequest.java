@@ -15,12 +15,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TagRequest {
 
-    @NotBlank(message = "Il nome del tag è obbligatorio")
+    @NotBlank(message = "Tag name is required")
     private String name;
 
-    @NotBlank(message = "Il colore del tag è obbligatorio")
+    @NotBlank(message = "Tag color is required")
     private String color;
 
-    @NotNull(message = "L'ID del progetto è obbligatorio")
+    @NotNull(message = "Project ID is required")
     private UUID projectId;
 }

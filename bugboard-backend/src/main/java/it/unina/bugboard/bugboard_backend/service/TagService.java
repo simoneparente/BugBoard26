@@ -21,7 +21,7 @@ public class TagService {
     private final TagRepository tagRepository;
     private final ProjectRepository projectRepository;
 
-    // Recupera tutti i tag di un determinato progetto
+    // Retrieve all tags of a specific project
     public List<TagResponse> getAllTagsByProjectId(UUID projectId) {
         return tagRepository
                 .findByProjectId(projectId).stream()
@@ -29,38 +29,35 @@ public class TagService {
                 .toList();
     }
 
-    // Recupera un singolo tag tramite il suo ID
+    // Retrieve a single tag by its ID
     public TagResponse getTagById(UUID id) {
         Tag tag = tagRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", id)));
         return mapToResponse(tag);
     }
 
-    // Creazione di un nuovo tag
+    // Create a new tag
     @Transactional
     public TagResponse createTag(TagRequest dto) {
-        // 1. Verifica che il progetto esista
+        // 1. Verify that the project exists
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Project with id %s not found", dto.getProjectId())));
-
-        // 2. Evita duplicati
+        // 2. Avoid duplicates
         if (tagRepository.existsByNameAndProjectId(dto.getName(), dto.getProjectId())) {
             throw new IllegalArgumentException(String.format("Tag '%s' already exists in this project", dto.getName()));
         }
-
-        // 3. Costruzione dell'entità
+        // 3. Build the entity
         Tag newTag = Tag.builder()
                 .name(dto.getName())
                 .color(dto.getColor())
                 .project(project)
                 .build();
-
         // 4. Save and return
         Tag savedTag = tagRepository.save(newTag);
         return mapToResponse(savedTag);
     }
 
-    // Metodo helper per mappare l'Entity verso il DTO
+    // Helper method to map the Entity to the DTO
     private TagResponse mapToResponse(Tag tag) {
         return TagResponse.builder()
                 .id(tag.getId())

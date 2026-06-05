@@ -19,24 +19,24 @@ public class TagController {
 
     private final TagService tagService;
 
-    // Endpoint per la creazione di un nuovo tag
-    // Risponde a: POST http://localhost:8080/api/tags
+    // Endpoint to create a new tag
+    // Responds to: POST http://localhost:8080/api/tags
     @PostMapping
     public ResponseEntity<TagResponse> createTag(@Valid @RequestBody TagRequest request) {
         TagResponse response = tagService.createTag(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Endpoint per recuperare un singolo tag tramite il suo ID
-    // Risponde a: GET http://localhost:8080/api/tags/{id}
+    // Endpoint to retrieve a single tag by its ID
+    // Responds to: GET http://localhost:8080/api/tags/{id}
     @GetMapping("/{id}")
     public ResponseEntity<TagResponse> getTagById(@PathVariable UUID id) {
         TagResponse response = tagService.getTagById(id);
         return ResponseEntity.ok(response);
     }
 
-    // Endpoint per recuperare tutti i tag appartenenti a uno specifico progetto
-    // Risponde a: GET http://localhost:8080/api/tags/project/{projectId}
+    // Endpoint to retrieve all tags belonging to a specific project
+    // Responds to: GET http://localhost:8080/api/tags/project/{projectId}
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<TagResponse>> getTagsByProjectId(@PathVariable UUID projectId) {
         List<TagResponse> response = tagService.getAllTagsByProjectId(projectId);
