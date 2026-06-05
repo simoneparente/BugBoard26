@@ -4,6 +4,7 @@ import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -48,9 +49,16 @@ class JwtAuthenticationFilterTest {
         SecurityContextHolder.clearContext();
     }
 
+    private Cookie createJwtCookie(String value) {
+        Cookie cookie = mock(Cookie.class);
+        when(cookie.getName()).thenReturn(SecurityConstants.JWT_COOKIE_NAME);
+        when(cookie.getValue()).thenReturn(value);
+        return cookie;
+    }
+
     @Test
-    void doFilterInternal_NoAuthHeader_ContinuesChainWithoutAuthentication() throws Exception {
-        when(request.getHeader("Authorization")).thenReturn(null);
+    void doFilterInternal_NoCookies_ContinuesChainWithoutAuthentication() throws Exception {
+        when(request.getCookies()).thenReturn(null);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -60,8 +68,10 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void doFilterInternal_NonBearerHeader_ContinuesChainWithoutAuthentication() throws Exception {
-        when(request.getHeader("Authorization")).thenReturn("Basic abc");
+    void doFilterInternal_NoCookieMatches_ContinuesChainWithoutAuthentication() throws Exception {
+        Cookie otherCookie = mock(Cookie.class);
+        when(otherCookie.getName()).thenReturn("OTHER_COOKIE");
+        when(request.getCookies()).thenReturn(new Cookie[]{otherCookie});
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -72,7 +82,8 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void doFilterInternal_InvalidJwt_ContinuesChainWithoutAuthentication() throws Exception {
-        when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
+        Cookie jwtCookie = createJwtCookie("invalid-token");
+        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
         when(jwtService.extractUserId("invalid-token")).thenThrow(new RuntimeException("malformed"));
 
         filter.doFilterInternal(request, response, filterChain);
@@ -84,7 +95,8 @@ class JwtAuthenticationFilterTest {
     @Test
     void doFilterInternal_UserNotFound_ContinuesChainWithoutAuthentication() throws Exception {
         UUID userId = UUID.randomUUID();
-        when(request.getHeader("Authorization")).thenReturn("Bearer token");
+        Cookie jwtCookie = createJwtCookie("token");
+        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
         when(jwtService.extractUserId("token")).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -99,7 +111,8 @@ class JwtAuthenticationFilterTest {
         UUID userId = UUID.randomUUID();
         User user = User.builder().id(userId).username("u").email("u@e.com")
                 .passwordHash("h").role(Role.TECHNICAL).build();
-        when(request.getHeader("Authorization")).thenReturn("Bearer token");
+        Cookie jwtCookie = createJwtCookie("token");
+        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
         when(jwtService.extractUserId("token")).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(jwtService.isTokenValid("token", userId)).thenReturn(false);
@@ -115,7 +128,8 @@ class JwtAuthenticationFilterTest {
         UUID userId = UUID.randomUUID();
         User user = User.builder().id(userId).username("admin").email("a@e.com")
                 .passwordHash("h").role(Role.ADMIN).build();
-        when(request.getHeader("Authorization")).thenReturn("Bearer good-token");
+        Cookie jwtCookie = createJwtCookie("good-token");
+        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
         when(jwtService.extractUserId("good-token")).thenReturn(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(jwtService.isTokenValid("good-token", userId)).thenReturn(true);
@@ -135,7 +149,8 @@ class JwtAuthenticationFilterTest {
         UUID userId = UUID.randomUUID();
         Authentication existing = mock(Authentication.class);
         SecurityContextHolder.getContext().setAuthentication(existing);
-        when(request.getHeader("Authorization")).thenReturn("Bearer token");
+        Cookie jwtCookie = createJwtCookie("token");
+        when(request.getCookies()).thenReturn(new Cookie[]{jwtCookie});
         when(jwtService.extractUserId("token")).thenReturn(userId);
 
         filter.doFilterInternal(request, response, filterChain);
