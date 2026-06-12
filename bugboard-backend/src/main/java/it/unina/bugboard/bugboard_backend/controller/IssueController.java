@@ -65,7 +65,6 @@ public class IssueController {
                 .projectName(issue.getProject() != null ? issue.getProject().getName() : null)
                 .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
                 .statusColor(issue.getStatus() != null ? issue.getStatus().getColorCode() : null)
-                .creatorUsername(issue.getCreator() != null ? issue.getCreator().getUsername() : null)
                 .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
                 //.tagNames(issue.getTags() != null ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList()) : List.of())
                 .attachmentsCount(issue.getAttachments() != null ? issue.getAttachments().size() : 0)
