@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "issues")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,8 +37,6 @@ public class Issue {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private IssueStatus status;
 
     @Enumerated(EnumType.STRING)
@@ -82,13 +82,17 @@ public class Issue {
         updatedAt = LocalDateTime.now();
     }
 
-    public void setAssignee(User assignee2) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setAssignee'");
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 
-    //TODO assegnamento
+    public void nextState() {
+        this.status.next(this);
+    }
 
+    public void previousState() {
+        this.status.prev(this);
+    }
 
 }
 

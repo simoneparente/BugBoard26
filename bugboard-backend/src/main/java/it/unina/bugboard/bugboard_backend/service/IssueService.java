@@ -4,6 +4,7 @@ import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import it.unina.bugboard.bugboard_backend.entity.state.OpenStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,7 +15,6 @@ public class IssueService {
     private final IssueRepository issueRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
-    //private final IssueStatusRepository issueStatusRepository;
     private final TagRepository tagRepository;
 
     //Iniezione delle dipendenze
@@ -27,30 +27,20 @@ public class IssueService {
     }
 
     /*creazione issue nel sistema */
-    /**
-     * @param title Titolo del bug
-     * @param description Descrizione del bug
-     * @param creatorId ID dell'utente che crea il bug
-     * @return L'issue appena creata
-     */
-
    @Transactional
     public Issue createIssue(String title, String description, UUID projectId, UUID creatorId, List<UUID> tagIds) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Progetto non trovato."));
 
-        // Recuperiamo lo stato di default dinamico
-       // IssueStatus defaultStatus = issueStatusRepository.findByName("OPEN")
-        //        .orElseThrow(() -> new RuntimeException("Stato iniziale 'OPEN' non configurato a database."));
-
-        // Recuperiamo i tag scelti dall'utente
        List<Tag> tags = tagRepository.findAllById(tagIds);
 
         Issue issue = Issue.builder()
                 .title(title)
                 .description(description)
                 .project(project)
-                //.status(defaultStatus)
+                .status(new OpenStatus())
+                .priority(IssuePriority.LOW)
+                .type(IssueType.BUG)
                 .tags(tags)
                 .build();
 

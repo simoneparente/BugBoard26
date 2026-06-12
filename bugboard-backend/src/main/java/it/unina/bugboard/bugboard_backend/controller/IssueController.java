@@ -7,6 +7,7 @@ import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import it.unina.bugboard.bugboard_backend.entity.Tag;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,10 +64,9 @@ public class IssueController {
                 .createdAt(issue.getCreatedAt())
                 .updatedAt(issue.getUpdatedAt())
                 .projectName(issue.getProject() != null ? issue.getProject().getName() : null)
-                .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
-                .statusColor(issue.getStatus() != null ? issue.getStatus().getColorCode() : null)
+                //.statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
                 .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
-                //.tagNames(issue.getTags() != null ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList()) : List.of())
+                .tagNames(issue.getTags() != null ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList()) : List.of())
                 .attachmentsCount(issue.getAttachments() != null ? issue.getAttachments().size() : 0)
                 .build();
     }
