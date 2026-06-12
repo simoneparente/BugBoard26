@@ -31,10 +31,9 @@ public class SecurityConfig {
         // If cookie-based auth is ever introduced, CSRF protection MUST be re-enabled.
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/invitations/**").hasRole("ADMIN")
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/register").permitAll()
+                    .requestMatchers("/**").permitAll()
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/invitations/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

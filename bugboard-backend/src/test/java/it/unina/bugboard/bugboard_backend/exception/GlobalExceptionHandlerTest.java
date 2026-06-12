@@ -109,4 +109,19 @@ class GlobalExceptionHandlerTest {
         assertErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error");
         assertFalse(response.getBody().getMessage().contains("boom"));
     }
+
+    @Test
+    void handleFileStorageException_Returns500() {
+        ResponseEntity<ErrorResponse> response =
+                handler.handleFileStorageException(new FileStorageException("File upload failed"), request);
+        assertErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "File upload failed");
+    }
+
+    @Test
+    void handleMissingParameters_Returns400() {
+        Exception ex = new org.springframework.web.bind.MissingServletRequestParameterException("file", "MultipartFile");
+        ResponseEntity<ErrorResponse> response =
+                handler.handleMissingParameters(ex, request);
+        assertErrorResponse(response, HttpStatus.BAD_REQUEST, "Missing required parameter: Required request parameter 'file' for method parameter type MultipartFile is not present");
+    }
 }

@@ -15,14 +15,15 @@ public class IssueService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     //private final IssueStatusRepository issueStatusRepository;
-    //private final TagRepository tagRepository;
+    private final TagRepository tagRepository;
 
     //Iniezione delle dipendenze
     public IssueService(IssueRepository issueRepository, UserRepository userRepository, 
-                        ProjectRepository projectRepository) {
+                        ProjectRepository projectRepository, TagRepository tagRepository) {
         this.issueRepository = issueRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.tagRepository = tagRepository;
     }
 
     /*creazione issue nel sistema */
@@ -38,29 +39,25 @@ public class IssueService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Progetto non trovato."));
 
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Utente creatore non trovato."));
-
-        // Recuperiamo lo stato di default dinamico (assumiamo si chiami "OPEN" nel DB)
+        // Recuperiamo lo stato di default dinamico
        // IssueStatus defaultStatus = issueStatusRepository.findByName("OPEN")
         //        .orElseThrow(() -> new RuntimeException("Stato iniziale 'OPEN' non configurato a database."));
 
         // Recuperiamo i tag scelti dall'utente
-       // List<Tag> tags = tagRepository.findAllById(tagIds);
+       List<Tag> tags = tagRepository.findAllById(tagIds);
 
         Issue issue = Issue.builder()
                 .title(title)
                 .description(description)
                 .project(project)
-                .creator(creator)
-               // .status(defaultStatus)
-                //.tags(tags)
+                //.status(defaultStatus)
+                .tags(tags)
                 .build();
 
         return issueRepository.save(issue);
     }
     /**
-     * Assegna Issue esistente allo sviluppatore
+     * Assegna Issue esistente 
      * @param issueId ID dell'issue da assegnare
      * @param assigneeId ID dello sviluppatore a cui assegnare l'issue
      */
@@ -70,7 +67,7 @@ public class IssueService {
         Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new RuntimeException("Issue non trovata ID: " + issueId));
         User assignee = userRepository.findById(assigneeId).orElseThrow(() -> new RuntimeException("Assegnatario non trovato ID: " + assigneeId));
         
-        issue.setAssignee(assignee);  //TODO
+        issue.setAssignee(assignee);  
         return issueRepository.save(issue);
     }
 
@@ -106,6 +103,29 @@ public class IssueService {
     @Transactional(readOnly = true)
     public List<Issue> getIssuesByProjectId(UUID projectId) {
         return issueRepository.findByProjectId(projectId);
+    }
+
+    //tags
+    @Transactional
+    public Issue addTagToIssue(UUID issueId, UUID tagId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue non trovatoo ID: " + issueId));
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag non trovato ID: " + tagId));
+
+        issue.getTags().add(tag);
+        return issueRepository.save(issue);
+    }
+
+    @Transactional
+    public Issue removeTagFromIssue(UUID issueId, UUID tagId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue non trovatoo ID: " + issueId));
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag non trovato ID: " + tagId));
+
+        issue.getTags().remove(tag);
+        return issueRepository.save(issue);
     }
 
     //TODO updateStatus

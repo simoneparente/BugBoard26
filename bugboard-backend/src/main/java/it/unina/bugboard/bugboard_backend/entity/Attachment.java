@@ -1,22 +1,19 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
+import lombok.*;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "attachments")
 @Getter
-@Setter // Spesso utile per i file se devi aggiornare path o metadati
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+
 public class Attachment {
 
     @Id
@@ -27,20 +24,17 @@ public class Attachment {
     private String fileName;
 
     @Column(nullable = false)
-    private String fileType;
-
-    @Column(nullable = false)
     private String filePath;
 
     @Column(nullable = false)
     private Long fileSize;
 
     @Column(nullable = false)
-    private LocalDateTime uploadedAt;
+    private String fileExtension;
 
-    // Se vuoi tracciare quale utente ha caricato l'allegato:
+    // Many-to-one relationship: many attachments can belong to a single Issue
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id", nullable = false)
     private Issue issue;
-    
+
 }

@@ -1,6 +1,5 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 import java.util.List;
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "issues")
@@ -43,9 +43,13 @@ public class Issue {
     @Column(nullable = false, length = 20)
     private IssuePriority priority;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private IssueType type;
+
+    /*@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
+    private User creator;*/
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
@@ -57,6 +61,15 @@ public class Issue {
 
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
+
+    // Relazione Molti-a-Molti con Tag (Tabella di Join)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "issue_tags",
+            joinColumns = @JoinColumn(name = "issue_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags;
     
     @PrePersist
     protected void onCreate() {
@@ -78,3 +91,4 @@ public class Issue {
 
 
 }
+
