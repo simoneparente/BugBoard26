@@ -1,32 +1,47 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import it.unina.bugboard.bugboard_backend.config.SecurityConfig;
 import it.unina.bugboard.bugboard_backend.dto.AttachmentResponse;
 import it.unina.bugboard.bugboard_backend.service.AttachmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+import it.unina.bugboard.bugboard_backend.security.JwtAuthenticationFilter;
+
+@WebMvcTest(controllers = AttachmentController.class, excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration.class
+}, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { SecurityConfig.class,
+        JwtAuthenticationFilter.class }))
+@AutoConfigureMockMvc(addFilters = false)
 class AttachmentControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private AttachmentService attachmentService;
 
-    @InjectMocks
-    private AttachmentController attachmentController;
+    @MockitoBean
+    private it.unina.bugboard.bugboard_backend.security.JwtService jwtService;
 
     private UUID issueId;
     private UUID attachmentId;
@@ -47,40 +62,44 @@ class AttachmentControllerTest {
     }
 
     @Test
-    void uploadAttachment_ReturnsCreatedResponse() {
-        MultipartFile mockFile = new MockMultipartFile("file", "test.txt", "text/plain", "Hello".getBytes());
-        when(attachmentService.uploadAttachment(issueId, mockFile)).thenReturn(dummyResponse);
+    void uploadAttachment_ReturnsCreatedResponse() throws Exception {
+        MockMultipartFile mockFile = new MockMultipartFile("file", "test.txt", "text/plain", "Hello".getBytes());
+        when(attachmentService.uploadAttachment(eq(issueId), any())).thenReturn(dummyResponse);
 
-        ResponseEntity<AttachmentResponse> responseEntity = attachmentController.uploadAttachment(issueId, mockFile);
+        mockMvc.perform(multipart("/api/attachments/issue/{issueId}", issueId)
+                .file(mockFile))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(attachmentId.toString()))
+                .andExpect(jsonPath("$.fileName").value("test.txt"))
+                .andExpect(jsonPath("$.fileSize").value(100))
+                .andExpect(jsonPath("$.fileExtension").value(".txt"))
+                .andExpect(jsonPath("$.issueId").value(issueId.toString()));
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-        assertEquals(dummyResponse, responseEntity.getBody());
-        verify(attachmentService, times(1)).uploadAttachment(issueId, mockFile);
+        verify(attachmentService, times(1)).uploadAttachment(eq(issueId), any());
     }
 
     @Test
-    void getAttachmentById_ReturnsOkResponse() {
+    void getAttachmentById_ReturnsOkResponse() throws Exception {
         when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
 
-        ResponseEntity<AttachmentResponse> responseEntity = attachmentController.getAttachmentById(attachmentId);
+        mockMvc.perform(get("/api/attachments/{id}", attachmentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(attachmentId.toString()))
+                .andExpect(jsonPath("$.fileName").value("test.txt"));
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(dummyResponse, responseEntity.getBody());
         verify(attachmentService, times(1)).getAttachmentById(attachmentId);
     }
 
     @Test
-    void getAttachmentsByIssueId_ReturnsOkResponse() {
+    void getAttachmentsByIssueId_ReturnsOkResponse() throws Exception {
         List<AttachmentResponse> responseList = List.of(dummyResponse);
         when(attachmentService.getAttachmentsByIssueId(issueId)).thenReturn(responseList);
 
-        ResponseEntity<List<AttachmentResponse>> responseEntity = attachmentController.getAttachmentsByIssueId(issueId);
+        mockMvc.perform(get("/api/attachments/issue/{issueId}", issueId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(attachmentId.toString()))
+                .andExpect(jsonPath("$[0].fileName").value("test.txt"));
 
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(responseList, responseEntity.getBody());
         verify(attachmentService, times(1)).getAttachmentsByIssueId(issueId);
     }
 }
