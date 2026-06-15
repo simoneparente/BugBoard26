@@ -7,6 +7,7 @@ import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import it.unina.bugboard.bugboard_backend.repository.AttachmentRepository;
 import it.unina.bugboard.bugboard_backend.repository.IssueRepository;
 import it.unina.bugboard.bugboard_backend.exception.FileStorageException;
+import it.unina.bugboard.bugboard_backend.exception.UploadDirectoryException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class AttachmentService {
         try {
             Files.createDirectories(Paths.get(uploadDir));
         } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory!");
+            throw new UploadDirectoryException("Could not create upload directory!", e);
         }
     }
 
