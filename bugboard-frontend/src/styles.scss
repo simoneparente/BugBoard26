@@ -6,24 +6,22 @@
 // We import Bootstrap SCSS source files
 // and we explicitly inject our custom variables into Bootstrap's module.
 
-@use "bootstrap/scss/bootstrap" with (
+@use 'bootstrap/scss/bootstrap' with (
   // -- Primary Colors --
-  $primary: #005BB0,
-  
+  $primary: #005bb0,
+
   // -- Body Settings --
   $body-bg: #ffffff,
   $body-color: #1e293b,
-  
+
   // -- Form Components --
   $input-bg: #f8fafc,
   $input-border-color: #cbd5e1,
-  $input-focus-border-color: #005BB0, 
-  $input-focus-box-shadow: 0 0 0 4px rgba(#005BB0, 0.15),
+  $input-focus-border-color: #005bb0,
+  $input-focus-box-shadow: 0 0 0 4px rgba(#005bb0, 0.15),
   $input-transition: (border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out),
-  
   // -- Button Components --
-  $btn-box-shadow: 0 4px 12px rgba(#005BB0, 0.2),
-  
+  $btn-box-shadow: 0 4px 12px rgba(#005bb0, 0.2),
   // -- Global Radius --
   $border-radius: 0.5rem,
   $border-radius-lg: 0.75rem
@@ -37,4 +35,4 @@
 /* ==========================================================================
    3. THIRD-PARTY CSS LIBRARIES
    ========================================================================== */
-@import "bootstrap-icons/font/bootstrap-icons.css";
+@import 'bootstrap-icons/font/bootstrap-icons.css';

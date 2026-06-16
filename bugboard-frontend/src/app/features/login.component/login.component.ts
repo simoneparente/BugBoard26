@@ -2,9 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth-service';
 import { Router } from '@angular/router';
-import {  } from '@angular/forms';
+import {} from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FooterComponent } from "../../layout/footer.component/footer.component";
+import { FooterComponent } from '../../layout/footer.component/footer.component';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
 
 @Component({
@@ -27,7 +27,6 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
-
 
   /**
    *
@@ -63,7 +62,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        if(err.status === 401) {
+        if (err.status === 401) {
           this.loginError.set('Credentials do not match our records. Please try again.');
         } else {
           this.loginError.set('An unexpected error occurred. Please try again later.');
@@ -71,5 +70,4 @@ export class LoginComponent {
       },
     });
   }
-
 }

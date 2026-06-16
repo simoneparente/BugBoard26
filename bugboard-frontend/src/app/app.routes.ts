@@ -8,25 +8,25 @@ import { DashboardComponent } from './features/dashboard.component/dashboard.com
 const authGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+
   if (authService.isAuthenticated()) {
     return true;
   }
-  
+
   router.navigate(['/login']);
   return false;
 };
 
 export const routes: Routes = [
-    {
-        path: 'login',
-        component: LoginComponent,
-        title: "BugBoard26 - Login"
-    },
-    {
-        path: 'dashboard',
-        component: DashboardComponent,
-        title: "BugBoard26 - Dashboard",
-        canActivate: [authGuard]
-    }
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'BugBoard26 - Login',
+  },
+  {
+    path: 'dashboard',
+    component: DashboardComponent,
+    title: 'BugBoard26 - Dashboard',
+    canActivate: [authGuard],
+  },
 ];
