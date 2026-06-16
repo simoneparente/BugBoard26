@@ -149,7 +149,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula il comportamento di save restituendo l'utente passato come argomento
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simulates save behavior by returning the user passed as argument
 
         UserResponse response = userService.registerUser(request);
         assertNotNull(response);
@@ -174,7 +174,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula il comportamento di save restituendo l'utente passato come argomento
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simulates save behavior by returning the user passed as argument
 
         userService.registerUser(request);
 
