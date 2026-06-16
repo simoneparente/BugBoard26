@@ -47,13 +47,15 @@ class AttachmentControllerTest {
     private UUID attachmentId;
     private AttachmentResponse dummyResponse;
 
+    private static final String TEST_FILE_NAME = "test.txt";
+
     @BeforeEach
     void setUp() {
         issueId = UUID.randomUUID();
         attachmentId = UUID.randomUUID();
         dummyResponse = AttachmentResponse.builder()
                 .id(attachmentId)
-                .fileName("test.txt")
+                .fileName(TEST_FILE_NAME)
                 .filePath("uploads/" + attachmentId + ".txt")
                 .fileSize(100L)
                 .fileExtension(".txt")
@@ -63,14 +65,14 @@ class AttachmentControllerTest {
 
     @Test
     void uploadAttachment_ReturnsCreatedResponse() throws Exception {
-        MockMultipartFile mockFile = new MockMultipartFile("file", "test.txt", "text/plain", "Hello".getBytes());
+        MockMultipartFile mockFile = new MockMultipartFile("file", TEST_FILE_NAME, "text/plain", "Hello".getBytes());
         when(attachmentService.uploadAttachment(eq(issueId), any())).thenReturn(dummyResponse);
 
         mockMvc.perform(multipart("/api/attachments/issue/{issueId}", issueId)
                 .file(mockFile))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(attachmentId.toString()))
-                .andExpect(jsonPath("$.fileName").value("test.txt"))
+                .andExpect(jsonPath("$.fileName").value(TEST_FILE_NAME))
                 .andExpect(jsonPath("$.fileSize").value(100))
                 .andExpect(jsonPath("$.fileExtension").value(".txt"))
                 .andExpect(jsonPath("$.issueId").value(issueId.toString()));
@@ -85,7 +87,7 @@ class AttachmentControllerTest {
         mockMvc.perform(get("/api/attachments/{id}", attachmentId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(attachmentId.toString()))
-                .andExpect(jsonPath("$.fileName").value("test.txt"));
+                .andExpect(jsonPath("$.fileName").value(TEST_FILE_NAME));
 
         verify(attachmentService, times(1)).getAttachmentById(attachmentId);
     }
@@ -98,7 +100,7 @@ class AttachmentControllerTest {
         mockMvc.perform(get("/api/attachments/issue/{issueId}", issueId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(attachmentId.toString()))
-                .andExpect(jsonPath("$[0].fileName").value("test.txt"));
+                .andExpect(jsonPath("$[0].fileName").value(TEST_FILE_NAME));
 
         verify(attachmentService, times(1)).getAttachmentsByIssueId(issueId);
     }

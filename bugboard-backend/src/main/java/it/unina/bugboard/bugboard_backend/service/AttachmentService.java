@@ -9,7 +9,6 @@ import it.unina.bugboard.bugboard_backend.repository.IssueRepository;
 import it.unina.bugboard.bugboard_backend.exception.FileStorageException;
 import it.unina.bugboard.bugboard_backend.exception.UploadDirectoryException;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,15 +23,20 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
     private final IssueRepository issueRepository;
+    private final String uploadDir;
 
-    // Get the upload directory from configuration, defaulting to "uploads"
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
+    public AttachmentService(
+            AttachmentRepository attachmentRepository,
+            IssueRepository issueRepository,
+            @Value("${file.upload-dir:uploads}") String uploadDir) {
+        this.attachmentRepository = attachmentRepository;
+        this.issueRepository = issueRepository;
+        this.uploadDir = uploadDir;
+    }
 
     // This method is executed automatically at Spring Boot startup
     // Ensures the upload directory exists on disk
