@@ -1,1 +1,40 @@
-@import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
+// src/styles.scss
+
+/* ==========================================================================
+   1. BOOTSTRAP OVERRIDES
+   ========================================================================== */
+// We import Bootstrap SCSS source files
+// and we explicitly inject our custom variables into Bootstrap's module.
+
+@use "bootstrap/scss/bootstrap" with (
+  // -- Primary Colors --
+  $primary: #005BB0,
+  
+  // -- Body Settings --
+  $body-bg: #ffffff,
+  $body-color: #1e293b,
+  
+  // -- Form Components --
+  $input-bg: #f8fafc,
+  $input-border-color: #cbd5e1,
+  $input-focus-border-color: #005BB0, 
+  $input-focus-box-shadow: 0 0 0 4px rgba(#005BB0, 0.15),
+  $input-transition: (border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out),
+  
+  // -- Button Components --
+  $btn-box-shadow: 0 4px 12px rgba(#005BB0, 0.2),
+  
+  // -- Global Radius --
+  $border-radius: 0.5rem,
+  $border-radius-lg: 0.75rem
+);
+
+/* ==========================================================================
+   2. GLOBAL UTILITIES & BASE STYLES
+   ========================================================================== */
+// For eventual global utility classes or base element styles, we can add them here.
+
+/* ==========================================================================
+   3. THIRD-PARTY CSS LIBRARIES
+   ========================================================================== */
+@import "bootstrap-icons/font/bootstrap-icons.css";
