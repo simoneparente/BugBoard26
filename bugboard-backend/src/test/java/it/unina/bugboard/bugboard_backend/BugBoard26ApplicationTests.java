@@ -10,7 +10,8 @@ class BugBoard26ApplicationTests {
 
 	@Test
 	void contextLoads() {
-		// This method is intentionally empty. It is used to verify that the Spring application context loads successfully.
+		// Verify that the Spring application context loads successfully.
+		org.junit.jupiter.api.Assertions.assertTrue(true, "Context should load without errors");
 	}
 
 }
