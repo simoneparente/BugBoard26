@@ -1,0 +1,67 @@
+<div 
+  class="offcanvas offcanvas-end border-0 shadow-lg bg-glass" 
+  tabindex="-1" 
+  id="inviteUserOffcanvas" 
+  aria-labelledby="inviteUserLabel"
+  (hidden.bs.offcanvas)="resetPanel()"
+>
+  <div class="position-absolute start-0 top-0 bottom-0 bg-brand-gradient" style="width: 4px;"></div>
+
+  <div class="offcanvas-header pt-5 px-4 pb-0 border-0">
+    <h4 class="offcanvas-title fw-bold text-dark tracking-tight" id="inviteUserLabel">Invita Nuovo Utente</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body px-4 pb-5 d-flex flex-column">
+    <p class="text-muted mb-4">
+      Seleziona il ruolo per il nuovo membro del workspace e genera un link di registrazione univoco. Il link sarà valido per un singolo utilizzo.
+    </p>
+
+    <div class="mb-auto">
+      <label for="roleSelect" class="form-label fw-medium text-dark">Ruolo Utente</label>
+      <select id="roleSelect" class="form-select form-select-lg" [formControl]="roleControl">
+        <option value="TECHNICAL">Technical</option>
+        <option value="ADMIN">Admin</option>
+        <option value="EXTERNAL">External</option>
+      </select>
+    </div>
+
+    <div class="mt-5 bg-white bg-opacity-75 p-4 rounded-3 border shadow-sm">
+      
+      @if (!generatedLink()) {
+        <button 
+          class="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-semibold d-flex justify-content-center align-items-center" 
+          (click)="generateLink()" 
+          [disabled]="isLoading() || roleControl.invalid"
+        >
+          @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            <span>Generazione in corso...</span>
+          } @else {
+            <span>Genera Link di Invito</span>
+          }
+        </button>
+      } 
+      
+      @else {
+        <div class="d-flex flex-column gap-3">
+          <input 
+            type="text" 
+            class="form-control form-control-lg text-center bg-white border-primary border-opacity-50 text-primary fw-medium" 
+            readonly 
+            [value]="generatedLink()"
+          >
+          
+          <button 
+            class="btn btn-lg w-100 py-3 rounded-3 text-white fw-semibold border-0 d-flex justify-content-center align-items-center gap-2 bg-brand-gradient transition-all" 
+            (click)="copyToClipboard(generatedLink()!)"
+          >
+            <i class="bi text-white" [class.bi-clipboard]="!isCopied()" [class.bi-check-lg]="isCopied()"></i>
+            <span>{{ isCopied() ? 'Copiato negli appunti!' : 'Copia Link' }}</span>
+          </button>
+        </div>
+      }
+      
+    </div>
+  </div>
+</div>

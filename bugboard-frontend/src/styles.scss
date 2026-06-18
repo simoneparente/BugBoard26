@@ -25,12 +25,24 @@
   // -- Global Radius --
   $border-radius: 0.5rem,
   $border-radius-lg: 0.75rem
+
+  
 );
 
 /* ==========================================================================
    2. GLOBAL UTILITIES & BASE STYLES
    ========================================================================== */
-// For eventual global utility classes or base element styles, we can add them here.
+// For global utility classes or base element styles, we can add them here.
+// Aggiunte al nostro sistema globale SCSS
+.bg-glass {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #005BB0 0%, #001224 100%) !important;
+}
 
 /* ==========================================================================
    3. THIRD-PARTY CSS LIBRARIES
