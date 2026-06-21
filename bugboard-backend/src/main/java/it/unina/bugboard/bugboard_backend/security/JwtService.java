@@ -10,14 +10,14 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class JwtService {
     private static final int EXPIRATION_HOURS = 24;
-    private static final long EXP_TIME_MILLISECONDS = TimeUnit.HOURS.toMillis(EXPIRATION_HOURS);
 
     private final String secretKey;
 
@@ -30,10 +30,13 @@ public class JwtService {
     }
 
     public String generateToken(@NotNull UUID userId) {
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(EXPIRATION_HOURS, ChronoUnit.HOURS);
+        
         return Jwts.builder()
                 .subject(userId.toString())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXP_TIME_MILLISECONDS))
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -54,13 +57,14 @@ public class JwtService {
     }
 
     public boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parser()
+        Instant expiration = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .getExpiration();
-        return expiration.before(new Date());
+                .getExpiration()
+                .toInstant();
+        return expiration.isBefore(Instant.now());
     }
 
 

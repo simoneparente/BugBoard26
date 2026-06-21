@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -27,7 +28,7 @@ public class InvitationService {
 
     public InvitationResponse createInvitation(Role role) {
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiry = LocalDateTime.now().plusHours(INVITATION_EXPIRATION_HOURS);
+        LocalDateTime expiry = LocalDateTime.now(ZoneId.of("UTC")).plusHours(INVITATION_EXPIRATION_HOURS);
 
         Invitation invitation = Invitation.builder()
                 .token(token)
@@ -42,7 +43,7 @@ public class InvitationService {
     @Scheduled(fixedDelay = CLEANUP_INTERVAL_HOURS * ONE_HOUR_MILLISECONDS)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cleanupExpiredInvitations() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
         long deletedCount = invitationRepository.deleteByExpiresAtBefore(now);
         if (deletedCount > 0) {
             log.info("Cleaned up {} expired invitations", deletedCount);

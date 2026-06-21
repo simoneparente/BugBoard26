@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -230,7 +231,7 @@ class UserServiceTest {
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now().plusDays(1))
+                .expiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(1))
                 .build();
     }
 
@@ -238,7 +239,7 @@ class UserServiceTest {
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now().minusDays(1))
+                .expiresAt(LocalDateTime.now(ZoneId.of("UTC")).minusDays(1))
                 .build();
     }
 

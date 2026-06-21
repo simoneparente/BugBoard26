@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -35,8 +36,8 @@ class InvitationServiceTest {
         assertEquals(role, response.getRole());
 
         // About 24 hours from now, with a 2 minutes margin to account for execution time
-        assertTrue(response.getExpiresAt().isAfter(LocalDateTime.now().plusHours(23).plusMinutes(59)));
-        assertTrue(response.getExpiresAt().isBefore(LocalDateTime.now().plusHours(24).plusMinutes(1)));
+        assertTrue(response.getExpiresAt().isAfter(LocalDateTime.now(ZoneId.of("UTC")).plusHours(23).plusMinutes(59)));
+        assertTrue(response.getExpiresAt().isBefore(LocalDateTime.now(ZoneId.of("UTC")).plusHours(24).plusMinutes(1)));
 
         // Verify that the invitation was saved with the correct data
         ArgumentCaptor<Invitation> invitationCaptor = ArgumentCaptor.forClass(Invitation.class);
