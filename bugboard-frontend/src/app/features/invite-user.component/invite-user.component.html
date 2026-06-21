@@ -5,7 +5,6 @@
   aria-labelledby="inviteUserLabel"
   (hidden.bs.offcanvas)="resetPanel()"
 >
-
   <div class="offcanvas-header pt-5 px-4 pb-0 border-0">
     <h4 class="offcanvas-title fw-bold text-dark tracking-tight" id="inviteUserLabel">
       Invite a new user
@@ -15,8 +14,8 @@
 
   <div class="offcanvas-body px-4 pb-5 d-flex flex-column">
     <p class="text-muted mb-4">
-      Select the role for the new workspace member and generate a unique registration link, 
-     then share the link with the user. <br/>
+      Select the role for the new workspace member and generate a unique registration link, then
+      share the link with the user. <br />
       The link will be valid for a single use only.
     </p>
 
@@ -52,11 +51,9 @@
 
       @if (generatedLink()) {
         <div class="d-flex flex-column gap-3 pt-3 border-top">
-          <label for="linkInput">
-            Registration Link
-          </label>
+          <label for="linkInput"> Registration Link </label>
           <input
-            #linkInput 
+            #linkInput
             id="linkInput"
             type="text"
             class="form-control form-control-lg text-center bg-white border-primary border-opacity-50 text-primary fw-medium cursor-pointer"
