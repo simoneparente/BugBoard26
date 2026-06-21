@@ -34,12 +34,15 @@ public class SecurityConfig {
         // cross-origin requests. A third-party site cannot forge an authenticated
         // request on the user's behalf.
         // If cookie-based auth is ever introduced then CSRF protection must be re-enabled.
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/**").permitAll()
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/invitations/**").hasRole("ADMIN")
+        @SuppressWarnings("squid:S4502")
+        HttpSecurity configuredHttp = http.csrf(AbstractHttpConfigurer::disable);
 
+        configuredHttp
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/auth/login", "/api/users/register").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/me").authenticated()
                         .anyRequest().authenticated()
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -50,7 +53,7 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+        return configuredHttp.build();
     }
 
     @Bean
