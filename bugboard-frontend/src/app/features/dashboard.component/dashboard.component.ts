@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
-import { InviteUserComponent } from "../invite-user.component/invite-user.component";
+import { InviteUserComponent } from '../invite-user.component/invite-user.component';
 
 @Component({
   selector: 'app-dashboard.component',

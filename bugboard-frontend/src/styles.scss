@@ -24,9 +24,10 @@
   $btn-box-shadow: 0 4px 12px rgba(#005bb0, 0.2),
   // -- Global Radius --
   $border-radius: 0.5rem,
-  $border-radius-lg: 0.75rem
+  $border-radius-lg: 0.75rem,
 
-  
+  // -- Offcanvas Components --
+  $offcanvas-horizontal-width: 600px
 );
 
 /* ==========================================================================
@@ -41,7 +42,11 @@
 }
 
 .bg-brand-gradient {
-  background: linear-gradient(135deg, #005BB0 0%, #001224 100%) !important;
+  background: linear-gradient(135deg, #005bb0 0%, #001224 100%) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
 }
 
 /* ==========================================================================
