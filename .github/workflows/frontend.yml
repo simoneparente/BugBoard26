@@ -1,32 +1,34 @@
-name: Frontend CI (Lint & Format)
+name: Frontend CI (Lint & Format Check)
 
 on:
   push:
-    branches: [ main, development, 'feature/**' ] 
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main, development, 'feature/**' ]
+    branches: [ main, develop ]
 
 jobs:
-  lint-and-format:
+  format-check:
     runs-on: ubuntu-latest
+    
+    # Define the base directory for all 'run' commands in this job
+    defaults:
+      run:
+        working-directory: ./bugboard-frontend
 
     steps:
-      # Step 1: Clone the repository code into the runner
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Install Node.js environment matching project specifications
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-style: 'node'
-          node-version: '22' # Aligned with modern framework standards
-          cache: 'npm'       # Caches dependencies to optimize execution time
+          node-version: '22'
+          cache: 'npm'
+          # Explicitly tell the cache action where the lockfile is located
+          cache-dependency-path: ./bugboard-frontend/package-lock.json
 
-      # Step 3: Install dependencies using clean install mode
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: npm ci
 
-      # Step 4: Run Prettier check. Pipeline fails if code is not properly formatted
       - name: Verify code formatting with Prettier
         run: npm run format:check
