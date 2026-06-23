@@ -18,6 +18,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.Month;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -40,6 +43,9 @@ class UserServiceTest {
 
     @Mock
     private InvitationRepository invitationRepository;
+
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     private UserService userService;
@@ -140,6 +146,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_Success_HashesPasswordAndSavesUser() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = new UserRegistrationRequest(
                 "token", "username", "email@test.com", "password123"
         );
@@ -168,6 +179,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_Success_DeletesInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
 
@@ -185,6 +201,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_UsernameAlreadyExists() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
         when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
@@ -195,6 +216,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_EmailAlreadyExists() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
 
@@ -214,6 +240,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_ThrowsInvalidInvitationException_WhenTokenIsExpired() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getExpiredMockInvitation();
         when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
@@ -227,19 +258,22 @@ class UserServiceTest {
                 "token", "username", "email@test.com", "password123"
         );
     }
-    private static Invitation getMockInvitation() {
+
+    private Invitation getMockInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.now(clock);
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now(ZoneId.of("UTC")).plusDays(1))
+                .expiresAt(fixedNow.plusDays(1))
                 .build();
     }
 
-    private static Invitation getExpiredMockInvitation() {
+    private Invitation getExpiredMockInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.now(clock);
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now(ZoneId.of("UTC")).minusDays(1))
+                .expiresAt(fixedNow.minusDays(1))
                 .build();
     }
 
