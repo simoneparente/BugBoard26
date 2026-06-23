@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InvitationResponse } from '../../core/invitation.model';
 import { ROLES } from '../../core/roles.model';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-invite-user',
@@ -16,6 +17,8 @@ export class InviteUserComponent {
   private http = inject(HttpClient);
   ROLES = ROLES; // Make ROLES available in the template
 
+  private readonly notificationService = inject(NotificationService);
+
   isLoading = signal<boolean>(false);
   generatedLink = signal<string | null>(null);
   isCopied = signal<boolean>(false);
@@ -28,29 +31,28 @@ export class InviteUserComponent {
   roleControl = new FormControl<keyof typeof ROLES>('TECHNICAL', Validators.required);
 
   generateLink() {
-    console.log('Generating link for role:', this.roleControl.value);
+    this.notificationService.showInfo('Info', 'Generating link...', 2000);
     if (this.roleControl.invalid || this.isCooldown() || this.isLoading()) {
-      console.error('Invalid role selected:', this.roleControl.value);
+      this.notificationService.showWarning('Warning', 'Please select a valid role.');
       return;
     }
 
     this.isLoading.set(true);
     const payload = { role: this.roleControl.value };
 
-    console.log('Sending payload to API:', payload);
     this.http.post<InvitationResponse>(`${this.API_URL}`, payload).subscribe({
       next: (response) => {
-        console.log('Received response from API:', response);
         const frontendUrl = window.location.origin;
         const fullInviteLink = `${frontendUrl}/register?token=${response.token}`;
         this.generatedLink.set(fullInviteLink);
         this.isLoading.set(false);
+        this.notificationService.removeAll(); // Clear any previous toasts
+        this.notificationService.showSuccess('Success', 'Link generated successfully!');
         this.startCooldown();
       },
       error: (err) => {
-        console.error('Errore nella generazione del link', err);
         this.isLoading.set(false);
-        //TODO: Show error message to user
+        this.notificationService.showError('error', 'Error generating link. Please try again.');
       },
     });
   }
@@ -78,6 +80,7 @@ export class InviteUserComponent {
   copyToClipboard(link: string) {
     navigator.clipboard.writeText(link).then(() => {
       this.isCopied.set(true);
+      this.notificationService.showInfo('Info', 'Link copied to clipboard');
       setTimeout(() => this.isCopied.set(false), 2000);
     });
   }
