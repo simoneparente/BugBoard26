@@ -4,8 +4,6 @@ import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import it.unina.bugboard.bugboard_backend.entity.state.OpenStatus;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -38,7 +36,6 @@ public class IssueService {
                 .title(title)
                 .description(description)
                 .project(project)
-                .status(new OpenStatus())
                 .priority(IssuePriority.LOW)
                 .type(IssueType.BUG)
                 .tags(tags)

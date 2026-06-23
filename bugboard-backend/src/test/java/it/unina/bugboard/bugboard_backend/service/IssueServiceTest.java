@@ -1,7 +1,6 @@
 package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.entity.*;
-import it.unina.bugboard.bugboard_backend.entity.state.OpenStatus;
 import it.unina.bugboard.bugboard_backend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +67,6 @@ public class IssueServiceTest {
                 .title(title)
                 .description(description)
                 .project(mockProject)
-                .status(new OpenStatus()) // Istanza iniziale dello State Pattern
                 .priority(IssuePriority.MEDIUM)
                 .type(IssueType.BUG)
                 .tags(mockTags)

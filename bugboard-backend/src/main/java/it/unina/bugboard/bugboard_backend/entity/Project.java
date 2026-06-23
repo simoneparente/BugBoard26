@@ -42,8 +42,8 @@ public class Project {
     @OneToMany(mappedBy = "project")
     private List<Tag> tags;
 
-    @ManyToMany(mappedBy = "projects", fetch = FetchType.LAZY)
-    private List<User> members;
+    //@ManyToMany(mappedBy = "projects", fetch = FetchType.LAZY)
+    //private List<User> members;
 
     // TODO REPORTS
 

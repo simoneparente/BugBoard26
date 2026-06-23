@@ -37,7 +37,7 @@ public class Issue {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private IssueStatus status;
+    //private IssueStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -86,13 +86,13 @@ public class Issue {
         this.assignee = assignee;
     }
 
-    public void nextState() {
+    /*public void nextState() {
         this.status.next(this);
     }
 
     public void previousState() {
         this.status.prev(this);
-    }
+    }*/
 
 }
 
