@@ -1,29 +1,32 @@
 package it.unina.bugboard.bugboard_backend.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.JWTVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 class JwtServiceTest {
 
     private JwtService jwtService;
+    private Clock clock;
 
-    // Test-only secret; not used in production. Must be at least 32 bytes for HS256.
+    // Test-only secret; not used in production. Must be at least 32 bytes for HMAC256.
     private static final String SECRET_KEY = "test-secret-key-for-unit-tests-only-32b";
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService(SECRET_KEY);
+        clock = Clock.fixed(Instant.parse("2026-06-23T10:00:00Z"), ZoneId.of("UTC"));
+        jwtService = new JwtService(SECRET_KEY, clock);
     }
 
     @Test
@@ -45,23 +48,21 @@ class JwtServiceTest {
         UUID userId = UUID.randomUUID();
         String token = jwtService.generateToken(userId);
 
-        SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+        JWTVerifier verifier = JWT.require(algorithm).build();
 
+        // verifier.verify() throws an exception if the token is invalid or signature doesn't match
+        DecodedJWT decodedJWT = verifier.verify(token);
 
-        // Jwts.parser() throws an exception if the token is invalid or the signature doesn't match
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        assertEquals(userId.toString(), decodedJWT.getSubject());
+        assertNotNull(decodedJWT.getIssuedAtAsInstant());
+        assertNotNull(decodedJWT.getExpiresAtAsInstant());
 
-        assertEquals(userId.toString(), claims.getSubject());
-
-        assertNotNull(claims.getIssuedAt());
-        assertNotNull(claims.getExpiration());
-
-        long diffInMillies = claims.getExpiration().getTime() - claims.getIssuedAt().getTime();
-        long diffInHours = diffInMillies / (1000 * 60 * 60);
+        // Calculate the difference between issue time and expiration time
+        long diffInHours = ChronoUnit.HOURS.between(
+                decodedJWT.getIssuedAtAsInstant(),
+                decodedJWT.getExpiresAtAsInstant()
+        );
 
         assertEquals(24, diffInHours);
     }
@@ -70,29 +71,43 @@ class JwtServiceTest {
     void isTokenValid_Success_ReturnsTrue() {
         UUID userId = UUID.randomUUID();
         String token = jwtService.generateToken(userId);
+        
         boolean tokenValid = jwtService.isTokenValid(token, userId);
 
         assertTrue(tokenValid);
     }
 
     @Test
-    void isTokenValid_Success_ReturnsFalse() {
+    void isTokenValid_Failure_ReturnsFalse_WhenUserIdDoesNotMatch() {
         UUID userId = UUID.randomUUID();
         String token = jwtService.generateToken(userId);
+        
+        // Attempting to validate the token against a different, random UUID
         boolean tokenValid = jwtService.isTokenValid(token, UUID.randomUUID());
 
         assertFalse(tokenValid);
     }
 
     @Test
-    void isTokenValid_Success_ReturnsFalse_WhenTokenIsExpired() {
-        JwtService spyJwtService = spy(jwtService);
+    void isTokenValid_Failure_ReturnsFalse_WhenTokenIsExpired() {
+        // 1. Setup a fixed clock at a specific moment in time
+        Instant fixedInstant = Instant.parse("2026-06-23T10:00:00Z");
+        Clock fixedClock = Clock.fixed(fixedInstant, ZoneId.of("UTC"));
+        
+        // 2. Create the service with the fixed clock and generate the token
+        JwtService fixedTimeJwtService = new JwtService(SECRET_KEY, fixedClock);
         UUID userId = UUID.randomUUID();
+        String token = fixedTimeJwtService.generateToken(userId);
 
-        String token = spyJwtService.generateToken(userId);
-        doReturn(true).when(spyJwtService).isTokenExpired(token);
+        // 3. Fast-forward time by 25 hours (past the 24-hour token expiration limit)
+        Instant futureInstant = fixedInstant.plus(25, ChronoUnit.HOURS);
+        Clock futureClock = Clock.fixed(futureInstant, ZoneId.of("UTC"));
+        
+        // 4. Create a new service instance operating in the "future" to validate the old token
+        JwtService futureTimeJwtService = new JwtService(SECRET_KEY, futureClock);
+        
+        boolean tokenValid = futureTimeJwtService.isTokenValid(token, userId);
 
-        boolean tokenValid = spyJwtService.isTokenValid(token, userId);
-        assertFalse(tokenValid);
+        assertFalse(tokenValid); // Should be false because the token has expired
     }
 }
