@@ -39,6 +39,14 @@
 			**/exception/*Exception.java,
 			**/BugBoard26Application.java
 		</sonar.coverage.exclusions>
+		<sonar.exclusions>
+    	    **/*.ts,
+    	    **/*.html,
+    	    **/*.scss,
+    	    **/*.css,
+    	    **/*.js,
+			../bugboard-frontend/**
+		</sonar.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
