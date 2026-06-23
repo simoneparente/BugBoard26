@@ -12,7 +12,7 @@ export class NotificationService {
 
   private counter = 0;
   //Map to hold active timeouts for each toast message
-  private activeTimeouts = new Map<number, ReturnType<typeof setTimeout>>(); 
+  private activeTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
 
   show(title: string, message: string, type: ToastMessage['type'] = 'info', duration = 5000) {
     const id = this.counter++;
@@ -56,7 +56,7 @@ export class NotificationService {
   }
 
   removeAll() {
-    this.activeTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.activeTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
     this.activeTimeouts.clear();
     this.toastsSignal.set([]);
   }

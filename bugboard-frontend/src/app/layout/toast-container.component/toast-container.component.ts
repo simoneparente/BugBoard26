@@ -18,26 +18,5 @@ const TOAST_UI_CONFIG: Record<ToastMessage['type'], { icon: string; color: strin
 })
 export class ToastContainerComponent {
   protected readonly notificationService = inject(NotificationService);
-
   protected readonly uiConfig = TOAST_UI_CONFIG;
-
-  getIconClass(type: ToastMessage['type']): string {
-    switch (type) {
-      case 'success': return 'bi bi-check-circle';
-      case 'error': return 'bi bi-x-circle';
-      case 'warning': return 'bi bi-exclamation-triangle-fill';
-      case 'info':
-      default: return 'bi bi-info-circle';
-    }
-  }
-
-  getColorClass(type: ToastMessage['type']): string {
-    switch (type) {
-      case 'success': return 'text-success';
-      case 'error': return 'text-danger';
-      case 'warning': return 'text-warning';
-      case 'info':
-      default: return 'text-primary';
-    }
-  }
 }
