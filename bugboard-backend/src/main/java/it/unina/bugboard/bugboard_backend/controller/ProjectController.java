@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -39,7 +38,7 @@ public class ProjectController {
     public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
         List<ProjectResponseDTO> projects = projectService.getAllProjects().stream()
                 .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(projects);
     }
 

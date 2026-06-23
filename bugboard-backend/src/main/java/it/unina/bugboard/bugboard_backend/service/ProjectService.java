@@ -19,7 +19,7 @@ public class ProjectService {
     @Transactional
     public Project createProject(String name, String description){
         if(projectRepository.existsByName(name)){
-            throw new RuntimeException("Project with the same name already exists.");
+            throw new IllegalArgumentException("Project with the same name already exists.");
         }
         Project project = Project.builder()
                 .name(name)

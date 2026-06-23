@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import javax.management.RuntimeErrorException;
+
 @Service
 public class IssueService {
 
@@ -24,7 +26,7 @@ public class IssueService {
         this.tagRepository = tagRepository;
     }
 
-    /*creazione issue nel sistema */
+    /* creazione issue nel sistema */
    @Transactional
     public Issue createIssue(String title, String description, UUID projectId, UUID creatorId, List<UUID> tagIds) {
         Project project = projectRepository.findById(projectId)
@@ -58,6 +60,45 @@ public class IssueService {
         return issueRepository.save(issue);
     }
 
+    // avvio sviluppo issue (IN_PROGRESS)
+    @Transactional
+    public Issue startIssueProgress(UUID issueId){
+        Issue issue = issueRepository.findById(issueId)
+                        .orElseThrow(()-> new RuntimeException("Issue non trovata Id:" +issueId));
+
+        issue.startPorgress();
+        return issueRepository.save(issue);
+    }
+
+    //accetta risolozione bug
+    @Transactional 
+    public Issue acceptIssue(UUID issueId){
+        Issue issue = issueRepository.findById(issueId)
+                        .orElseThrow(()-> new RuntimeException("Issue non trovata Id: " + issueId));
+        
+        issue.accept();
+        return issueRepository.save(issue);
+    }   
+
+    //ripristino stato precedente
+    @Transactional
+    public Issue rollbackIssueState(UUID issueId) {
+        Issue issue = issueRepository.findById(issueId)
+                .orElseThrow(() -> new RuntimeException("Issue non trovata ID: " + issueId));
+        
+        issue.previousState();
+        return issueRepository.save(issue);
+    }
+
+    @Transactional
+    public Issue removeIssueAssignee(UUID issueId){
+        Issue issue = issueRepository.findById(issueId)
+                        .orElseThrow(()-> new RuntimeException("Issue non trovtaa Id: " +issueId));
+
+        issue.removeAssignee();
+        retunrn issueRepository.save(issue);
+    }
+
     /**
      * Ritorna una Issue dato il suo ID
      */
@@ -82,7 +123,7 @@ public class IssueService {
     @Transactional
     public void deleteIssue(UUID id) {
         if (!issueRepository.existsById(id)) {
-            throw new RuntimeException("Impossibile eliminare. Issue non trovata con ID: " + id);
+            throw new IllegalArgumentException("Impossibile eliminare. Issue non trovata con ID: " + id);
         }
         issueRepository.deleteById(id);
     }
@@ -114,6 +155,4 @@ public class IssueService {
         issue.getTags().remove(tag);
         return issueRepository.save(issue);
     }
-
-    //TODO updateStatus
 }

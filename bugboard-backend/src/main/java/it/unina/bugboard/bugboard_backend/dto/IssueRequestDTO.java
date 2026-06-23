@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
-//import java.util.List;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class IssueRequestDTO {
     private String description;
     private UUID projectId;
     private UUID creatorId;
-    //private List<UUID> tagIds;
+    private List<UUID> tagIds;
 }

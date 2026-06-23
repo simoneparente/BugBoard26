@@ -30,9 +30,7 @@ public class IssueController {
                 request.getDescription(),
                 request.getProjectId(),
                 request.getCreatorId(),
-                null //TAGS
-                //request.getTagIds()
-        );
+                request.getTagIds());
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
 
@@ -42,19 +40,50 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    //recupera solo le issue di un determinato progetto
+    // recupera solo le issue di un determinato progetto
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<IssueResponseDTO>> getIssuesByProject(@PathVariable UUID projectId) {
         List<IssueResponseDTO> issues = issueService.getIssuesByProjectId(projectId).stream()
                 .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(issues);
     }
 
-    /*@PatchMapping("/{id}/status")
-    public ResponseEntity<IssueResponseDTO> updateStatus(@PathVariable UUID id, @RequestParam UUID statusId) {
-        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
-    }*/
+    // state pattern
+    // assegno issue ad utente specifico
+    @PutMapping("/{id}/assign")
+    public ResponseEntity<IssueResponseDTO> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
+        Issue issue = issueService.assignIssue(id, assigneeId);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
+
+    // inizio sviluppo issue
+    @PutMapping("/{id}/start-progress")
+    public ResponseEntity<IssueResponseDTO> startProgress(@PathVariable UUID id) {
+        Issue issue = issueService.startIssueProgress(id);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
+
+    // accetto risoluzione issue
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<IssueResponseDTO> acceptIssue(@PathVariable UUID id) {
+        Issue issue = issueService.acceptIssue(id);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
+
+    // ripristino stato precedente
+    @PutMapping("/{id}/previous")
+    public ResponseEntity<IssueResponseDTO> goToPreviousState(@PathVariable UUID id) {
+        Issue issue = issueService.rollbackIssueState(id);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
+
+    // rimozione assegnatario
+    @DeleteMapping("/{id}/assignee")
+    public ResponseEntity<Issue> removeAssignee(@PathVariable UUID id) {
+        Issue updatedIssue = issueService.removeIssueAssignee(id);
+        return ResponseEntity.ok(updatedIssue);
+    }
 
     private IssueResponseDTO mapToResponseDTO(Issue issue) {
         return IssueResponseDTO.builder()
@@ -64,9 +93,11 @@ public class IssueController {
                 .createdAt(issue.getCreatedAt())
                 .updatedAt(issue.getUpdatedAt())
                 .projectName(issue.getProject() != null ? issue.getProject().getName() : null)
-                //.statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
+                // .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
                 .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
-                .tagNames(issue.getTags() != null ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList()) : List.of())
+                .tagNames(issue.getTags() != null
+                        ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList())
+                        : List.of())
                 .attachmentsCount(issue.getAttachments() != null ? issue.getAttachments().size() : 0)
                 .build();
     }

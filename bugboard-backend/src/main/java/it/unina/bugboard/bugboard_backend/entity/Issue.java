@@ -1,5 +1,7 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
+import it.unina.bugboard.bugboard_backend.entity.state.Status;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +12,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 
 @Entity
@@ -37,7 +40,9 @@ public class Issue {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    //private IssueStatus status;
+    @Convert(converter = IssueStatusConverter.class)
+    @Column(nullable = false, length = 30)
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -46,10 +51,6 @@ public class Issue {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private IssueType type;
-
-    /*@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;*/
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
@@ -73,26 +74,44 @@ public class Issue {
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     public void setAssignee(User assignee) {
         this.assignee = assignee;
     }
 
-    /*public void nextState() {
-        this.status.next(this);
+    public void setStatus(Status status){
+        this.status=status;
     }
 
-    public void previousState() {
-        this.status.prev(this);
-    }*/
+    public void assign(User user){
+        this.status.assign(this, user);
+    }
+
+    public void removeAssignee(){
+        this.status.removeAssignee(this);
+    }
+
+    public void startPorgress(){
+        this.status.startProgress(this);
+    }
+
+    public void accept(){
+        this.status.accept(this);
+    }
+
+    public void previousState(){
+        this.status = this.status.previousStatus();
+    }
+
+
 
 }
 
