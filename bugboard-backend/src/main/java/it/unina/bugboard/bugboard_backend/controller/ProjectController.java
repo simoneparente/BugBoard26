@@ -1,7 +1,7 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
-import it.unina.bugboard.bugboard_backend.dto.ProjectRequestDTO;
-import it.unina.bugboard.bugboard_backend.dto.ProjectResponseDTO;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
 import org.springframework.http.HttpStatus;
@@ -22,28 +22,28 @@ public class ProjectController {
     }
 
     @PostMapping 
-    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO projectRequest) {
+    public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
         Project project = projectService.createProject(projectRequest.getName(), projectRequest.getDescription());
         return new ResponseEntity<>(mapToResponseDTO(project), HttpStatus.CREATED);
 
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponseDTO> getProjectById(@PathVariable UUID id) {
+    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable UUID id) {
         Project project = projectService.getProjectById(id);
         return ResponseEntity.ok(mapToResponseDTO(project));
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
-        List<ProjectResponseDTO> projects = projectService.getAllProjects().stream()
+    public ResponseEntity<List<ProjectResponse>> getAllProjects() {
+        List<ProjectResponse> projects = projectService.getAllProjects().stream()
                 .map(this::mapToResponseDTO)
                 .toList();
         return ResponseEntity.ok(projects);
     }
 
-    private ProjectResponseDTO mapToResponseDTO(Project project) {
-        return ProjectResponseDTO.builder()
+    private ProjectResponse mapToResponseDTO(Project project) {
+        return ProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())
                 .description(project.getDescription())

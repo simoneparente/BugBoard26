@@ -1,7 +1,7 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
-import it.unina.bugboard.bugboard_backend.dto.IssueRequestDTO;
-import it.unina.bugboard.bugboard_backend.dto.IssueResponseDTO;
+import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
+import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponseDTO> createIssue(@RequestBody IssueRequestDTO request) {
+    public ResponseEntity<IssueResponse> createIssue(@RequestBody IssueRequest request) {
         Issue issue = issueService.createIssue(
                 request.getTitle(),
                 request.getDescription(),
@@ -35,15 +35,15 @@ public class IssueController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponseDTO> getIssueById(@PathVariable UUID id) {
+    public ResponseEntity<IssueResponse> getIssueById(@PathVariable UUID id) {
         Issue issue = issueService.getIssueById(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
     // recupera solo le issue di un determinato progetto
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<IssueResponseDTO>> getIssuesByProject(@PathVariable UUID projectId) {
-        List<IssueResponseDTO> issues = issueService.getIssuesByProjectId(projectId).stream()
+    public ResponseEntity<List<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId) {
+        List<IssueResponse> issues = issueService.getIssuesByProjectId(projectId).stream()
                 .map(this::mapToResponseDTO)
                 .toList();
         return ResponseEntity.ok(issues);
@@ -52,28 +52,28 @@ public class IssueController {
     // state pattern
     // assegno issue ad utente specifico
     @PutMapping("/{id}/assign")
-    public ResponseEntity<IssueResponseDTO> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
+    public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
         Issue issue = issueService.assignIssue(id, assigneeId);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
     // inizio sviluppo issue
     @PutMapping("/{id}/start-progress")
-    public ResponseEntity<IssueResponseDTO> startProgress(@PathVariable UUID id) {
+    public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
         Issue issue = issueService.startIssueProgress(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
     // accetto risoluzione issue
     @PutMapping("/{id}/accept")
-    public ResponseEntity<IssueResponseDTO> acceptIssue(@PathVariable UUID id) {
+    public ResponseEntity<IssueResponse> acceptIssue(@PathVariable UUID id) {
         Issue issue = issueService.acceptIssue(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
     // ripristino stato precedente
     @PutMapping("/{id}/previous")
-    public ResponseEntity<IssueResponseDTO> goToPreviousState(@PathVariable UUID id) {
+    public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable UUID id) {
         Issue issue = issueService.rollbackIssueState(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
@@ -85,8 +85,8 @@ public class IssueController {
         return ResponseEntity.ok(updatedIssue);
     }
 
-    private IssueResponseDTO mapToResponseDTO(Issue issue) {
-        return IssueResponseDTO.builder()
+    private IssueResponse mapToResponseDTO(Issue issue) {
+        return IssueResponse.builder()
                 .id(issue.getId())
                 .title(issue.getTitle())
                 .description(issue.getDescription())

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class ProjectResponseDTO {
+public class ProjectResponse {
     //restituisce i dati del progetto 
     
     private UUID id;

@@ -16,7 +16,7 @@ public class NotFixed extends BaseStatus {
 
     @Override
     public void startProgress(Issue issue){
-        issue.setStatus(new InProgress());
+        executeStartProgress(issue);
     }
     //close
     @Override 
@@ -26,7 +26,6 @@ public class NotFixed extends BaseStatus {
     //
     @Override
     public void removeAssignee(Issue issue){
-        issue.setAssignee(null);
-        issue.setStatus(new ToBeAssigned());
+        executeRemoveAssignee(issue);
     }
 }

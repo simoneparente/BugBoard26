@@ -44,4 +44,13 @@ public abstract class BaseStatus implements Status {
     public void removeAssignee(Issue issue) {
         throw new IllegalStateException("Operazione 'close' non consentita nello stato " + getName());
     }
+
+    protected void executeStartProgress(Issue issue){
+        issue.setStatus(new InProgress());
+    }
+
+    protected void executeRemoveAssignee(Issue issue){
+        issue.setAssignee(null);
+        issue.setStatus(new ToBeAssigned());
+    }
 }

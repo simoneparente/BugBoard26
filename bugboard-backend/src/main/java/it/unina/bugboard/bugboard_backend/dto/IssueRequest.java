@@ -4,13 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectRequestDTO {
-    //invio dati per creazione nuovo progetto
-    private String name;
+public class IssueRequest {
+    private String title;
     private String description;
-
+    private UUID projectId;
+    private UUID creatorId;
+    private List<UUID> tagIds;
 }
-

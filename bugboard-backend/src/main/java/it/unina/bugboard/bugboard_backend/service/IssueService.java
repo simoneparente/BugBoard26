@@ -96,7 +96,7 @@ public class IssueService {
                         .orElseThrow(()-> new RuntimeException("Issue non trovtaa Id: " +issueId));
 
         issue.removeAssignee();
-        retunrn issueRepository.save(issue);
+        return issueRepository.save(issue);
     }
 
     /**
