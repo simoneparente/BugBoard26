@@ -68,4 +68,19 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .body(responseBody);
     }
+
+    @SuppressWarnings("java:S2092") //TODO: remove when secure flag is true
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie jwtCookie = ResponseCookie.from(SecurityConstants.JWT_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(false) // TODO: put true in production with HTTPS
+                .path("/")
+                .maxAge(0) // Expire the cookie immediately
+                .sameSite("Strict")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .build();
+    }
 }

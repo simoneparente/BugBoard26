@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
 import { InviteUserComponent } from '../invite-user.component/invite-user.component';
+import { AuthService } from '../../core/auth/auth-service';
 
 @Component({
   selector: 'app-dashboard.component',
@@ -8,4 +9,10 @@ import { InviteUserComponent } from '../invite-user.component/invite-user.compon
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  private authService = inject(AuthService);
+
+  public logout() {
+    this.authService.logout();
+  }
+}

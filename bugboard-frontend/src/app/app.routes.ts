@@ -29,4 +29,9 @@ export const routes: Routes = [
     title: 'BugBoard26 - Dashboard',
     canActivate: [authGuard],
   },
+  {
+    path: '',
+    redirectTo: '/dashboard',
+    pathMatch: 'full',
+  },
 ];
