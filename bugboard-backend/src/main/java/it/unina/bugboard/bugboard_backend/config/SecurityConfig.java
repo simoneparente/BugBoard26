@@ -28,12 +28,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
-        // CSRF protection is safely disabled here because this is a stateless REST API
-        // without session cookies. Also authentication relies on a JWT sent in the
-        // authorization header which browsers do not attach automatically to
-        // cross-origin requests. A third-party site cannot forge an authenticated
-        // request on the user's behalf.
-        // If cookie-based auth is ever introduced then CSRF protection must be re-enabled.
+        // CSRF protection is intentionally disabled. Even if we use cookie-based authentication, 
+        // CSRF defense is enforced by the 'SameSite=Strict' attribute configured on the HttpOnly 
+        // JWT cookie. This tells the browser to never attach the authentication cookie to 
+        // cross-site requests, preventing CSRF attacks.
         @SuppressWarnings("squid:S4502")
         HttpSecurity configuredHttp = http.csrf(AbstractHttpConfigurer::disable);
 
