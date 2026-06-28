@@ -23,9 +23,13 @@ class JwtServiceTest {
     // Test-only secret; not used in production. Must be at least 32 bytes for HMAC256.
     private static final String SECRET_KEY = "test-secret-key-for-unit-tests-only-32b";
 
+    @SuppressWarnings("java:S8692")
     @BeforeEach
     void setUp() {
-        clock = Clock.fixed(Instant.parse("2026-06-23T10:00:00Z"), ZoneId.of("UTC"));
+        // The system clock is used here because the JWT library's verification process
+        // strictly checks the expiration claim against the real system time. 
+        // Using a fixed past clock breaks the verification.
+        clock = Clock.systemUTC();
         jwtService = new JwtService(SECRET_KEY, clock);
     }
 
