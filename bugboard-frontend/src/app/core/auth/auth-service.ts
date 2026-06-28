@@ -2,14 +2,14 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthRequest, AuthResponse } from './auth.models';
 import { catchError, tap, Observable, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  //TODO: Move this to environment.ts
-  private readonly API_URL = 'http://localhost:8080/api/auth';
+  private readonly API_URL = environment.apiUrl;
 
   private readonly currentUserSignal = signal<AuthResponse | null>(null);
 
