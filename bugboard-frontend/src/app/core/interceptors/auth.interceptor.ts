@@ -12,12 +12,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(clonedRequest).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        // Only redirect if the 401 is NOT from the login endpoint
-        if (!req.url.includes('/auth/login')) {
-          router.navigate(['/login']);
-        }
-      }
       return throwError(() => error);
     }),
   );

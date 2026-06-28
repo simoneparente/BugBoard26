@@ -24,13 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideAppInitializer(async () => {
       const authService = inject(AuthService);
-      try {
-        // firstValueFrom forces the Observable to resolve and allows us to catch errors during initialization.
-        await firstValueFrom(authService.checkSession());
-      } catch (error) {
-        // If the session check fails, we log a warning. This could be due to network issues or the user not being authenticated.
-        console.warn('Session check failed during initialization.');
-      }
+      authService.checkSession().subscribe();
     }),
   ],
 };

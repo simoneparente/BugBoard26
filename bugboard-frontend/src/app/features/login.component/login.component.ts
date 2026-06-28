@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth-service';
 import { Router } from '@angular/router';
-import {} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from '../../layout/footer.component/footer.component';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
