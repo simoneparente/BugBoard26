@@ -10,6 +10,7 @@ import it.unina.bugboard.bugboard_backend.security.SecurityConstants;
 import it.unina.bugboard.bugboard_backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,8 +39,14 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            String email = authentication.getName();
-            User currentUser = userRepository.findByEmail(email)
+            String userIdString = authentication.getName(); 
+            UUID userId;
+            try {
+                userId = UUID.fromString(userIdString);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            User currentUser = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
             AuthResponse responseBody = new AuthResponse(
