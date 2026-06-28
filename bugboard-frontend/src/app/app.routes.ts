@@ -4,6 +4,7 @@ import { AuthService } from './core/auth/auth-service';
 import { LoginComponent } from './features/login.component/login.component';
 
 import { DashboardComponent } from './features/dashboard.component/dashboard.component';
+import { RegisterComponent } from './features/register.component/register.component';
 
 const authGuard = () => {
   const authService = inject(AuthService);
@@ -18,6 +19,11 @@ const authGuard = () => {
 };
 
 export const routes: Routes = [
+  {
+    path: 'register',
+    component: RegisterComponent,
+    title: 'BugBoard26 - Register',
+  },
   {
     path: 'login',
     component: LoginComponent,
