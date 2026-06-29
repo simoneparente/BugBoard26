@@ -31,6 +31,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-bugboard}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-change_me}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - SEED_USERNAME=${SEED_USERNAME:-bugboard}
+      - SEED_EMAIL=${SEED_EMAIL:-bugboard@bugboard.it}
+      - SEED_PASSWORD=${SEED_PASSWORD:-bugboard}
     ports:
       - "8080:8080"
 
