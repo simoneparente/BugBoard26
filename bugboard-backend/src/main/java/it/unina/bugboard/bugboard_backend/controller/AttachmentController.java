@@ -19,8 +19,10 @@ public class AttachmentController {
 
     private final AttachmentService attachmentService;
 
-    // Endpoint to upload a file attached to an Issue
-    // Responds to: POST http://localhost:8080/api/attachments/issue/{issueId}
+    /**
+     * Endpoint to upload a file attached to an Issue.
+     * POST /api/attachments/issue/{issueId}
+     */
     @PostMapping(value = "/issue/{issueId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AttachmentResponse> uploadAttachment(
             @PathVariable UUID issueId,
@@ -30,16 +32,20 @@ public class AttachmentController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Endpoint to retrieve the metadata of a single attachment
-    // Responds to: GET http://localhost:8080/api/attachments/{id}
+    /**
+     * Endpoint to retrieve the metadata of a single attachment.
+     * GET /api/attachments/{id}
+     */
     @GetMapping("/{id}")
     public ResponseEntity<AttachmentResponse> getAttachmentById(@PathVariable UUID id) {
         AttachmentResponse response = attachmentService.getAttachmentById(id);
         return ResponseEntity.ok(response);
     }
 
-    // Endpoint to retrieve all attachments belonging to a specific Issue
-    // Responds to: GET http://localhost:8080/api/attachments/issue/{issueId}
+    /**
+     * Endpoint to retrieve all attachments belonging to a specific Issue.
+     * GET /api/attachments/issue/{issueId}
+     */
     @GetMapping("/issue/{issueId}")
     public ResponseEntity<List<AttachmentResponse>> getAttachmentsByIssueId(@PathVariable UUID issueId) {
         List<AttachmentResponse> response = attachmentService.getAttachmentsByIssueId(issueId);

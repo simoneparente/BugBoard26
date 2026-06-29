@@ -7,8 +7,8 @@ import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import it.unina.bugboard.bugboard_backend.repository.AttachmentRepository;
 import it.unina.bugboard.bugboard_backend.repository.IssueRepository;
 import it.unina.bugboard.bugboard_backend.exception.FileStorageException;
+import it.unina.bugboard.bugboard_backend.exception.UploadDirectoryException;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +23,20 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AttachmentService {
 
     private final AttachmentRepository attachmentRepository;
     private final IssueRepository issueRepository;
+    private final String uploadDir;
 
-    // Get the upload directory from configuration, defaulting to "uploads"
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
+    public AttachmentService(
+            AttachmentRepository attachmentRepository,
+            IssueRepository issueRepository,
+            @Value("${file.upload-dir:uploads}") String uploadDir) {
+        this.attachmentRepository = attachmentRepository;
+        this.issueRepository = issueRepository;
+        this.uploadDir = uploadDir;
+    }
 
     // This method is executed automatically at Spring Boot startup
     // Ensures the upload directory exists on disk
@@ -40,51 +45,68 @@ public class AttachmentService {
         try {
             Files.createDirectories(Paths.get(uploadDir));
         } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory!");
+            throw new UploadDirectoryException("Could not create upload directory!", e);
         }
     }
 
     @Transactional
     public AttachmentResponse uploadAttachment(UUID issueId, MultipartFile file) {
-        // 1. Check that the Issue exists
-        Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Issue with id %s not found", issueId)));
+        Issue issue = getIssueOrThrow(issueId);
+        validateFileNotEmpty(file);
 
-        // 2. Check that the file is not empty
+        String originalFileName = file.getOriginalFilename();
+        String extension = getFileExtension(originalFileName);
+        Path targetLocation = generateTargetLocation(extension);
+
+        saveFileToStorage(file, targetLocation);
+
+        Attachment savedAttachment = saveAttachmentToDatabase(
+                originalFileName, targetLocation.toString(), file.getSize(), extension, issue
+        );
+
+        return mapToResponse(savedAttachment);
+    }
+
+    private Issue getIssueOrThrow(UUID issueId) {
+        return issueRepository.findById(issueId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Issue with id %s not found", issueId)));
+    }
+
+    private void validateFileNotEmpty(MultipartFile file) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Cannot upload an empty file");
         }
+    }
 
+    private String getFileExtension(String originalFileName) {
+        if (originalFileName != null && originalFileName.contains(".")) {
+            return originalFileName.substring(originalFileName.lastIndexOf("."));
+        }
+        return "";
+    }
+
+    private Path generateTargetLocation(String extension) {
+        String physicalFileName = UUID.randomUUID() + extension;
+        return Paths.get(uploadDir).resolve(physicalFileName);
+    }
+
+    private void saveFileToStorage(MultipartFile file, Path targetLocation) {
         try {
-            // 3. Extract file metadata
-            String originalFileName = file.getOriginalFilename();
-            String extension = "";
-            if (originalFileName != null && originalFileName.contains(".")) {
-                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            }
-
-            // 4. Generate a unique physical filename to avoid overwriting files with the same name
-            String physicalFileName = UUID.randomUUID() + extension;
-            Path targetLocation = Paths.get(uploadDir).resolve(physicalFileName);
-
-            // 5. Physically save the file to the container
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            // 6. Persist metadata in the database
-            Attachment attachment = Attachment.builder()
-                    .fileName(originalFileName)         // Original name (e.g., "screen.png")
-                    .filePath(targetLocation.toString()) // Physical path (e.g., "uploads/123-456.png")
-                    .fileSize(file.getSize())           // Size in bytes
-                    .fileExtension(extension)           // File extension (e.g., ".png")
-                    .issue(issue)                       // Link to the Issue
-                    .build();
-
-            Attachment savedAttachment = attachmentRepository.save(attachment);
-            return mapToResponse(savedAttachment);
-
         } catch (IOException ex) {
             throw new FileStorageException("Could not store file " + file.getOriginalFilename() + ". Please try again!", ex);
         }
+    }
+
+    private Attachment saveAttachmentToDatabase(String originalFileName, String filePath, long fileSize, String extension, Issue issue) {
+        Attachment attachment = Attachment.builder()
+                .fileName(originalFileName)
+                .filePath(filePath)
+                .fileSize(fileSize)
+                .fileExtension(extension)
+                .issue(issue)
+                .build();
+        return attachmentRepository.save(attachment);
     }
 
     public List<AttachmentResponse> getAttachmentsByIssueId(UUID issueId) {

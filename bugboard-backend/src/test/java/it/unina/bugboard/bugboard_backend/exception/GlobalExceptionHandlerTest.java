@@ -124,4 +124,12 @@ class GlobalExceptionHandlerTest {
                 handler.handleMissingParameters(ex, request);
         assertErrorResponse(response, HttpStatus.BAD_REQUEST, "Missing required parameter: Required request parameter 'file' for method parameter type MultipartFile is not present");
     }
+
+    @Test
+    void handleUploadDirectoryException_Returns500() {
+        ResponseEntity<ErrorResponse> response =
+                handler.handleUploadDirectoryException(new UploadDirectoryException("Could not create upload directory!"), request);
+        assertErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "Could not create upload directory!");
+    }
 }
+

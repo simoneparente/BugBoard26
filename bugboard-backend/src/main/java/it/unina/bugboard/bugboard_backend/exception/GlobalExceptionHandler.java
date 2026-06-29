@@ -76,6 +76,12 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(UploadDirectoryException.class)
+    public ResponseEntity<ErrorResponse> handleUploadDirectoryException(UploadDirectoryException ex, HttpServletRequest request) {
+        log.error("Upload directory initialization error on {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception while processing {} {}", request.getMethod(), request.getRequestURI(), ex);

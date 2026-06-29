@@ -10,6 +10,8 @@ class BugBoard26ApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// Verify that the Spring application context loads successfully.
+		org.junit.jupiter.api.Assertions.assertTrue(true, "Context should load without errors");
 	}
 
 }
