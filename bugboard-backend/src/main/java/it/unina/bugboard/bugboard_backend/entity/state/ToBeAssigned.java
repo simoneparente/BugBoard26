@@ -18,6 +18,6 @@ public class ToBeAssigned extends BaseStatus {
 
     @Override 
     public void close(Issue issue){
-        //chiusura 
+        executeClose(issue);
     }
 }

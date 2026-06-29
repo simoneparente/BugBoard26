@@ -21,7 +21,7 @@ public class Assigned extends BaseStatus {
 
     @Override 
     public void close(Issue issue){
-        //chiusura issue
+        executeClose(issue);
     }
 
     @Override

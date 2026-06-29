@@ -19,6 +19,6 @@ public class InProgress extends BaseStatus {
 
     @Override
     public void close(Issue issue) {
-        // Logica di chiusura
+        executeClose(issue);
     }
 }

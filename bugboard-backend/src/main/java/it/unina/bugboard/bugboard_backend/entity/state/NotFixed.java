@@ -21,7 +21,7 @@ public class NotFixed extends BaseStatus {
     //close
     @Override 
     public void close(Issue issue){
-        //chiusura
+        executeClose(issue);
     }
     //
     @Override
