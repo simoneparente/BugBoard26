@@ -46,6 +46,7 @@ public class IssueServiceTest {
     private List<UUID> tagIds;
     private Project mockProject;
     private List<Tag> mockTags;
+    private Issue mockIssue;
     private User mockUser;
 
     @BeforeEach
@@ -63,11 +64,22 @@ public class IssueServiceTest {
                 Tag.builder().id(tagIds.get(0)).name("Bug").color("#FF0000").project(mockProject).build(),
                 Tag.builder().id(tagIds.get(1)).name("Feature").color("#00FF00").project(mockProject).build());
         mockUser = User.builder().id(UUID.randomUUID()).username("dev_michela").build();
+        mockIssue = Issue.builder()
+                .id(UUID.randomUUID())
+                .title("Sample Issue")
+                .description("This is a sample issue for testing.")
+                .project(mockProject)
+                .status(new ToBeAssigned())
+                .priority(IssuePriority.MEDIUM)
+                .type(IssueType.BUG)
+                .tags(mockTags)
+                .createdAt(LocalDateTime.now(ZoneId.systemDefault()))
+                .updatedAt(LocalDateTime.now(ZoneId.systemDefault()))
+                .build();
     }
 
     @Test
     void createIssue_Success() {
-        // Arrange
         String title = "NullPointerException in Login";
         String description = "The server crashes if it receives blank credentials.";
 
@@ -80,7 +92,7 @@ public class IssueServiceTest {
                 .title(title)
                 .description(description)
                 .project(mockProject)
-                .status(new ToBeAssigned()) // Il nostro stato iniziale polimorfico
+                .status(new ToBeAssigned())
                 .priority(IssuePriority.MEDIUM)
                 .type(IssueType.BUG)
                 .tags(mockTags)
@@ -92,10 +104,8 @@ public class IssueServiceTest {
         when(tagRepository.findAllById(tagIds)).thenReturn(mockTags);
         when(issueRepository.save(any(Issue.class))).thenReturn(savedIssue);
 
-        // Act
         Issue result = issueService.createIssue(request);
 
-        // Assert
         assertNotNull(result);
         assertNotNull(result.getId());
         assertEquals(title, result.getTitle());
@@ -114,13 +124,11 @@ public class IssueServiceTest {
 
     @Test
     void assignIssue_IssueNotFound_ThrowsException() {
-        // 1. ARRANGE
         UUID fakeIssueId = UUID.randomUUID();
         UUID assigneeId = UUID.randomUUID();
 
         when(issueRepository.findById(fakeIssueId)).thenReturn(Optional.empty());
 
-        // 2. ACT & 3. ASSERT
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             issueService.assignIssue(fakeIssueId, assigneeId);
         });
@@ -144,7 +152,7 @@ public class IssueServiceTest {
 
         assertNotNull(result);
         assertEquals("IN_PROGRESS", result.getStatus().getName());
-        assertTrue(result.getStatus() instanceof InProgress);
+        assertInstanceOf(InProgress.class, result.getStatus());
         verify(issueRepository, times(1)).save(any(Issue.class));
 
     }
@@ -160,7 +168,6 @@ public class IssueServiceTest {
 
         when(issueRepository.findById(issueId)).thenReturn(Optional.of(issueWrongState));
 
-        // Verifichiamo che lanci l'eccezione definita in BaseStatus
         assertThrows(IllegalStateException.class, () -> {
             issueService.startIssueProgress(issueId);
         });
@@ -169,7 +176,6 @@ public class IssueServiceTest {
     }
 
     @Test
-    // rimozione assegnatario
     void removeIssueAssignee_Success_FromAssignedToToBeAssigned() {
         UUID issueId = UUID.randomUUID();
         Issue assignedIssue = Issue.builder()
@@ -184,7 +190,7 @@ public class IssueServiceTest {
         Issue result = issueService.removeIssueAssignee(issueId);
 
         assertNotNull(result);
-        assertNull(result.getAssignee()); // L'utente deve essere ripulito
+        assertNull(result.getAssignee());
         assertEquals("TO_BE_ASSIGNED", result.getStatus().getName());
         assertTrue(result.getStatus() instanceof ToBeAssigned);
     }
@@ -192,8 +198,6 @@ public class IssueServiceTest {
     @Test
     void removeIssueAssignee_Failed_WhenStateIsMarkedForReview() {
         UUID issueId = UUID.randomUUID();
-        // Se la issue è già in Review, non puoi rimuovere l'assegnatario così
-        // liberamente
         Issue reviewIssue = Issue.builder()
                 .id(issueId)
                 .status(new MarkedForReview())
@@ -209,7 +213,6 @@ public class IssueServiceTest {
         verify(issueRepository, never()).save(any(Issue.class));
     }
 
-    // previous state
     @Test
     void rollbackIssueState_Success_FromInProgressToAssigned() {
         UUID issueId = UUID.randomUUID();
@@ -225,7 +228,7 @@ public class IssueServiceTest {
 
         assertNotNull(result);
         assertEquals("ASSIGNED", result.getStatus().getName());
-        assertTrue(result.getStatus() instanceof Assigned);
+        assertInstanceOf(Assigned.class, result.getStatus());
     }
 
     @Test
@@ -233,19 +236,14 @@ public class IssueServiceTest {
 
         IssueRequest request = new IssueRequest("Titolo", "Descrizione", projectId, null, IssueType.BUG,
                 IssuePriority.HIGH, List.of());
-        // 1. Definiamo i parametri mancanti richiesti dalla firma reale
         UUID fakeProjectId = UUID.randomUUID();
 
-        // 2. Forza il project repository a restituire un Optional vuoto per simulare
-        // l'errore
         when(projectRepository.findById(fakeProjectId)).thenReturn(java.util.Optional.empty());
 
-        // 3. Eseguiamo l'asserzione passando tutti e 5 i parametri corretti
         assertThrows(RuntimeException.class, () -> {
             issueService.createIssue(request);
         });
 
-        // 4. Verifica che il salvataggio non venga mai invocato
         verify(issueRepository, never()).save(any(Issue.class));
     }
 
@@ -266,6 +264,35 @@ public class IssueServiceTest {
 
         assertThrows(RuntimeException.class, () -> {
             issueService.removeIssueAssignee(fakeId);
+        });
+    }
+
+    @Test
+    void getIssueById_ThrowsException_WhenIssueNotFound() {
+        UUID fakeId = UUID.randomUUID();
+
+        when(issueRepository.findById(fakeId)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> {
+            issueService.getIssueById(fakeId);
+        });
+    }
+
+    @Test
+    void getIssueById_Found_WhenIssueFound() {
+        UUID fakeId = UUID.randomUUID();
+
+        when(issueRepository.findById(fakeId)).thenReturn(Optional.of(mockIssue));
+
+        assertNotNull(issueService.getIssueById(fakeId));
+    }
+
+    @Test
+    void deleteIssue_ThrowsException_WhenIssueNotFound() {
+        UUID fakeId = UUID.randomUUID();
+
+        assertThrows(RuntimeException.class, () -> {
+            issueService.deleteIssue(fakeId);
         });
     }
 
