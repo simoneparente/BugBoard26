@@ -1,6 +1,7 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 
 import java.util.UUID;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Attachment {
 
     @Id
@@ -34,4 +36,5 @@ public class Attachment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issue_id", nullable = false)
     private Issue issue;
+
 }

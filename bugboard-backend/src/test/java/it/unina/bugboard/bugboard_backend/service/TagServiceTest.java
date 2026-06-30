@@ -38,8 +38,11 @@ class TagServiceTest {
         // 1. ARRANGE (Prepare the data)
         UUID projectId = UUID.randomUUID();
         TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
-        Project mockProject = Project.builder().id(projectId).name("Test Project").build();
-        Tag savedTag = Tag.builder().id(UUID.randomUUID()).name("Bug").color("#FF0000").project(mockProject).build();
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
+        Tag savedTag = new Tag(UUID.randomUUID(), "Bug", "#FF0000", mockProject, null);
 
         // Instruct the mocks on how to respond
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
@@ -83,7 +86,10 @@ class TagServiceTest {
         // ARRANGE
         UUID projectId = UUID.randomUUID();
         TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
-        Project mockProject = Project.builder().id(projectId).name("Test Project").build();
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
         // Tell the mock that the tag already exists
@@ -102,7 +108,10 @@ class TagServiceTest {
     void getAllTagsByProjectId_Success() {
         // ARRANGE
         UUID projectId = UUID.randomUUID();
-        Project mockProject = Project.builder().id(projectId).name("Test Project").build();
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
 
         // Create a mock list with two tags
         Tag tag1 = Tag.builder().id(UUID.randomUUID()).name("Bug").color("#FF0000").project(mockProject).build();
@@ -126,8 +135,16 @@ class TagServiceTest {
     void getTagById_Success() {
         // ARRANGE
         UUID tagId = UUID.randomUUID();
-        Project mockProject = Project.builder().id(UUID.randomUUID()).name("Test Project").build();
-        Tag mockTag = Tag.builder().id(tagId).name("Bug").color("#FF0000").project(mockProject).build();
+        Project mockProject = Project.builder()
+            .id(UUID.randomUUID())
+            .name("Test Project")
+            .build();
+        Tag mockTag = Tag.builder()
+            .id(tagId)
+            .name("Bug")
+            .color("#FF0000")
+            .project(mockProject)
+            .build();
 
         when(tagRepository.findById(tagId)).thenReturn(Optional.of(mockTag));
 

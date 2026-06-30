@@ -1,63 +1,55 @@
 package it.unina.bugboard.bugboard_backend.service;
 
-import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
-import it.unina.bugboard.bugboard_backend.entity.Role;
-import it.unina.bugboard.bugboard_backend.entity.User;
-import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
-import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
-import it.unina.bugboard.bugboard_backend.repository.UserRepository;
-
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
+import it.unina.bugboard.bugboard_backend.dto.StatusResponse;
+import it.unina.bugboard.bugboard_backend.dto.TagResponse;
+import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import it.unina.bugboard.bugboard_backend.dto.UserResponse;
+import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
+import it.unina.bugboard.bugboard_backend.entity.Issue;
+import it.unina.bugboard.bugboard_backend.entity.User;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class ProjectService {
-
     private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
 
-    /**
-     * Returns all projects for admins, or only the projects the caller belongs to for other roles.
-     */
-    public Page<ProjectResponse> getAllProjects(UUID callerId, Pageable pageable) {
-        User caller = userRepository.findById(callerId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("User with id %s not found", callerId)));
-
-        if (caller.getRole() == Role.ADMIN) {
-            return projectRepository.findAll(pageable).map(this::mapToResponse);
-        }
-        return projectRepository.findByUsersContaining(caller, pageable).map(this::mapToResponse);
+    public ProjectService(ProjectRepository projectRepository) {
+        this.projectRepository = projectRepository;
     }
 
-    public ProjectResponse createProject(ProjectRequest request) {
+    @Transactional
+    public ProjectResponse createProject(ProjectRequest projectrequest){
+        if(projectRepository.existsByName(projectrequest.getName())){
+            throw new IllegalArgumentException("Project with the same name already exists.");
+        }
         Project project = Project.builder()
-                .name(request.getName())
-                .description(request.getDescription())
+                .name(projectrequest.getName())
+                .description(projectrequest.getDescription())
                 .build();
         projectRepository.save(project);
         return mapToResponse(project);
-    }
+    }   
 
-    public ProjectResponse getProjectById(UUID id) {
+    @Transactional(readOnly = true)
+    public ProjectResponse getProjectById(UUID id){
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Project with id %s not found", id)));
+                .orElseThrow(() -> new RuntimeException("Project not found."));
         return mapToResponse(project);
     }
 
-    public void deleteProject(UUID id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException(String.format("Project with id %s not found", id));
-        }
-        projectRepository.deleteById(id);
+    @Transactional(readOnly = true)
+    public List<ProjectResponse> getAllProjects(){
+        List<Project> projects = projectRepository.findAll();
+        return projects.stream().map(this::mapToResponse).toList();
     }
-
 
     private ProjectResponse mapToResponse(Project project) {
         return new ProjectResponse(
@@ -66,7 +58,44 @@ public class ProjectService {
                 project.getDescription(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
-                project.getIssueCount() != null ? project.getIssueCount() : 0
+                project.getIssues().stream().map(this::mapToIssueResponse).toList(),
+                project.getMembers().stream().map(this::mapToUserResponse).toList()
         );
     }
+
+    public IssueResponse mapToIssueResponse(Issue issue) {
+        return new IssueResponse(
+                issue.getId(),
+                issue.getTitle(),
+                issue.getDescription(),
+                issue.getCreatedAt(),
+                issue.getUpdatedAt(),
+                issue.getProject().getName(),
+                new StatusResponse(issue.getStatus().getName(), issue.getStatus().getClass().getSimpleName()),
+                issue.getCreator() != null ? issue.getCreator().getUsername() : "Unknown",
+                issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned",
+                issue.getTags().stream().map(this::mapToTagResponse).toList(),
+                issue.getAttachments().size()
+        );
+    }
+
+
+    private UserResponse mapToUserResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
+    }
+
+    private TagResponse mapToTagResponse(it.unina.bugboard.bugboard_backend.entity.Tag tag) {
+        return new TagResponse(
+                tag.getId(),
+                tag.getName(),
+                tag.getColor(),
+                tag.getProject().getId()
+        );
+    }
+
 }

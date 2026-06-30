@@ -91,7 +91,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, HttpServletRequest request) {
         ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now(ZoneId.of("UTC")))
+                .timestamp(LocalDateTime.now(ZoneId.systemDefault()))
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)
