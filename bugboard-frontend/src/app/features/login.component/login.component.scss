@@ -1,0 +1,47 @@
+.login-wrapper {
+  overflow-x: hidden;
+
+  .branding-pane {
+    background: linear-gradient(135deg, #005bb0 0%, #001224 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+
+    .branding-text {
+      color: #94a3b8;
+      max-width: 520px;
+    }
+  }
+
+  .form-pane {
+    .auth-card-container {
+      max-width: 440px;
+      animation: fadeInForm 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  }
+
+  .input-password-wrapper {
+    .password-toggle-trigger {
+      height: calc(100% - 2px);
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      padding: 0 0.5rem;
+
+      &:hover {
+        color: var(--bs-heading-color) !important;
+      }
+    }
+  }
+}
+
+// Micro animation
+@keyframes fadeInForm {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
