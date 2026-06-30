@@ -10,6 +10,8 @@ import it.unina.bugboard.bugboard_backend.repository.InvitationRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,11 +30,9 @@ public class UserService {
 
     private final Clock clock;
 
-    public List<UserResponse> getAllUsers() {
-        return userRepository
-                .findAll().stream()
-                .map(this::mapToResponse)
-                .toList();
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        Page<User> usersPage = userRepository.findAll(pageable);
+        return usersPage.map(this::mapToResponse);
     }
 
     public UserResponse getUserById(UUID id) {
