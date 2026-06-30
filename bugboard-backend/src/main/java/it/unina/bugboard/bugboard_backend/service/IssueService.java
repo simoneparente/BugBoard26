@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,8 +47,8 @@ public class IssueService {
                 .priority(request.getPriority())
                 .type(request.getType())
                 .tags(tags)
-                .createdAt(LocalDateTime.now()) 
-                .updatedAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.systemDefault())) 
+                .updatedAt(LocalDateTime.now(ZoneId.systemDefault()))
                 .build();
 
         return issueRepository.save(issue);
