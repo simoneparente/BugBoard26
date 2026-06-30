@@ -11,12 +11,9 @@ import java.util.UUID;
 @Data
 @Builder
 public class ProjectResponse {
-    //returns project data 
-    
     private UUID id;
     private String name;
     private String description;
     private LocalDateTime createdAt;
-    private int issueCount; 
-    private List<IssueResponse> issueCollection;
+    private List<IssueResponse> issues;
 }

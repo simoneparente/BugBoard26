@@ -48,7 +48,6 @@ public class ProjectController {
                 .name(project.getName())
                 .description(project.getDescription())
                 .createdAt(project.getCreatedAt())
-                .issueCount(project.getIssues() != null ? project.getIssues().size() : 0)
                 .build();
     }
     
