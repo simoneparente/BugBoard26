@@ -18,5 +18,5 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     Optional<Project> findByName(String name); 
 
     // Returns only the projects to which the given user has been added
-    Page<Project> findByUsersContaining(User user, Pageable pageable);
+    Page<Project> findByMembersContaining(User user, Pageable pageable);
 }
