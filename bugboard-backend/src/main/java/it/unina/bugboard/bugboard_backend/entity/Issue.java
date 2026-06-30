@@ -82,14 +82,6 @@ public class Issue {
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public void setAssignee(User assignee) {
-        this.assignee = assignee;
-    }
-
-    public void setStatus(Status status){
-        this.status=status;
-    }
-
     public void assign(User user){
         this.status.assign(this, user);
     }
