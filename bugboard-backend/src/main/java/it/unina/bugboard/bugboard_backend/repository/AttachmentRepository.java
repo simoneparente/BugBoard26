@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
-    
+
     // Spring method to find all attachments of an Issue
     List<Attachment> findByIssueId(UUID issueId);
 }
