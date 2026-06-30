@@ -28,6 +28,6 @@ public class IssueResponse {
     private String assigneeUsername; //  "Unassigned" if null
     
     // Simplified lists of information
-    private List<String> tagNames;
+    private List<TagResponse> tags;
     private int attachmentsCount;
 }

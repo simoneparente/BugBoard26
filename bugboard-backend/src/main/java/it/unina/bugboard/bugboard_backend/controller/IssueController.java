@@ -3,6 +3,7 @@ package it.unina.bugboard.bugboard_backend.controller;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
 import it.unina.bugboard.bugboard_backend.dto.StatusResponse;
+import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.springframework.http.HttpStatus;
@@ -95,6 +96,17 @@ public class IssueController {
                         .type(issue.getStatus().getClass().getSimpleName())
                         .build();
         }
+
+        List<TagResponse> tagDTOs = issue.getTags() != null
+            ? issue.getTags().stream()
+                    .map(tag -> TagResponse.builder()
+                            .id(tag.getId())
+                            .name(tag.getName())
+                            .color(tag.getColor())
+                            .build())
+                    .toList()
+            : List.of();
+
         return IssueResponse.builder()
                 .id(issue.getId())
                 .title(issue.getTitle())
@@ -103,9 +115,7 @@ public class IssueController {
                 .updatedAt(issue.getUpdatedAt())
                 .projectName(issue.getProject() != null ? issue.getProject().getName() : null)                .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
                 .status(statusDTO)
-                .tagNames(issue.getTags() != null
-                        ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList())
-                        : List.of())
+                .tags(tagDTOs)
                 .attachmentsCount(issue.getAttachments() != null ? issue.getAttachments().size() : 0)
                 .build();
     }
