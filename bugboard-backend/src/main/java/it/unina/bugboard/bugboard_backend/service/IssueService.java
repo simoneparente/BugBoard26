@@ -11,6 +11,8 @@ import java.util.UUID;
 @Service
 public class IssueService {
 
+    private static final String ISSUE_NOT_FOUND_MSG = "Issue not found with ID: ";
+
     private final IssueRepository issueRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -27,7 +29,7 @@ public class IssueService {
    @Transactional
     public Issue createIssue(String title, String description, UUID projectId, UUID creatorId, List<UUID> tagIds) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Progetto non trovato."));
+                .orElseThrow(() -> new RuntimeException("Project not found."));
 
        List<Tag> tags = tagRepository.findAllById(tagIds);
 
@@ -45,8 +47,8 @@ public class IssueService {
 
     @Transactional
     public Issue assignIssue(UUID issueId, UUID assigneeId){
-        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new RuntimeException("Issue non trovata ID: " + issueId));
-        User assignee = userRepository.findById(assigneeId).orElseThrow(() -> new RuntimeException("Assegnatario non trovato ID: " + assigneeId));
+        Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
+        User assignee = userRepository.findById(assigneeId).orElseThrow(() -> new RuntimeException("Assignee not found with ID: " + assigneeId));
         
         issue.setAssignee(assignee);  
         return issueRepository.save(issue);
@@ -55,7 +57,7 @@ public class IssueService {
     @Transactional
     public Issue startIssueProgress(UUID issueId){
         Issue issue = issueRepository.findById(issueId)
-                        .orElseThrow(()-> new RuntimeException("Issue non trovata Id:" +issueId));
+                        .orElseThrow(()-> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
 
         issue.startPorgress();
         return issueRepository.save(issue);
@@ -64,7 +66,7 @@ public class IssueService {
     @Transactional 
     public Issue acceptIssue(UUID issueId){
         Issue issue = issueRepository.findById(issueId)
-                        .orElseThrow(()-> new RuntimeException("Issue non trovata Id: " + issueId));
+                        .orElseThrow(()-> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         
         issue.accept();
         return issueRepository.save(issue);
@@ -73,7 +75,7 @@ public class IssueService {
     @Transactional
     public Issue rollbackIssueState(UUID issueId) {
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue non trovata ID: " + issueId));
+                .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         
         issue.previousState();
         return issueRepository.save(issue);
@@ -82,7 +84,7 @@ public class IssueService {
     @Transactional
     public Issue removeIssueAssignee(UUID issueId){
         Issue issue = issueRepository.findById(issueId)
-                        .orElseThrow(()-> new RuntimeException("Issue non trovtaa Id: " +issueId));
+                        .orElseThrow(()-> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
 
         issue.removeAssignee();
         return issueRepository.save(issue);
@@ -92,7 +94,7 @@ public class IssueService {
     @Transactional(readOnly = true)
     public Issue getIssueById(UUID id) {
         return issueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Issue non trovata con ID: " + id));
+                .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + id));
     }
 
 
@@ -104,7 +106,7 @@ public class IssueService {
     @Transactional
     public void deleteIssue(UUID id) {
         if (!issueRepository.existsById(id)) {
-            throw new IllegalArgumentException("Impossibile eliminare. Issue non trovata con ID: " + id);
+            throw new IllegalArgumentException("Cannot delete. Issue not found with ID: " + id);
         }
         issueRepository.deleteById(id);
     }
@@ -118,9 +120,9 @@ public class IssueService {
     @Transactional
     public Issue addTagToIssue(UUID issueId, UUID tagId) {
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue non trovatoo ID: " + issueId));
+                .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new RuntimeException("Tag non trovato ID: " + tagId));
+                .orElseThrow(() -> new RuntimeException("Tag not found with ID: " + tagId));
 
         issue.getTags().add(tag);
         return issueRepository.save(issue);
@@ -129,9 +131,9 @@ public class IssueService {
     @Transactional
     public Issue removeTagFromIssue(UUID issueId, UUID tagId) {
         Issue issue = issueRepository.findById(issueId)
-                .orElseThrow(() -> new RuntimeException("Issue non trovatoo ID: " + issueId));
+                .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new RuntimeException("Tag non trovato ID: " + tagId));
+                .orElseThrow(() -> new RuntimeException("Tag not found with ID: " + tagId));
 
         issue.getTags().remove(tag);
         return issueRepository.save(issue);
