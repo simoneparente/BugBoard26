@@ -1,0 +1,105 @@
+<main class="login-wrapper container-fluid gap-0 p-0 role-main">
+  <div class="row g-0 min-vh-100">
+    <section
+      class="d-none col-lg-7 d-lg-flex flex-column justify-content-between p-5 branding-pane"
+    >
+      <app-brand-logo></app-brand-logo>
+
+      <div class="brand-marketing my-auto">
+        <h2 class="display-4 text-white fw-semibold mb-3">Enterprise Bug & Issue Management</h2>
+        <p class="lead branding-text">
+          Streamline your software development lifecycle. Track, resolve, and deploy high-quality
+          software with your team.
+        </p>
+      </div>
+
+      <app-footer></app-footer>
+    </section>
+
+    <section
+      class="col-12 col-lg-5 d-flex align-items-center justify-content-center p-4 p-md-5 form-pane bg-body"
+    >
+      <div class="auth-card-container w-100">
+        <header class="mb-4 authentication-header">
+          <h3 class="fw-bold text-dark mb-1">Welcome back</h3>
+          <p class="text-muted">Please enter your credentials.</p>
+        </header>
+
+        @if (loginError(); as error) {
+          <div
+            class="alert alert-danger d-flex align-items-center border-0 rounded-3 mb-4"
+            role="alert"
+            aria-live="assertive"
+          >
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            <span class="small fw-medium">{{ error }}</span>
+          </div>
+        }
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" autocomplete="off" novalidate>
+          <div class="form-floating mb-3">
+            <input
+              type="email"
+              id="auth-email"
+              class="form-control"
+              formControlName="email"
+              placeholder="name@example.com"
+              [class.is-invalid]="isFieldInvalid('email')"
+              aria-describedby="email-validation-feedback"
+            />
+            <label for="auth-email">Email</label>
+            <div id="email-validation-feedback" class="invalid-feedback fw-medium">
+              Please provide a valid email address.
+            </div>
+          </div>
+
+          <div class="input-password-wrapper position-relative mb-4">
+            <div class="form-floating">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                id="auth-password"
+                class="form-control"
+                formControlName="password"
+                placeholder="••••••••"
+                [class.is-invalid]="isFieldInvalid('password')"
+                aria-describedby="password-validation-feedback"
+              />
+              <label for="auth-password">Password</label>
+              <div id="password-validation-feedback" class="invalid-feedback fw-medium">
+                Password is required
+              </div>
+            </div>
+
+            @if (!isFieldInvalid('password')) {
+              <button
+                type="button"
+                class="btn password-toggle-trigger position-absolute top-50 translate-middle-y end-0 me-3 border-0 bg-transparent text-secondary z-3"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              >
+                <i
+                  class="bi"
+                  [class.bi-eye-slash]="showPassword()"
+                  [class.bi-eye]="!showPassword()"
+                ></i>
+              </button>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-semibold d-flex justify-content-center align-items-center"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <output class="spinner-border spinner-border-sm me-3" aria-hidden="true"></output>
+              <span>Authenticating...</span>
+            } @else {
+              <span>Sign In</span>
+            }
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>

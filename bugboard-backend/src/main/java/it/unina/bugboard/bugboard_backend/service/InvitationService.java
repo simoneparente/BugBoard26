@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.UUID;
 
 @Service
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class InvitationService {
     private static final Logger log = LoggerFactory.getLogger(InvitationService.class);
     private final InvitationRepository invitationRepository;
+    private final Clock clock;
     private static final int INVITATION_EXPIRATION_HOURS = 24;
     
     private static final int CLEANUP_INTERVAL_HOURS = 1;
@@ -27,7 +29,7 @@ public class InvitationService {
 
     public InvitationResponse createInvitation(Role role) {
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiry = LocalDateTime.now().plusHours(INVITATION_EXPIRATION_HOURS);
+        LocalDateTime expiry = LocalDateTime.now(clock).plusHours(INVITATION_EXPIRATION_HOURS);
 
         Invitation invitation = Invitation.builder()
                 .token(token)
@@ -42,7 +44,7 @@ public class InvitationService {
     @Scheduled(fixedDelay = CLEANUP_INTERVAL_HOURS * ONE_HOUR_MILLISECONDS)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void cleanupExpiredInvitations() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         long deletedCount = invitationRepository.deleteByExpiresAtBefore(now);
         if (deletedCount > 0) {
             log.info("Cleaned up {} expired invitations", deletedCount);

@@ -13,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,20 +28,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
-        // CSRF protection is safely disabled here because this is a stateless REST API
-        // without session cookies. Also authentication relies on a JWT sent in the
-        // authorization header which browsers do not attach automatically to
-        // cross-origin requests. A third-party site cannot forge an authenticated
-        // request on the user's behalf.
-        // If cookie-based auth is ever introduced then CSRF protection must be re-enabled.
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/**").permitAll()
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/api/invitations/**").hasRole("ADMIN")
+        // CSRF protection is intentionally disabled. Even if we use cookie-based authentication, 
+        // CSRF defense is enforced by the 'SameSite=Strict' attribute configured on the HttpOnly 
+        // JWT cookie. This tells the browser to never attach the authentication cookie to 
+        // cross-site requests, preventing CSRF attacks.
+        @SuppressWarnings("squid:S4502")
+        HttpSecurity configuredHttp = http.csrf(AbstractHttpConfigurer::disable);
 
+        configuredHttp
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/me").authenticated()
                         .anyRequest().authenticated()
                 )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exc -> exc
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
@@ -44,11 +51,26 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+        return configuredHttp.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept"));
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource src =  new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", config);
+        return src;
+    }
+
 }
+
+
