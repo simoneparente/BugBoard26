@@ -25,12 +25,7 @@ public class IssueController {
 
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(@RequestBody IssueRequest request) {
-        Issue issue = issueService.createIssue(
-                request.getTitle(),
-                request.getDescription(),
-                request.getProjectId(),
-                request.getCreatorId(),
-                request.getTagIds());
+        Issue issue = issueService.createIssue(request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
 

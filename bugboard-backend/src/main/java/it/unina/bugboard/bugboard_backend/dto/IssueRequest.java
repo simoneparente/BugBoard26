@@ -5,15 +5,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
+
+import it.unina.bugboard.bugboard_backend.entity.IssueType;
+import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class IssueRequest {
+    @NotBlank(message="Title is required")
     private String title;
+    @NotBlank(message="Description is required")
     private String description;
     private UUID projectId;
-    private UUID creatorId;
+    private StatusResponse status;
+    private IssueType type;
+    private IssuePriority priority;
     private List<UUID> tagIds;
 }

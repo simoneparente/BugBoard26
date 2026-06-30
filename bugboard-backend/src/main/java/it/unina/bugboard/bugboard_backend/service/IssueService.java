@@ -1,9 +1,13 @@
 package it.unina.bugboard.bugboard_backend.service;
 
+import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,19 +31,23 @@ public class IssueService {
     }
 
    @Transactional
-    public Issue createIssue(String title, String description, UUID projectId, UUID creatorId, List<UUID> tagIds) {
-        Project project = projectRepository.findById(projectId)
+    public Issue createIssue(IssueRequest request) {
+        Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found."));
 
-       List<Tag> tags = tagRepository.findAllById(tagIds);
+       List<Tag> tags = (request.getTagIds() != null && !request.getTagIds().isEmpty())
+                ? tagRepository.findAllById(request.getTagIds())
+                : List.of();
 
         Issue issue = Issue.builder()
-                .title(title)
-                .description(description)
+                .title(request.getTitle())
+                .description(request.getDescription())
                 .project(project)
-                .priority(IssuePriority.LOW)
-                .type(IssueType.BUG)
+                .priority(request.getPriority())
+                .type(request.getType())
                 .tags(tags)
+                .createdAt(LocalDateTime.now()) 
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         return issueRepository.save(issue);
