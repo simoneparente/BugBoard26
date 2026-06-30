@@ -1,5 +1,6 @@
 package it.unina.bugboard.bugboard_backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectRequest {
-    //sending data for new project creation
+    @NotBlank(message = "Project name is required")
     private String name;
+    @NotBlank(message = "Project description is required")
     private String description;
 
 }
