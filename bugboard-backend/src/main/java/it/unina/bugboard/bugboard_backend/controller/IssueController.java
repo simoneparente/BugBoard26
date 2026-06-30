@@ -9,11 +9,9 @@ import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import it.unina.bugboard.bugboard_backend.entity.Tag;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/issues")
@@ -42,7 +40,7 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    // recupera solo le issue di un determinato progetto
+
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId) {
         List<IssueResponse> issues = issueService.getIssuesByProjectId(projectId).stream()
@@ -51,36 +49,34 @@ public class IssueController {
         return ResponseEntity.ok(issues);
     }
 
-    // state pattern
-    // assegno issue ad utente specifico
+
     @PutMapping("/{id}/assign")
     public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
         Issue issue = issueService.assignIssue(id, assigneeId);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    // inizio sviluppo issue
+
     @PutMapping("/{id}/start-progress")
     public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
         Issue issue = issueService.startIssueProgress(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    // accetto risoluzione issue
+
     @PutMapping("/{id}/accept")
     public ResponseEntity<IssueResponse> acceptIssue(@PathVariable UUID id) {
         Issue issue = issueService.acceptIssue(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    // ripristino stato precedente
+
     @PutMapping("/{id}/previous")
     public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable UUID id) {
         Issue issue = issueService.rollbackIssueState(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-    // rimozione assegnatario
     @DeleteMapping("/{id}/assignee")
     public ResponseEntity<Issue> removeAssignee(@PathVariable UUID id) {
         Issue updatedIssue = issueService.removeIssueAssignee(id);

@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import it.unina.bugboard.bugboard_backend.entity.Issue;
 
 @Data
 @Builder
