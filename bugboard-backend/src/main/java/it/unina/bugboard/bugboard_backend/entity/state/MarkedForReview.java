@@ -11,12 +11,12 @@ public class MarkedForReview extends BaseStatus{
 
     @Override
     public void accept(Issue issue) {
-        // Se accettato, immagino passi a uno stato "Closed" o "Resolved"
+        executeAccept(issue);
     }
 
     @Override
     public void reject(Issue issue) {
-        issue.setStatus(new InProgress()); // Torna indietro in lavorazione se rifiutato dal QA
+        issue.setStatus(new InProgress()); 
     }
 
     @Override

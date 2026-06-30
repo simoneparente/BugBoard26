@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,12 +36,12 @@ class ProjectControllerTest {
         dummyProject = Project.builder()
                 .id(UUID.randomUUID())
                 .name("BugBoard Core")
-                .description("Progetto di test per la Quality Gate")
+                .description("Quality Gate test project")
                 .build();
 
         dummyRequest = new ProjectRequest();
         dummyRequest.setName("BugBoard Core");
-        dummyRequest.setDescription("Progetto di test per la Quality Gate");
+        dummyRequest.setDescription("Quality Gate test project");
     }
 
     @Test
@@ -58,13 +59,13 @@ class ProjectControllerTest {
 
     @Test
     void createProject_ReturnsCreatedResponse() {
-        when(projectService.createProject(anyString(), anyString())).thenReturn(dummyProject);
+        when(projectService.createProject(any(it.unina.bugboard.bugboard_backend.dto.ProjectRequest.class))).thenReturn(dummyProject);
 
         ResponseEntity<?> responseEntity = projectController.createProject(dummyRequest);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        verify(projectService, times(1)).createProject(anyString(), anyString());
+        verify(projectService, times(1)).createProject(any(it.unina.bugboard.bugboard_backend.dto.ProjectRequest.class));
     }
 }

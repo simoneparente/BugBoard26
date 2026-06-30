@@ -2,6 +2,7 @@ package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,17 +36,25 @@ class ProjectServiceTest {
         dummyProject = Project.builder()
                 .id(projectId)
                 .name("BugBoard Core")
-                .description("Descrizione di test")
+                .description("test description")
                 .build();
     }
 
     @Test
     void createProject_Success() {
-        // Forza il repository a rispondere che il nome NON esiste
-        when(projectRepository.existsByName("BugBoard Core")).thenReturn(false);
+        
+        ProjectRequest request = ProjectRequest
+                                .builder()
+                                .name("BugBoard Core")
+                                .description("test description")
+                                .build();
+
+        
+        when(projectRepository.existsByName(request.getName())).thenReturn(false);
         when(projectRepository.save(any(Project.class))).thenReturn(dummyProject);
 
-        Project result = projectService.createProject("BugBoard Core", "Descrizione di test");
+       
+        Project result = projectService.createProject(request);
 
         assertNotNull(result);
         assertEquals("BugBoard Core", result.getName());
@@ -54,14 +63,20 @@ class ProjectServiceTest {
 
     @Test
     void createProject_ThrowsException_WhenNameExists() {
-        // Forza il repository a rispondere che il nome ESISTE già (testa il ramo d'errore)
-        when(projectRepository.existsByName("BugBoard Core")).thenReturn(true);
+        
+        ProjectRequest request = ProjectRequest
+                                .builder()
+                                .name("BugBoard Core")
+                                .description("test description")
+                                .build();
+
+        
+        when(projectRepository.existsByName(request.getName())).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            projectService.createProject("BugBoard Core", "Descrizione di test");
+            projectService.createProject(request);
         });
 
-        // Verifica che il salvataggio non venga mai invocato in caso di errore
         verify(projectRepository, never()).save(any(Project.class));
     }
 

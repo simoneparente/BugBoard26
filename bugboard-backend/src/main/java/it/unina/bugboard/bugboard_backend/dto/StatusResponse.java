@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectRequest {
-    //sending data for new project creation
+public class StatusResponse {
     private String name;
-    private String description;
-
+    private String type;
 }
-

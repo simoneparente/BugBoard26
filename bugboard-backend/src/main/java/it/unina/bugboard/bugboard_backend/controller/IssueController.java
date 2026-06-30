@@ -2,6 +2,7 @@ package it.unina.bugboard.bugboard_backend.controller;
 
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
+import it.unina.bugboard.bugboard_backend.dto.StatusResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.springframework.http.HttpStatus;
@@ -86,15 +87,22 @@ public class IssueController {
     }
 
     private IssueResponse mapToResponseDTO(Issue issue) {
+        StatusResponse statusDTO = null;
+
+        if(issue.getStatus() != null ){
+            statusDTO = StatusResponse.builder()
+                        .name(issue.getStatus().getName())
+                        .type(issue.getStatus().getClass().getSimpleName())
+                        .build();
+        }
         return IssueResponse.builder()
                 .id(issue.getId())
                 .title(issue.getTitle())
                 .description(issue.getDescription())
                 .createdAt(issue.getCreatedAt())
                 .updatedAt(issue.getUpdatedAt())
-                .projectName(issue.getProject() != null ? issue.getProject().getName() : null)
-                // .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
-                .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
+                .projectName(issue.getProject() != null ? issue.getProject().getName() : null)                .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
+                .status(statusDTO)
                 .tagNames(issue.getTags() != null
                         ? issue.getTags().stream().map(Tag::getName).collect(Collectors.toList())
                         : List.of())

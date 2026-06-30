@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,7 +39,7 @@ class IssueControllerTest {
         dummyIssue = Issue.builder()
                 .id(issueId)
                 .title("NullPointer in Auth")
-                .description("Descrizione del bug grafico")
+                .description("Description of the graphic bug")
                 .status(new InProgress())
                 .build();
     }
@@ -46,7 +48,7 @@ class IssueControllerTest {
     void createIssue_ReturnsCreatedResponse() {
         IssueRequest request = new IssueRequest();
         request.setTitle("NullPointer in Auth");
-        request.setDescription("Descrizione del bug grafico");
+        request.setDescription("Description of the graphic bug");
         request.setProjectId(UUID.randomUUID());
         request.setCreatorId(UUID.randomUUID());
         request.setTagIds(List.of());
@@ -64,26 +66,46 @@ class IssueControllerTest {
 
     @Test
     void getIssueById_ReturnsOkResponse() {
+        dummyIssue.setStatus(new it.unina.bugboard.bugboard_backend.entity.state.InProgress());
+
         when(issueService.getIssueById(issueId)).thenReturn(dummyIssue);
 
-        ResponseEntity<?> responseEntity = issueController.getIssueById(issueId);
+        ResponseEntity<it.unina.bugboard.bugboard_backend.dto.IssueResponse> responseEntity = (ResponseEntity<it.unina.bugboard.bugboard_backend.dto.IssueResponse>) issueController
+                .getIssueById(issueId);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
+
+        it.unina.bugboard.bugboard_backend.dto.IssueResponse responseBody = responseEntity.getBody();
+        assertNotNull(responseBody);
+
+        assertNotNull(responseBody.getStatus());
+        assertEquals("IN_PROGRESS", responseBody.getStatus().getName());
+        assertEquals("InProgress", responseBody.getStatus().getType()); // Verifica la Reflection della classe!
+
         verify(issueService, times(1)).getIssueById(issueId);
     }
 
     @Test
-    void getIssuesByProject_ReturnsOkResponse() {
+    void getIssuesByProject_ReturnsListWithStatusDTO() {
         UUID projectId = UUID.randomUUID();
+        dummyIssue.setStatus(new it.unina.bugboard.bugboard_backend.entity.state.Closed()); // Testiamo con Closed
+        
         when(issueService.getIssuesByProjectId(projectId)).thenReturn(List.of(dummyIssue));
 
-        ResponseEntity<?> responseEntity = issueController.getIssuesByProject(projectId);
+        ResponseEntity<List<it.unina.bugboard.bugboard_backend.dto.IssueResponse>> responseEntity = 
+                (ResponseEntity<List<it.unina.bugboard.bugboard_backend.dto.IssueResponse>>) issueController.getIssuesByProject(projectId);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
+        
+        List<it.unina.bugboard.bugboard_backend.dto.IssueResponse> body = responseEntity.getBody();
+        assertNotNull(body);
+        assertFalse(body.isEmpty());
+        
+        assertEquals("CLOSED", body.get(0).getStatus().getName());
+        assertEquals("Closed", body.get(0).getStatus().getType());
+
         verify(issueService, times(1)).getIssuesByProjectId(projectId);
     }
 

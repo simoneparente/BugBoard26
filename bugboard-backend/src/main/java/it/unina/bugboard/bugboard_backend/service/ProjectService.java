@@ -1,6 +1,7 @@
 package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +18,13 @@ public class ProjectService {
     }
 
     @Transactional
-    public Project createProject(String name, String description){
-        if(projectRepository.existsByName(name)){
+    public Project createProject(ProjectRequest projectrequest){
+        if(projectRepository.existsByName(projectrequest.getName())){
             throw new IllegalArgumentException("Project with the same name already exists.");
         }
         Project project = Project.builder()
-                .name(name)
-                .description(description)
+                .name(projectrequest.getName())
+                .description(projectrequest.getDescription())
                 .build();
         return projectRepository.save(project);
     }   

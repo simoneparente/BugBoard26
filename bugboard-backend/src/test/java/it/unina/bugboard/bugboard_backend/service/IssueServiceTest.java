@@ -53,7 +53,7 @@ public class IssueServiceTest {
         mockProject = Project.builder()
                 .id(projectId)
                 .name("Test Project")
-                .description("progetto di test per bugboard")
+                .description("bugboard test project")
                 .build();
 
         mockTags = List.of(
@@ -66,7 +66,7 @@ public class IssueServiceTest {
     void createIssue_Success() {
         // Arrange
         String title = "NullPointerException in Login";
-        String description = "Il server si blocca se riceve credenziali vuote.";
+        String description = "The server crashes if it receives blank credentials.";
 
         Issue savedIssue = Issue.builder()
                 .id(UUID.randomUUID())

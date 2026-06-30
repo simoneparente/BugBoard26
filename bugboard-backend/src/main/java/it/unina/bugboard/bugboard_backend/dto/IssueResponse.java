@@ -1,13 +1,18 @@
 package it.unina.bugboard.bugboard_backend.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class IssueResponse {
     private UUID id;
     private String title;
@@ -16,12 +21,13 @@ public class IssueResponse {
     private LocalDateTime updatedAt;
     
     private String projectName;
-    private String statusName;
-    private String statusColor;
+
+    private StatusResponse status;
+
     private String creatorUsername;
-    private String assigneeUsername; //  "Unassigned" se nullo
+    private String assigneeUsername; //  "Unassigned" if null
     
-    // Liste semplificate di informazioni
+    // Simplified lists of information
     private List<String> tagNames;
     private int attachmentsCount;
 }

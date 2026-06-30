@@ -18,12 +18,12 @@ public class NotFixed extends BaseStatus {
     public void startProgress(Issue issue){
         executeStartProgress(issue);
     }
-    //close
+    
     @Override 
     public void close(Issue issue){
         executeClose(issue);
     }
-    //
+    
     @Override
     public void removeAssignee(Issue issue){
         executeRemoveAssignee(issue);

@@ -63,7 +63,6 @@ public class Issue {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments;
 
-    // Relazione Molti-a-Molti con Tag (Tabella di Join)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "issue_tags",
