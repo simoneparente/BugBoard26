@@ -3,6 +3,7 @@ package it.unina.bugboard.bugboard_backend.service;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.entity.state.Assigned;
+import it.unina.bugboard.bugboard_backend.entity.state.Closed;
 import it.unina.bugboard.bugboard_backend.entity.state.InProgress;
 import it.unina.bugboard.bugboard_backend.entity.state.MarkedForReview;
 import it.unina.bugboard.bugboard_backend.entity.state.ToBeAssigned;
@@ -294,6 +295,107 @@ public class IssueServiceTest {
         assertThrows(RuntimeException.class, () -> {
             issueService.deleteIssue(fakeId);
         });
+    }
+
+    // --- assignIssue ---
+
+    @Test
+    void assignIssue_Success_SetsAssigneeAndSaves() {
+        UUID issueId = UUID.randomUUID();
+        UUID assigneeId = UUID.randomUUID();
+
+        Issue issue = Issue.builder().id(issueId).status(new ToBeAssigned()).build();
+
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+        when(userRepository.findById(assigneeId)).thenReturn(Optional.of(mockUser));
+        when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Issue result = issueService.assignIssue(issueId, assigneeId);
+
+        assertNotNull(result);
+        assertEquals(mockUser, result.getAssignee());
+        verify(issueRepository).save(issue);
+    }
+
+    @Test
+    void assignIssue_ThrowsException_WhenAssigneeNotFound() {
+        UUID issueId = UUID.randomUUID();
+        UUID fakeAssigneeId = UUID.randomUUID();
+
+        Issue issue = Issue.builder().id(issueId).status(new ToBeAssigned()).build();
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+        when(userRepository.findById(fakeAssigneeId)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> issueService.assignIssue(issueId, fakeAssigneeId));
+
+        assertTrue(ex.getMessage().contains("Assignee not found with ID: " + fakeAssigneeId));
+        verify(issueRepository, never()).save(any());
+    }
+
+    // --- acceptIssue ---
+
+    @Test
+    void acceptIssue_Success_FromMarkedForReviewToClosed() {
+        UUID issueId = UUID.randomUUID();
+        Issue issue = Issue.builder().id(issueId).status(new MarkedForReview()).build();
+
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+        when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Issue result = issueService.acceptIssue(issueId);
+
+        assertNotNull(result);
+        assertEquals("CLOSED", result.getStatus().getName());
+        assertInstanceOf(Closed.class, result.getStatus());
+        verify(issueRepository).save(issue);
+    }
+
+    @Test
+    void acceptIssue_ThrowsException_WhenIssueNotFound() {
+        UUID fakeId = UUID.randomUUID();
+        when(issueRepository.findById(fakeId)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> issueService.acceptIssue(fakeId));
+
+        assertTrue(ex.getMessage().contains("Issue not found with ID: " + fakeId));
+        verify(issueRepository, never()).save(any());
+    }
+
+    @Test
+    void acceptIssue_ThrowsIllegalStateException_WhenStateIsNotMarkedForReview() {
+        UUID issueId = UUID.randomUUID();
+        Issue issue = Issue.builder().id(issueId).status(new InProgress()).build();
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+
+        assertThrows(IllegalStateException.class, () -> issueService.acceptIssue(issueId));
+        verify(issueRepository, never()).save(any());
+    }
+
+    // --- getAllIssues ---
+
+    @Test
+    void getAllIssues_ReturnsAllIssues() {
+        Issue issue2 = Issue.builder().id(UUID.randomUUID()).title("Second Issue").build();
+        when(issueRepository.findAll()).thenReturn(List.of(mockIssue, issue2));
+
+        List<Issue> result = issueService.getAllIssues();
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        verify(issueRepository).findAll();
+    }
+
+    @Test
+    void getAllIssues_ReturnsEmptyList_WhenNoIssuesExist() {
+        when(issueRepository.findAll()).thenReturn(List.of());
+
+        List<Issue> result = issueService.getAllIssues();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(issueRepository).findAll();
     }
 
 }

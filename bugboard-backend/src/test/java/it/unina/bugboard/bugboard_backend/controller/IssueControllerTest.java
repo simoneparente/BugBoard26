@@ -3,7 +3,9 @@ package it.unina.bugboard.bugboard_backend.controller;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
+import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
 import it.unina.bugboard.bugboard_backend.entity.IssueType;
+import it.unina.bugboard.bugboard_backend.entity.Tag;
 import it.unina.bugboard.bugboard_backend.entity.state.InProgress;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,13 +74,13 @@ class IssueControllerTest {
 
         when(issueService.getIssueById(issueId)).thenReturn(dummyIssue);
 
-        ResponseEntity<it.unina.bugboard.bugboard_backend.dto.IssueResponse> responseEntity = (ResponseEntity<it.unina.bugboard.bugboard_backend.dto.IssueResponse>) issueController
+        ResponseEntity<IssueResponse> responseEntity = (ResponseEntity<IssueResponse>) issueController
                 .getIssueById(issueId);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
-        it.unina.bugboard.bugboard_backend.dto.IssueResponse responseBody = responseEntity.getBody();
+        IssueResponse responseBody = responseEntity.getBody();
         assertNotNull(responseBody);
 
         assertNotNull(responseBody.getStatus());
@@ -95,13 +97,13 @@ class IssueControllerTest {
 
         when(issueService.getIssuesByProjectId(projectId)).thenReturn(List.of(dummyIssue));
 
-        ResponseEntity<List<it.unina.bugboard.bugboard_backend.dto.IssueResponse>> responseEntity = (ResponseEntity<List<it.unina.bugboard.bugboard_backend.dto.IssueResponse>>) issueController
+        ResponseEntity<List<IssueResponse>> responseEntity = (ResponseEntity<List<IssueResponse>>) issueController
                 .getIssuesByProject(projectId);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
-        List<it.unina.bugboard.bugboard_backend.dto.IssueResponse> body = responseEntity.getBody();
+        List<IssueResponse> body = responseEntity.getBody();
         assertNotNull(body);
         assertFalse(body.isEmpty());
 
@@ -171,5 +173,75 @@ class IssueControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         verify(issueService, times(1)).removeIssueAssignee(issueId);
+    }
+
+    @Test
+    void getIssueById_NullTags_ReturnsEmptyTagList() {
+        Issue issueWithNullTags = Issue.builder()
+                .id(issueId)
+                .title("No tags issue")
+                .status(new InProgress())
+                .tags(null)
+                .build();
+
+        when(issueService.getIssueById(issueId)).thenReturn(issueWithNullTags);
+
+        ResponseEntity<IssueResponse> response =
+                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
+
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getTags());
+        assertTrue(response.getBody().getTags().isEmpty());
+    }
+
+    @Test
+    void getIssueById_EmptyTags_ReturnsEmptyTagList() {
+        Issue issueWithEmptyTags = Issue.builder()
+                .id(issueId)
+                .title("Empty tags issue")
+                .status(new InProgress())
+                .tags(List.of())
+                .build();
+
+        when(issueService.getIssueById(issueId)).thenReturn(issueWithEmptyTags);
+
+        ResponseEntity<IssueResponse> response =
+                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
+
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().getTags().isEmpty());
+    }
+
+    @Test
+    void getIssueById_WithTags_MapsTagFieldsCorrectly() {
+        UUID tagId1 = UUID.randomUUID();
+        UUID tagId2 = UUID.randomUUID();
+
+        Tag tag1 = Tag.builder().id(tagId1).name("backend").color("#FF0000").build();
+        Tag tag2 = Tag.builder().id(tagId2).name("urgent").color("#00FF00").build();
+
+        Issue issueWithTags = Issue.builder()
+                .id(issueId)
+                .title("Issue with tags")
+                .status(new InProgress())
+                .tags(List.of(tag1, tag2))
+                .build();
+
+        when(issueService.getIssueById(issueId)).thenReturn(issueWithTags);
+
+        ResponseEntity<IssueResponse> response =
+                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
+
+        assertNotNull(response.getBody());
+        List<it.unina.bugboard.bugboard_backend.dto.TagResponse> tags = response.getBody().getTags();
+        assertEquals(2, tags.size());
+
+        assertEquals(tagId1, tags.get(0).getId());
+        assertEquals("backend", tags.get(0).getName());
+        assertEquals("#FF0000", tags.get(0).getColor());
+
+        assertEquals(tagId2, tags.get(1).getId());
+        assertEquals("urgent", tags.get(1).getName());
+        assertEquals("#00FF00", tags.get(1).getColor());
     }
 }
