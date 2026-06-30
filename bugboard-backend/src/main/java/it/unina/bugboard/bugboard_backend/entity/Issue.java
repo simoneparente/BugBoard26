@@ -25,6 +25,11 @@ public class Issue {
     @Column(nullable = false)
     private String title;
 
+    // Owning side of the Project -> issues relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
     // Relazione Molti-a-Molti con Tag (Tabella di Join)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
