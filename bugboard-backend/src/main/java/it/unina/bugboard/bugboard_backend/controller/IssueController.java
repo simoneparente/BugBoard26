@@ -6,6 +6,8 @@ import it.unina.bugboard.bugboard_backend.dto.StatusResponse;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@RequestBody IssueRequest request) {
+    public ResponseEntity<IssueResponse> createIssue(@Valid@RequestBody IssueRequest request) {
         Issue issue = issueService.createIssue(request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }

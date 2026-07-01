@@ -2,8 +2,9 @@ package it.unina.bugboard.bugboard_backend.controller;
 
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
-import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class ProjectController {
     }
 
     @PostMapping 
-    public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
+    public ResponseEntity<ProjectResponse> createProject(@Valid@RequestBody ProjectRequest projectRequest) {
         ProjectResponse project = projectService.createProject(projectRequest);
         return new ResponseEntity<>(project, HttpStatus.CREATED);
 
