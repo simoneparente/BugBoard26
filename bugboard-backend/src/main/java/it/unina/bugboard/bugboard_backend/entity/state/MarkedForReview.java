@@ -15,6 +15,11 @@ public class MarkedForReview extends BaseStatus{
     }
 
     @Override
+    public Status previousStatus(){
+        return new InProgress();
+    }
+
+    @Override
     public void reject(Issue issue) {
         issue.setStatus(new InProgress()); 
     }
