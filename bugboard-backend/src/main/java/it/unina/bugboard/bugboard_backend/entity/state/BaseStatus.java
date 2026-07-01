@@ -2,8 +2,16 @@ package it.unina.bugboard.bugboard_backend.entity.state;
 
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.entity.User;
+import java.util.List;
 
 public abstract class BaseStatus implements Status {
+
+    private final List<String> nextStatuses = List.of();
+
+    @Override
+    public List<String> getNextStatuses() {
+        return nextStatuses;
+    }
 
     @Override
     public Status previousStatus() {

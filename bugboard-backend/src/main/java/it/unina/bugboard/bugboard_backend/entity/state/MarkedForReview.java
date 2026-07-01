@@ -2,11 +2,24 @@ package it.unina.bugboard.bugboard_backend.entity.state;
 
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 
+import java.util.List;
+
+
+
 public class MarkedForReview extends BaseStatus{
+    private String name = "MARKED_FOR_REVIEW";
+
+    private final List<String> nextStatuses = List.of("NOT_FIXED", "COMPLETED", "CLOSED");
 
     @Override
     public String getName() {
-        return "MARKED_FOR_REVIEW";
+        return name;
+    }
+
+
+    @Override
+    public List<String> getNextStatuses() {
+        return nextStatuses;
     }
 
     @Override

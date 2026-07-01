@@ -1,12 +1,20 @@
 package it.unina.bugboard.bugboard_backend.entity.state;
 
 import it.unina.bugboard.bugboard_backend.entity.Issue;
+import java.util.List;
 
 public class NotFixed extends BaseStatus {
+    private String name = "NOT_FIXED";
+    private final List<String> nextStatuses = List.of("IN_PROGRESS", "CLOSED");
     
     @Override
     public String getName(){
-        return "NOT_FIXED";
+        return name;
+    }
+
+    @Override
+    public List<String> getNextStatuses(){
+        return nextStatuses;
     }
 
     @Override
