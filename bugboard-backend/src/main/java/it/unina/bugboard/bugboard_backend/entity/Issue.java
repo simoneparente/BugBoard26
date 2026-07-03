@@ -1,6 +1,6 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
-import it.unina.bugboard.bugboard_backend.entity.state.Status;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,9 +40,9 @@ public class Issue {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Convert(converter = IssueStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private Status status;
+    private IssueStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -82,27 +82,4 @@ public class Issue {
         updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 
-    public void assign(User user){
-        this.status.assign(this, user);
-    }
-
-    public void removeAssignee(){
-        this.status.removeAssignee(this);
-    }
-
-    public void startPorgress(){
-        this.status.startProgress(this);
-    }
-
-    public void accept(){
-        this.status.accept(this);
-    }
-
-    public void previousState(){
-        this.status = this.status.previousStatus();
-    }
-
-
-
 }
-
