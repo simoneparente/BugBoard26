@@ -1,8 +1,8 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import it.unina.bugboard.bugboard_backend.dto.AttachmentResponse;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
-import it.unina.bugboard.bugboard_backend.dto.StatusResponse;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/issues")
+@RequestMapping("/api/projects/{projectId}/issues")
 public class IssueController {
 
     private final IssueService issueService;
@@ -24,19 +24,19 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@RequestBody IssueRequest request) {
-        Issue issue = issueService.createIssue(request);
+    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId, @RequestBody IssueRequest request) {
+        Issue issue = issueService.createIssue(projectId, request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable UUID id) {
-        Issue issue = issueService.getIssueById(id);
+    public ResponseEntity<IssueResponse> getIssueByIdAndProjectId(@PathVariable UUID id, @PathVariable UUID projectId) {
+        Issue issue = issueService.getIssueByIdAndProjectId(id, projectId);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
 
-    @GetMapping("/project/{projectId}")
+    @GetMapping
     public ResponseEntity<List<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId) {
         List<IssueResponse> issues = issueService.getIssuesByProjectId(projectId).stream()
                 .map(this::mapToResponseDTO)
@@ -47,7 +47,7 @@ public class IssueController {
 
     @PutMapping("/{id}/assign")
     public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
-        Issue issue = issueService.assignIssue(id, assigneeId);
+        Issue issue = issueService.assignIssueToUser(id, assigneeId);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
@@ -73,43 +73,42 @@ public class IssueController {
     }
 
     @DeleteMapping("/{id}/assignee")
-    public ResponseEntity<Issue> removeAssignee(@PathVariable UUID id) {
+    public ResponseEntity<IssueResponse> removeAssignee(@PathVariable UUID id) {
         Issue updatedIssue = issueService.removeIssueAssignee(id);
-        return ResponseEntity.ok(updatedIssue);
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
     }
 
     private IssueResponse mapToResponseDTO(Issue issue) {
-        StatusResponse statusDTO = null;
-
-        if(issue.getStatus() != null ){
-            statusDTO = StatusResponse.builder()
-                        .name(issue.getStatus().getName())
-                        .type(issue.getStatus().getClass().getSimpleName())
-                        .build();
-        }
-
-        List<TagResponse> tagDTOs = issue.getTags() != null
-            ? issue.getTags().stream()
-                    .map(tag -> TagResponse.builder()
-                            .id(tag.getId())
-                            .name(tag.getName())
-                            .color(tag.getColor())
-                            .build())
-                    .toList()
-            : List.of();
-
         return IssueResponse.builder()
                 .id(issue.getId())
                 .title(issue.getTitle())
                 .description(issue.getDescription())
                 .createdAt(issue.getCreatedAt())
                 .updatedAt(issue.getUpdatedAt())
-                .projectName(issue.getProject() != null ? issue.getProject().getName() : null)
+                .status(issue.getStatus().name())
+                .priority(issue.getPriority().name())
+                .type(issue.getType().name())
                 .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
-                .status(statusDTO)
-                .tags(tagDTOs)
-                .attachmentsCount(issue.getAttachments() != null ? issue.getAttachments().size() : 0)
+                .projectId(issue.getProject().getId())
+                .projectName(issue.getProject().getName())
+                .tags(issue.getTags().stream()
+                        .map(tag -> TagResponse.builder()
+                                .id(tag.getId())
+                                .name(tag.getName())
+                                .build())
+                        .toList())
+                .attachments(issue.getAttachments().stream()
+                        .map(attachment -> AttachmentResponse.builder()
+                                .id(attachment.getId())
+                                .fileName(attachment.getFileName())
+                                .filePath(attachment.getFilePath())
+                                .fileSize(attachment.getFileSize())
+                                .fileExtension(attachment.getFileExtension())
+                                .issueId(attachment.getIssue().getId())
+                                .build())
+                        .toList())
                 .build();
     }
 
 }
+

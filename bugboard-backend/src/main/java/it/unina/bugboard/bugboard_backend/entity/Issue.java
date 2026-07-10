@@ -1,6 +1,5 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
-import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
