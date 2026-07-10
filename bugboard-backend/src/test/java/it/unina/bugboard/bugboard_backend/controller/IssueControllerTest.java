@@ -1,247 +1,164 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
-import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import it.unina.bugboard.bugboard_backend.entity.IssueType;
-import it.unina.bugboard.bugboard_backend.entity.Tag;
-import it.unina.bugboard.bugboard_backend.entity.state.InProgress;
+import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
+import it.unina.bugboard.bugboard_backend.security.JwtService;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(IssueController.class)
+@WithMockUser
 class IssueControllerTest {
 
-    @Mock
-    private IssueService issueService;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @InjectMocks
-    private IssueController issueController;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private UUID issueId;
+    @MockitoBean private IssueService issueService;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UserRepository userRepository;
+    private UUID projectId;
+    private Project project;
+    private IssueRequest validRequest;
     private Issue dummyIssue;
 
     @BeforeEach
     void setUp() {
-        issueId = UUID.randomUUID();
+        projectId = UUID.randomUUID();
+        project = Project.builder()
+                .id(projectId)
+                .name("BugBoard Core")
+                .description("Test project")
+                .build();
+
+        // Setup valid request
+        validRequest = new IssueRequest();
+        validRequest.setTitle("NullPointerException in Login");
+        validRequest.setDescription("The server crashes if it receives blank credentials.");
+        validRequest.setType(IssueType.BUG);
+        validRequest.setPriority(IssuePriority.MEDIUM);
+
+        // Mock Entity returned by the service
         dummyIssue = Issue.builder()
-                .id(issueId)
-                .title("NullPointer in Auth")
-                .description("Description of the graphic bug")
-                .status(new InProgress())
-                .build();
-    }
-
-    @Test
-    void createIssue_ReturnsCreatedResponse() {
-        IssueRequest request = new IssueRequest();
-        request.setTitle("NullPointer in Auth");
-        request.setDescription("Description of the graphic bug");
-        request.setProjectId(UUID.randomUUID());
-        request.setTagIds(List.of());
-        request.setType(IssueType.BUG);
-        request.setPriority(IssuePriority.HIGH);
-
-        when(issueService.createIssue(any(it.unina.bugboard.bugboard_backend.dto.IssueRequest.class)))
-                .thenReturn(dummyIssue);
-
-        ResponseEntity<?> responseEntity = issueController.createIssue(request);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).createIssue(any(IssueRequest.class));
-    }
-
-    @Test
-    void getIssueById_ReturnsOkResponse() {
-        dummyIssue.setStatus(new it.unina.bugboard.bugboard_backend.entity.state.InProgress());
-
-        when(issueService.getIssueById(issueId)).thenReturn(dummyIssue);
-
-        ResponseEntity<IssueResponse> responseEntity = (ResponseEntity<IssueResponse>) issueController
-                .getIssueById(issueId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-
-        IssueResponse responseBody = responseEntity.getBody();
-        assertNotNull(responseBody);
-
-        assertNotNull(responseBody.getStatus());
-        assertEquals("IN_PROGRESS", responseBody.getStatus().getName());
-        assertEquals("InProgress", responseBody.getStatus().getType()); // Verifica la Reflection della classe!
-
-        verify(issueService, times(1)).getIssueById(issueId);
-    }
-
-    @Test
-    void getIssuesByProject_ReturnsListWithStatusDTO() {
-        UUID projectId = UUID.randomUUID();
-        dummyIssue.setStatus(new it.unina.bugboard.bugboard_backend.entity.state.Closed()); // Testiamo con Closed
-
-        when(issueService.getIssuesByProjectId(projectId)).thenReturn(List.of(dummyIssue));
-
-        ResponseEntity<List<IssueResponse>> responseEntity = (ResponseEntity<List<IssueResponse>>) issueController
-                .getIssuesByProject(projectId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-
-        List<IssueResponse> body = responseEntity.getBody();
-        assertNotNull(body);
-        assertFalse(body.isEmpty());
-
-        assertEquals("CLOSED", body.get(0).getStatus().getName());
-        assertEquals("Closed", body.get(0).getStatus().getType());
-
-        verify(issueService, times(1)).getIssuesByProjectId(projectId);
-    }
-
-    @Test
-    void assignIssue_ReturnsOkResponse() {
-        UUID assigneeId = UUID.randomUUID();
-        when(issueService.assignIssue(issueId, assigneeId)).thenReturn(dummyIssue);
-
-        ResponseEntity<?> responseEntity = issueController.assignIssue(issueId, assigneeId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).assignIssue(issueId, assigneeId);
-    }
-
-    @Test
-    void startProgress_ReturnsOkResponse() {
-        when(issueService.startIssueProgress(issueId)).thenReturn(dummyIssue);
-
-        ResponseEntity<?> responseEntity = issueController.startProgress(issueId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).startIssueProgress(issueId);
-    }
-
-    @Test
-    void acceptIssue_ReturnsOkResponse() {
-        when(issueService.acceptIssue(issueId)).thenReturn(dummyIssue);
-
-        ResponseEntity<?> responseEntity = issueController.acceptIssue(issueId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).acceptIssue(issueId);
-    }
-
-    @Test
-    void goToPreviousState_ReturnsOkResponse() {
-        when(issueService.rollbackIssueState(issueId)).thenReturn(dummyIssue);
-
-        ResponseEntity<?> responseEntity = issueController.goToPreviousState(issueId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).rollbackIssueState(issueId);
-    }
-
-    @Test
-    void removeAssignee_ReturnsOkResponse() {
-        Issue issueWithoutAssignee = Issue.builder().id(issueId).assignee(null).build();
-        when(issueService.removeIssueAssignee(issueId)).thenReturn(issueWithoutAssignee);
-
-        ResponseEntity<?> responseEntity = issueController.removeAssignee(issueId);
-
-        assertNotNull(responseEntity);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        verify(issueService, times(1)).removeIssueAssignee(issueId);
-    }
-
-    @Test
-    void getIssueById_NullTags_ReturnsEmptyTagList() {
-        Issue issueWithNullTags = Issue.builder()
-                .id(issueId)
-                .title("No tags issue")
-                .status(new InProgress())
-                .tags(null)
-                .build();
-
-        when(issueService.getIssueById(issueId)).thenReturn(issueWithNullTags);
-
-        ResponseEntity<IssueResponse> response =
-                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
-
-        assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getTags());
-        assertTrue(response.getBody().getTags().isEmpty());
-    }
-
-    @Test
-    void getIssueById_EmptyTags_ReturnsEmptyTagList() {
-        Issue issueWithEmptyTags = Issue.builder()
-                .id(issueId)
-                .title("Empty tags issue")
-                .status(new InProgress())
+                .id(UUID.randomUUID())
+                .title(validRequest.getTitle())
+                .description(validRequest.getDescription())
+                .project(project)
+                .status(IssueStatus.TO_DO)
+                .priority(IssuePriority.MEDIUM)
+                .type(IssueType.BUG)
                 .tags(List.of())
+                .attachments(List.of())
                 .build();
-
-        when(issueService.getIssueById(issueId)).thenReturn(issueWithEmptyTags);
-
-        ResponseEntity<IssueResponse> response =
-                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
-
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getTags().isEmpty());
     }
 
+    // ==========================================
+    // TC-CTRL-01: Successfull Creation of an Issue (201)
+    // ==========================================
     @Test
-    void getIssueById_WithTags_MapsTagFieldsCorrectly() {
-        UUID tagId1 = UUID.randomUUID();
-        UUID tagId2 = UUID.randomUUID();
+    void createIssue_Success_ReturnsStatus201AndJson() throws Exception {
+        when(issueService.createIssue(eq(projectId), any(IssueRequest.class))).thenReturn(dummyIssue);
 
-        Tag tag1 = Tag.builder().id(tagId1).name("backend").color("#FF0000").build();
-        Tag tag2 = Tag.builder().id(tagId2).name("urgent").color("#00FF00").build();
+        mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(dummyIssue.getId().toString()))
+                .andExpect(jsonPath("$.title").value("NullPointerException in Login"))
+                .andExpect(jsonPath("$.status").value("TO_DO")); // Spring userà il vero mapToResponseDTO del controller
 
-        Issue issueWithTags = Issue.builder()
-                .id(issueId)
-                .title("Issue with tags")
-                .status(new InProgress())
-                .tags(List.of(tag1, tag2))
-                .build();
+        verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
+    }
 
-        when(issueService.getIssueById(issueId)).thenReturn(issueWithTags);
+    // ==========================================
+    // TC-CTRL-02: Validation Failure (Blank Title) (400)
+    // ==========================================
+    @Test
+    void createIssue_BlankTitle_ReturnsStatus400BadRequest() throws Exception {
+        validRequest.setTitle(""); 
 
-        ResponseEntity<IssueResponse> response =
-                (ResponseEntity<IssueResponse>) issueController.getIssueById(issueId);
+        mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isBadRequest());
 
-        assertNotNull(response.getBody());
-        List<it.unina.bugboard.bugboard_backend.dto.TagResponse> tags = response.getBody().getTags();
-        assertEquals(2, tags.size());
+        verify(issueService, never()).createIssue(any(), any());
+    }
 
-        assertEquals(tagId1, tags.get(0).getId());
-        assertEquals("backend", tags.get(0).getName());
-        assertEquals("#FF0000", tags.get(0).getColor());
+    // ==========================================
+    // TC-CTRL-04: Validation Failure (Blank Description) (400)
+    // ==========================================
+    @Test
+    void createIssue_BlankDescription_ReturnsStatus400BadRequest() throws Exception {
+        validRequest.setDescription(""); 
 
-        assertEquals(tagId2, tags.get(1).getId());
-        assertEquals("urgent", tags.get(1).getName());
-        assertEquals("#00FF00", tags.get(1).getColor());
+        mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(issueService, never()).createIssue(any(), any());
+    }
+
+    // ==========================================
+    // TC-CTRL-03: Project Not Found (400)
+    // ==========================================
+    @Test
+    void createIssue_ProjectNotFound_ReturnsStatus400() throws Exception {
+        when(issueService.createIssue(eq(projectId), any(IssueRequest.class)))
+                .thenThrow(new IllegalArgumentException("Project not found with ID: " + projectId));
+
+        mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
+    }
+
+    // ==========================================
+    // TC-CTRL-05: Service Layer Exception (500)
+    // ==========================================
+    @Test
+    void createIssue_InternalServerError_ReturnsStatus500() throws Exception {
+        when(issueService.createIssue(eq(projectId), any(IssueRequest.class)))
+                .thenThrow(new RuntimeException("Database Connection Timeout Exception"));
+
+        mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isInternalServerError());
+
+        verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
     }
 }

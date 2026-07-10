@@ -1,5 +1,4 @@
 package it.unina.bugboard.bugboard_backend.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,15 +18,14 @@ public class IssueResponse {
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    private String projectName;
-
-    private StatusResponse status;
-
-    private String creatorUsername;
+    private String status;
+    private String priority;
+    private String type;
     private String assigneeUsername; //  "Unassigned" if null
     
-    // Simplified lists of information
     private List<TagResponse> tags;
-    private int attachmentsCount;
+    private List<AttachmentResponse> attachments;
+    
+    private UUID projectId;
+    private String projectName;
 }
