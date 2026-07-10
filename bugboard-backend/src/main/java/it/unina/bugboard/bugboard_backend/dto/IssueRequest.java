@@ -22,6 +22,7 @@ public class IssueRequest {
     @NotBlank(message="Description is required")
     private String description;
     
+    private String assigneeUsername; // Optional, can be null
     private IssueStatus status;
     private IssueType type;
     private IssuePriority priority;

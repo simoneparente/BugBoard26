@@ -29,7 +29,7 @@ public class IssueService {
     @Transactional
     public Issue createIssue(UUID projectId, IssueRequest request) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
                 
 
@@ -41,6 +41,12 @@ public class IssueService {
             .flatMap(tagResponse -> Stream.of(tagResponse.mapToEntity())) //flatMap to handle potential nulls (static analysis warning)
             .toList();
 
+        User assignee = null;
+        if (request.getAssigneeUsername() != null) {
+            assignee = userRepository.findByUsername(request.getAssigneeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Assignee not found with username: " + request.getAssigneeUsername()));
+        }
+
 
         Issue issue = Issue.builder()
                 .title(request.getTitle())
@@ -50,7 +56,7 @@ public class IssueService {
                 .type(request.getType())
                 .status(request.getStatus() != null ? request.getStatus() : IssueStatus.TO_DO)
                 .tags(tags)
-                .assignee(null)
+                .assignee(assignee)
                 .attachments(List.of()) //TODO: Handle attachments if needed
                 .build();
 
