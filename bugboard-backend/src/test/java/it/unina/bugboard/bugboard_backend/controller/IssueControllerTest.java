@@ -6,12 +6,16 @@ import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
 import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import it.unina.bugboard.bugboard_backend.entity.IssueType;
+import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
+import it.unina.bugboard.bugboard_backend.security.JwtService;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,26 +25,35 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(IssueController.class)
+@WithMockUser
 class IssueControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-   @MockitoBean private IssueService issueService;
+    @MockitoBean private IssueService issueService;
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UserRepository userRepository;
     private UUID projectId;
+    private Project project;
     private IssueRequest validRequest;
     private Issue dummyIssue;
 
     @BeforeEach
     void setUp() {
         projectId = UUID.randomUUID();
+        project = Project.builder()
+                .id(projectId)
+                .name("BugBoard Core")
+                .description("Test project")
+                .build();
 
         // Setup valid request
         validRequest = new IssueRequest();
@@ -54,6 +67,7 @@ class IssueControllerTest {
                 .id(UUID.randomUUID())
                 .title(validRequest.getTitle())
                 .description(validRequest.getDescription())
+                .project(project)
                 .status(IssueStatus.TO_DO)
                 .priority(IssuePriority.MEDIUM)
                 .type(IssueType.BUG)
@@ -70,6 +84,7 @@ class IssueControllerTest {
         when(issueService.createIssue(eq(projectId), any(IssueRequest.class))).thenReturn(dummyIssue);
 
         mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
@@ -89,6 +104,7 @@ class IssueControllerTest {
         validRequest.setTitle(""); 
 
         mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -104,6 +120,7 @@ class IssueControllerTest {
         validRequest.setDescription(""); 
 
         mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -120,6 +137,7 @@ class IssueControllerTest {
                 .thenThrow(new IllegalArgumentException("Project not found with ID: " + projectId));
 
         mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isBadRequest());
@@ -136,6 +154,7 @@ class IssueControllerTest {
                 .thenThrow(new RuntimeException("Database Connection Timeout Exception"));
 
         mockMvc.perform(post("/api/projects/{projectId}/issues", projectId)
+                .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isInternalServerError());
