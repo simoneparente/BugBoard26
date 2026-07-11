@@ -1,7 +1,9 @@
 package it.unina.bugboard.bugboard_backend.service;
 
+import it.unina.bugboard.bugboard_backend.dto.AttachmentMetadataRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
+import it.unina.bugboard.bugboard_backend.entity.Attachment;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
 import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
@@ -10,6 +12,7 @@ import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.entity.Tag;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.repository.AttachmentRepository;
 import it.unina.bugboard.bugboard_backend.repository.IssueRepository;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.repository.TagRepository;
@@ -33,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +54,9 @@ class IssueServiceTest {
 
 	@Mock
 	private TagRepository tagRepository;
+
+	@Mock
+	private AttachmentRepository attachmentRepository;
 
 	@Mock
 	private ProjectService projectService;
@@ -228,6 +235,59 @@ class IssueServiceTest {
         assertEquals(assignee.getUsername(), result.getAssignee().getUsername());
         assertEquals(assignee.getId(), result.getAssignee().getId());
     }
+
+	@Test
+	void createIssue_SavesAttachmentsWhenProvided() {
+		AttachmentMetadataRequest meta1 = new AttachmentMetadataRequest();
+		meta1.setOriginalFileName("report.pdf");
+		meta1.setBlobFileName("uuid-report.pdf");
+		meta1.setFileSize(2048L);
+		meta1.setExtension(".pdf");
+
+		AttachmentMetadataRequest meta2 = new AttachmentMetadataRequest();
+		meta2.setOriginalFileName("screenshot.png");
+		meta2.setBlobFileName("uuid-screenshot.png");
+		meta2.setFileSize(4096L);
+		meta2.setExtension(".png");
+
+		IssueRequest request = createRequest(null, null, null);
+		request.setAttachments(List.of(meta1, meta2));
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(attachmentRepository.save(any(Attachment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		Issue result = issueService.createIssue(projectId, request);
+
+		assertNotNull(result);
+		verify(attachmentRepository, times(2)).save(any(Attachment.class));
+	}
+
+	@Test
+	void createIssue_DoesNotSaveAttachmentsWhenListIsNull() {
+		IssueRequest request = createRequest(null, null, null);
+		request.setAttachments(null);
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		issueService.createIssue(projectId, request);
+
+		verify(attachmentRepository, never()).save(any(Attachment.class));
+	}
+
+	@Test
+	void createIssue_DoesNotSaveAttachmentsWhenListIsEmpty() {
+		IssueRequest request = createRequest(null, null, null);
+		request.setAttachments(List.of());
+
+		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		issueService.createIssue(projectId, request);
+
+		verify(attachmentRepository, never()).save(any(Attachment.class));
+	}
 
 	private IssueRequest createRequest(IssueStatus status, List<TagResponse> tags, String assigneeUsername) {
 		IssueRequest request = new IssueRequest();

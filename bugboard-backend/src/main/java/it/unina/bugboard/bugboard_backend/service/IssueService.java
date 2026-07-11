@@ -1,5 +1,6 @@
 package it.unina.bugboard.bugboard_backend.service;
 
+import it.unina.bugboard.bugboard_backend.dto.AttachmentMetadataRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
 import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.repository.*;
@@ -27,6 +28,7 @@ public class IssueService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final AttachmentRepository attachmentRepository;
 
     @Transactional
     public Issue createIssue(UUID projectId, IssueRequest request) {
@@ -59,10 +61,25 @@ public class IssueService {
                 .status(request.getStatus() != null ? request.getStatus() : IssueStatus.TO_DO)
                 .tags(tags)
                 .assignee(assignee)
-                .attachments(List.of()) //TODO: Handle attachments if needed
+                .attachments(List.of()) //Issue is created without attachments; they will be added after the issue is saved
                 .build();
+            
+        Issue savedIssue = issueRepository.save(issue);
 
-        return issueRepository.save(issue);
+        if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
+            for (AttachmentMetadataRequest meta : request.getAttachments()) {
+                Attachment attachment = Attachment.builder()
+                        .fileName(meta.getOriginalFileName())
+                        .filePath(meta.getBlobFileName())
+                        .fileSize(meta.getFileSize())
+                        .fileExtension(meta.getExtension())
+                        .issue(savedIssue)
+                        .build();
+                attachmentRepository.save(attachment);
+            }
+        }
+
+        return savedIssue;
     }
 
     @Transactional
