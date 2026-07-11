@@ -97,6 +97,7 @@ buildNumber.properties
 *.tar.gz
 *.rar
 .obsidian
+CLAUDE.md
 
 # ─── Environment variables ───
 .env
