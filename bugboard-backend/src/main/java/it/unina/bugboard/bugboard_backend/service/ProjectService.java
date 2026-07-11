@@ -3,6 +3,8 @@ package it.unina.bugboard.bugboard_backend.service;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +38,8 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<Project> getAllProjects(){
-        return projectRepository.findAll();
+    public Page<Project> getAllProjects(Pageable pageable){
+        return projectRepository.findAll(pageable);
     }
 
 
