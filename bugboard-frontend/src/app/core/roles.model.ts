@@ -1,0 +1,5 @@
+export enum ROLES {
+  TECHNICAL = 'TECHNICAL',
+  ADMIN = 'ADMIN',
+  EXTERNAL = 'EXTERNAL',
+}

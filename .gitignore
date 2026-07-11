@@ -14,7 +14,6 @@
 *.dll
 *.obj
 *.lib
-core
 
 # ─── IDE / Editor ───
 .idea/
@@ -87,8 +86,6 @@ buildNumber.properties
 *.maf
 *.mtc
 *.mtc0
-
-# Il PDF finale (opzionale: commentalo se vuoi invece caricarlo su Git)
 # *.pdf
 
 # ─── Altro ───
@@ -99,7 +96,8 @@ buildNumber.properties
 *.zip
 *.tar.gz
 *.rar
-
-# ─── Custom ───
 .obsidian
+CLAUDE.md
 
+# ─── Environment variables ───
+.env
