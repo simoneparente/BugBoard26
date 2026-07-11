@@ -1,5 +1,4 @@
 package it.unina.bugboard.bugboard_backend.dto;
-import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

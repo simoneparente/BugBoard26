@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.validator.constraints.UUID;
 
 import it.unina.bugboard.bugboard_backend.entity.IssueType;
 import it.unina.bugboard.bugboard_backend.entity.IssuePriority;
