@@ -26,16 +26,16 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     List<Issue> findByProjectIdAndStatusAndUpdatedAtBetween(UUID projectId, IssueStatus status, LocalDateTime start, LocalDateTime end);
 
     // Count bugs opened in the month for a specific user in a project
-    long countByProjectIdAndAssignedToIdAndCreatedAtBetween(UUID projectId, UUID userId, LocalDateTime start, LocalDateTime end);
+    long countByProjectIdAndAssigneeIdAndCreatedAtBetween(UUID projectId, UUID userId, LocalDateTime start, LocalDateTime end);
 
     // Count resolved bugs in the month for a specific user in a project
-    long countByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);
+    long countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);
 
     // Retrieve resolved bugs for a specific user to calculate average time
-    List<Issue> findByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);
+    List<Issue> findByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);
 
     // Find all distinct users assigned to issues of a project in a given range
-    @Query("SELECT DISTINCT i.assignedTo FROM Issue i WHERE i.project.id = :projectId AND i.assignedTo IS NOT NULL AND " +
+    @Query("SELECT DISTINCT i.assignee FROM Issue i WHERE i.project.id = :projectId AND i.assignee IS NOT NULL AND " +
             "(i.createdAt BETWEEN :start AND :end OR (i.status = :status AND i.updatedAt BETWEEN :start AND :end))")
     List<it.unina.bugboard.bugboard_backend.entity.User> findDistinctUsersInvolvedInMonth(
             @Param("projectId") UUID projectId,

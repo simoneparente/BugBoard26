@@ -75,11 +75,11 @@ class ReportServiceTest {
         // User metrics
         when(issueRepository.findDistinctUsersInvolvedInMonth(eq(projectId), any(), any(), eq(IssueStatus.COMPLETED)))
                 .thenReturn(List.of(mockUser));
-        when(issueRepository.countByProjectIdAndAssignedToIdAndCreatedAtBetween(eq(projectId), eq(mockUser.getId()), any(), any()))
+        when(issueRepository.countByProjectIdAndAssigneeIdAndCreatedAtBetween(eq(projectId), eq(mockUser.getId()), any(), any()))
                 .thenReturn(2L);
-        when(issueRepository.countByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(mockUser.getId()), eq(IssueStatus.COMPLETED), any(), any()))
+        when(issueRepository.countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(mockUser.getId()), eq(IssueStatus.COMPLETED), any(), any()))
                 .thenReturn(1L);
-        when(issueRepository.findByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(mockUser.getId()), eq(IssueStatus.COMPLETED), any(), any()))
+        when(issueRepository.findByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(mockUser.getId()), eq(IssueStatus.COMPLETED), any(), any()))
                 .thenReturn(List.of(resolvedIssue)); // Avg 2.0
 
         // Mock saves
