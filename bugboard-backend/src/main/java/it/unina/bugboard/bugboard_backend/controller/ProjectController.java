@@ -4,6 +4,8 @@ import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +37,9 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getAllProjects() {
-        List<ProjectResponse> projects = projectService.getAllProjects().stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+    public ResponseEntity<Page<ProjectResponse>> getAllProjects(Pageable pageable) {
+        Page<ProjectResponse> projects = projectService.getAllProjects(pageable)
+                .map(this::mapToResponseDTO);
         return ResponseEntity.ok(projects);
     }
 

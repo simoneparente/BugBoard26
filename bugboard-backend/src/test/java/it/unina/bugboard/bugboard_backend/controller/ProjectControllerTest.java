@@ -9,6 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -47,14 +51,16 @@ class ProjectControllerTest {
     @Test
     void getAllProjects_ReturnsOkResponse() {
         List<Project> projects = List.of(dummyProject);
-        when(projectService.getAllProjects()).thenReturn(projects);
+        Page<Project> page = new PageImpl<>(projects);
+        Pageable pageable = PageRequest.of(0, 10);
+        when(projectService.getAllProjects(pageable)).thenReturn(page);
 
-        ResponseEntity<?> responseEntity = projectController.getAllProjects();
+        ResponseEntity<?> responseEntity = projectController.getAllProjects(pageable);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        verify(projectService, times(1)).getAllProjects();
+        verify(projectService, times(1)).getAllProjects(pageable);
     }
 
     @Test

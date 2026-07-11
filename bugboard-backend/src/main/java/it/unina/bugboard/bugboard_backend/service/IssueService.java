@@ -6,6 +6,8 @@ import it.unina.bugboard.bugboard_backend.repository.*;
 import it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
@@ -155,8 +157,8 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
-    public List<Issue> getIssuesByProjectId(UUID projectId) {
-        return issueRepository.findByProjectId(projectId);
+    public Page<Issue> getIssuesByProjectId(UUID projectId, Pageable pageable) {
+        return issueRepository.findByProjectId(projectId, pageable);
     }
 
     @Transactional

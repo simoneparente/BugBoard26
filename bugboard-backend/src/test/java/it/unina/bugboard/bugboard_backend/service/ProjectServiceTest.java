@@ -9,6 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -100,14 +104,16 @@ class ProjectServiceTest {
     }
 
     @Test
-    void getAllProjects_ReturnsList() {
+    void getAllProjects_ReturnsPage() {
         List<Project> projectList = List.of(dummyProject);
-        when(projectRepository.findAll()).thenReturn(projectList);
+        Page<Project> projectPage = new PageImpl<>(projectList);
+        Pageable pageable = PageRequest.of(0, 10);
+        when(projectRepository.findAll(pageable)).thenReturn(projectPage);
 
-        List<Project> result = projectService.getAllProjects();
+        Page<Project> result = projectService.getAllProjects(pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("BugBoard Core", result.get(0).getName());
+        assertEquals(1, result.getTotalElements());
+        assertEquals("BugBoard Core", result.getContent().get(0).getName());
     }
 }

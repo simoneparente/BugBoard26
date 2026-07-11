@@ -7,6 +7,8 @@ import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,10 +40,9 @@ public class IssueController {
 
 
     @GetMapping
-    public ResponseEntity<List<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId) {
-        List<IssueResponse> issues = issueService.getIssuesByProjectId(projectId).stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId, Pageable pageable) {
+        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, pageable)
+                .map(this::mapToResponseDTO);
         return ResponseEntity.ok(issues);
     }
 
