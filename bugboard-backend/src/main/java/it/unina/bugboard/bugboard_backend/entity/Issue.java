@@ -1,18 +1,18 @@
 package it.unina.bugboard.bugboard_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-
 
 @Entity
 @Table(name = "issues")
@@ -63,22 +63,17 @@ public class Issue {
     private List<Attachment> attachments;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "issue_tags",
-            joinColumns = @JoinColumn(name = "issue_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @JoinTable(name = "issue_tags", joinColumns = @JoinColumn(name = "issue_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private List<Tag> tags;
-    
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now(ZoneId.systemDefault());
-        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now();
     }
-
 }

@@ -91,7 +91,7 @@ class IssueControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(dummyIssue.getId().toString()))
                 .andExpect(jsonPath("$.title").value("NullPointerException in Login"))
-                .andExpect(jsonPath("$.status").value("TO_DO")); // Spring userà il vero mapToResponseDTO del controller
+                .andExpect(jsonPath("$.status").value("TO_DO")); // Spring will use the real mapToResponseDTO of the controller
 
         verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
     }
