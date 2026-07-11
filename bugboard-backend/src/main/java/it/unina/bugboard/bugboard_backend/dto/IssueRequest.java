@@ -26,4 +26,5 @@ public class IssueRequest {
     private IssueType type;
     private IssuePriority priority;
     private List<TagResponse> tags;
+    private List<AttachmentMetadataRequest> attachments;
 }
