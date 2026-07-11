@@ -1,0 +1,22 @@
+\chapter{Definizione dei Design Patterns}
+
+L'architettura del sistema si avvale dell'utilizzo di design pattern consolidati per garantire la manutenibilità, l'estensibilità e la robustezza del codice. L'adozione di tali soluzioni permette di separare le responsabilità dei componenti, facilitando l'evoluzione del software in risposta a nuovi requisiti senza compromettere le funzionalità esistenti. Di seguito vengono analizzati i pattern principali implementati nel progetto.
+
+\section{Singleton Pattern}
+    Per l'accesso alla base dati e la gestione delle connessioni a PostgreSQL, l'architettura sfrutta implicitamente il Singleton Pattern per garantire un accesso centralizzato e ottimizzato. Tuttavia, in aderenza alle best practice del framework Spring Boot, si è evitato di implementare manualmente il classico pattern GoF (con costruttore privato e metodo statico). Si è scelto invece di demandare il ciclo di vita dei componenti al framework, sfruttando la Dependency Injection. I Repository di Spring Data JPA (es. IssueRepository, UserRepository) sono generati e gestiti dal container Inversion of Control di Spring con scope Singleton di default. Questo approccio unisce i vantaggi prestazionali del Singleton (un solo gestore del Connection Pool in memoria) a quelli del basso accoppiamento garantito dalla Dependency Injection, rendendo inoltre le classi facilmente testabili in isolamento.
+
+\section{Dependency Injection e Inversion of Control (IoC)}
+    La Dependency Injection rappresenta il cardine architettonico dell'intero sistema. Invece di permettere ai componenti di istanziare autonomamente le proprie dipendenze (creando un forte accoppiamento), il controllo viene delegato al container di Spring Boot.
+    L'implementazione segue il principio dell'\textit{Injection tramite costruttore}:
+    \begin{itemize}
+        \item Il \texttt{IssueController} riceve un'istanza di \texttt{IssueService}.
+        \item Il \texttt{IssueService} riceve i repository necessari (\texttt{IssueRepository}, \texttt{TagRepository}).
+    \end{itemize}
+    Questo approccio garantisce un \textbf{basso accoppiamento} e un'alta testabilità: è infatti possibile iniettare \textit{Mock Objects} durante i test di unità per isolare la logica di business senza interagire con il database reale. Inoltre, la DI facilita l'implementazione dello \textit{Strategy Pattern} precedentemente descritto, permettendo al framework di selezionare dinamicamente l'implementazione corretta della strategia di esportazione al momento dell'esecuzione.
+
+\section{State Pattern}
+    Implementato per gestire il ciclo di vita delle segnalazioni (\textit{Issue}). Dato che una segnalazione può attraversare molteplici stati (es. \texttt{ToBeAssigned}, \texttt{InProgress}, \texttt{MarkedForReview}) con logiche di transizione complesse, l'uso di semplici costrutti condizionali avrebbe reso il codice fragile e difficile da manutenere. 
+    L'interfaccia \texttt{Status} definisce il contratto per tutte le possibili azioni, mentre la classe astratta \texttt{BaseStatus} fornisce un'implementazione di default (tipicamente inibendo le azioni non permesse). Ogni classe concreta rappresenta uno stato specifico e incapsula la logica delle transizioni ammesse. Questo permette alla classe \texttt{Issue} di delegare il comportamento dinamico all'oggetto \texttt{status} corrente, semplificando l'aggiunta di nuovi stati senza modificare la logica di business esistente.
+
+\section{Strategy Pattern}
+    Utilizzato per la gestione dell'esportazione dei dati delle \textit{Issue} in diversi formati (es. CSV, JSON). Attraverso l'interfaccia \texttt{IssueExportStrategy}, il sistema definisce una famiglia di algoritmi di esportazione intercambiabili. Il servizio \texttt{IssueService} agisce come contesto, mantenendo un riferimento alla strategia scelta ma rimanendo agnostico rispetto ai dettagli implementativi della stessa. Questa separazione consente di aggiungere nuovi formati di esportazione semplicemente implementando una nuova classe concreta, rispettando il principio \textit{Open/Closed}: il sistema è aperto all'estensione (nuovi formati) ma chiuso alla modifica (il codice del servizio non cambia).

@@ -1,0 +1,107 @@
+
+Table users {
+    id integer [primary key]
+    username varchar [unique, not null]
+    email varchar [unique, not null]
+    password_hash varchar [not null]
+    role roles [default: 'USER']
+}
+
+Table issues {
+    id integer [primary key]
+    title varchar [not null]
+    description text [not null]
+    status statuses [default: 'TO_BE_ASSIGNED']
+    priority priorities
+    type types [not null]
+    created_at timestamp [default: `CURRENT_TIMESTAMP`]
+    updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+    assigned_to integer
+    project_id integer
+    //reported_by integer [not null]
+}
+
+Table attachments {
+    id integer [primary key]
+    issue_id integer [not null]
+    file_path varchar [not null]
+    file_name varchar [not null]
+    file_extension varchar
+    file_size integer //bytes
+    uploaded_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table label {
+    id integer [primary key]
+    project_id integer [not null]
+    name varchar [not null]
+    color varchar
+}
+
+Table issue_labels {
+    issue_id integer [not null]
+    label_id integer [not null]
+    primary key (issue_id, label_id)
+}
+
+
+Table projects {
+    id integer [primary key]
+    name varchar [not null]
+    description text
+    created_at timestamp [default: `CURRENT_TIMESTAMP`]
+    updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table project_users {
+    project_id integer [not null]
+    user_id integer [not null]
+    primary key (project_id, user_id)
+}
+
+enum roles {
+    ADMIN
+    USER
+}
+
+enum statuses {
+    TO_BE_ASSIGNED
+    ASSIGNED
+    IN_PROGRESS
+    MARKED_FOR_REVIEW
+    COMPLETED
+    NOT_FIXED
+    CLOSED //TODO: issue is closed but not fixed (e.g. won't fix, duplicate, etc.) [delete after X time]
+}
+
+enum types {
+    BUG
+    FEATURE
+    QUESTION
+    DOCUMENTATION
+}
+
+enum priorities {
+    LOWEST
+    LOW
+    MEDIUM
+    HIGH
+    HIGHEST
+}
+
+
+Ref issues_users: issues.assigned_to > users.id // many-to-one
+//Ref issues_reporters: issues.reported_by > users.id // many-to-one
+Ref attachments_issues: attachments.issue_id > issues.id // many-to-one
+
+
+Ref issues_projects: issues.project_id > projects.id // many-to-one
+
+Ref project_users_projects: project_users.project_id > projects.id 
+Ref project_users_users: project_users.user_id > users.id
+
+
+Ref issue_labels_issues: issue_labels.issue_id > issues.id // many-to-one
+Ref issue_labels_label: issue_labels.label_id > label.id // many-to-one
+
+Ref label_projects: label.project_id > projects.id // many-to-one
