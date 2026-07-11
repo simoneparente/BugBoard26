@@ -1,0 +1,119 @@
+// src/styles.scss
+
+/* ==========================================================================
+   1. BOOTSTRAP OVERRIDES
+   ========================================================================== */
+// We import Bootstrap SCSS source files
+// and we explicitly inject our custom variables into Bootstrap's module.
+
+@use 'bootstrap/scss/bootstrap' with (
+  // -- Primary Colors --
+  $primary: #005bb0,
+
+  // -- Body Settings --
+  $body-bg: #ffffff,
+  $body-color: #1e293b,
+
+  // -- Form Components --
+  $input-bg: #f8fafc,
+  $input-border-color: #cbd5e1,
+  $input-focus-border-color: #005bb0,
+  $input-focus-box-shadow: 0 0 0 4px rgba(#005bb0, 0.15),
+  $input-transition: (border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out),
+  // -- Button Components --
+  $btn-box-shadow: 0 4px 12px rgba(#005bb0, 0.2),
+  // -- Global Radius --
+  $border-radius: 0.5rem,
+  $border-radius-lg: 0.75rem,
+
+  // -- Offcanvas Components --
+  $offcanvas-horizontal-width: 600px,
+
+  // -- Toasts --
+  $toast-background-color: #ffffff,
+  $toast-border-color: rgba(0, 0, 0, 0.08),
+  $toast-box-shadow: 0 4px 20px -4px rgba(#005bb0, 0.15)
+);
+
+/* ==========================================================================
+   2. GLOBAL UTILITIES & BASE STYLES
+   ========================================================================== */
+// For global utility classes or base element styles, we can add them here.
+// Aggiunte al nostro sistema globale SCSS
+.bg-glass {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bg-brand-gradient {
+  background: linear-gradient(135deg, #005bb0 0%, #001224 100%) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+/* ==========================================================================
+   3. NOTIFICATION SYSTEM (Toasts and Alerts)
+   ========================================================================== */
+
+// -- Toasts --
+.toast {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--bs-toast-border-color, rgba(0, 0, 0, 0.1));
+
+  .toast-body {
+    padding-top: 0.25rem;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: var(--bs-primary, #005bb0);
+  }
+
+  &.toast-success::before {
+    background-color: #16a34a;
+  }
+  &.toast-error::before {
+    background-color: #ba1a1a;
+  }
+  &.toast-warning::before {
+    background-color: #d97706;
+  }
+  &.toast-info::before {
+    background-color: #005bb0;
+  }
+}
+// -- Alerts --
+.alert-accent {
+  background-color: #ffffff;
+  border: 1px solid var(--bs-border-color);
+  border-left-width: 4px;
+  border-radius: var(--bs-border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &.alert-success {
+    border-left-color: #16a34a;
+  }
+  &.alert-danger {
+    border-left-color: #ba1a1a;
+  }
+  &.alert-warning {
+    border-left-color: #d97706;
+  }
+  &.alert-info {
+    border-left-color: #005bb0;
+  }
+}
+
+/* ==========================================================================
+   4. THIRD-PARTY CSS LIBRARIES
+   ========================================================================== */
+@import 'bootstrap-icons/font/bootstrap-icons.css';

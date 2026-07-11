@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-bugboard_db}
+      - POSTGRES_USER=${POSTGRES_USER:-bugboard}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-change_me}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bugboard} -d ${POSTGRES_DB:-bugboard_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./bugboard-backend
+      dockerfile: Dockerfile
+    image: bugboard-backend:local
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-bugboard_db}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-bugboard}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-change_me}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:?AZURE_STORAGE_CONNECTION_STRING must be set}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:?AZURE_STORAGE_CONTAINER_NAME must be set}
+      - SEED_USERNAME=${SEED_USERNAME:-bugboard}
+      - SEED_EMAIL=${SEED_EMAIL:-bugboard@bugboard.it}
+      - SEED_PASSWORD=${SEED_PASSWORD:-bugboard}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./bugboard-frontend
+      dockerfile: Dockerfile
+    image: bugboard-frontend:local
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "4200:4200"
+
+volumes:
+  db_data:
