@@ -2,7 +2,9 @@ package it.unina.bugboard.bugboard_backend.controller;
 
 import it.unina.bugboard.bugboard_backend.config.SecurityConfig;
 import it.unina.bugboard.bugboard_backend.dto.AttachmentResponse;
+import it.unina.bugboard.bugboard_backend.dto.SasTokenResponse;
 import it.unina.bugboard.bugboard_backend.service.AttachmentService;
+import it.unina.bugboard.bugboard_backend.service.AzureStorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +43,7 @@ class AttachmentControllerTest {
     private AttachmentService attachmentService;
 
     @MockitoBean
-    private it.unina.bugboard.bugboard_backend.security.JwtService jwtService;
+        private AzureStorageService azureStorageService;
 
     private UUID issueId;
     private UUID attachmentId;
@@ -79,6 +81,20 @@ class AttachmentControllerTest {
 
         verify(attachmentService, times(1)).uploadAttachment(eq(issueId), any());
     }
+
+        @Test
+        void getUploadUrl_ReturnsOkResponse() throws Exception {
+                SasTokenResponse response = new SasTokenResponse("https://example.blob.core.windows.net/attachments/test.txt?sas", "test.txt");
+                when(azureStorageService.generateUploadSasUrl("test.txt")).thenReturn(response);
+
+                mockMvc.perform(post("/api/attachments/generate-upload-url")
+                                                .param("fileName", "test.txt"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.uploadUrl").value(response.getUploadUrl()))
+                                .andExpect(jsonPath("$.blobFileName").value(response.getBlobFileName()));
+
+                verify(azureStorageService, times(1)).generateUploadSasUrl("test.txt");
+        }
 
     @Test
     void getAttachmentById_ReturnsOkResponse() throws Exception {
