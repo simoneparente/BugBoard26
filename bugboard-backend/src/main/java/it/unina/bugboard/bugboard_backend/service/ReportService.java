@@ -72,13 +72,13 @@ public class ReportService {
         List<UserMonthlyProjectReport> userReportEntities = new ArrayList<>();
 
         for (User user : involvedUsers) {
-            long userOpened = issueRepository.countByProjectIdAndAssignedToIdAndCreatedAtBetween(
+            long userOpened = issueRepository.countByProjectIdAndAssigneeIdAndCreatedAtBetween(
                     projectId, user.getId(), monthStart, monthEnd);
 
-            long userManaged = issueRepository.countByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(
+            long userManaged = issueRepository.countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(
                     projectId, user.getId(), IssueStatus.COMPLETED, monthStart, monthEnd);
 
-            List<Issue> userResolved = issueRepository.findByProjectIdAndAssignedToIdAndStatusAndUpdatedAtBetween(
+            List<Issue> userResolved = issueRepository.findByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(
                     projectId, user.getId(), IssueStatus.COMPLETED, monthStart, monthEnd);
 
             double userAvgTime = calculateAverageResolutionTime(userResolved);

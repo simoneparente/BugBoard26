@@ -1,7 +1,7 @@
 package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.dto.AuthRequest;
-import it.unina.bugboard.bugboard_backend.dto.AuthResponse;
+import it.unina.bugboard.bugboard_backend.dto.AuthResult;
 import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
@@ -50,12 +50,11 @@ class AuthServiceTest {
         
         when(userRepository.findByEmail("mario@example.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches("SafePassword123#!", "hash_in_db")).thenReturn(true);
-        when(jwtService.generateToken(userId)).thenReturn("mocked.jwt.token");
+
         
-        AuthResponse response = authService.login(request);
+        AuthResult response = authService.login(request);
         assertNotNull(response);
-        assertEquals("mocked.jwt.token", response.getToken());
-        assertEquals("mario@example.com", response.getEmail());
+        assertEquals("mario@example.com", response.email());
     }
 
     @Test

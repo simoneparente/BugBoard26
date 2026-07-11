@@ -1,7 +1,7 @@
 package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.dto.AuthRequest;
-import it.unina.bugboard.bugboard_backend.dto.AuthResponse;
+import it.unina.bugboard.bugboard_backend.dto.AuthResult;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import it.unina.bugboard.bugboard_backend.security.JwtService;
@@ -33,7 +33,7 @@ public class AuthService {
         this.dummyHash = passwordEncoder.encode(Base64.getEncoder().encodeToString(randomBytes));
     }
 
-    public AuthResponse login(AuthRequest authRequest) {
+    public AuthResult login(AuthRequest authRequest) {
         User user = userRepository.findByEmail(authRequest.getEmail()).orElse(null);
 
         String hashToCheck = (user != null) ? user.getPasswordHash() : dummyHash;
@@ -43,6 +43,6 @@ public class AuthService {
         }
 
         String token = jwtService.generateToken(user.getId());
-        return new AuthResponse(token, user.getEmail());
+        return new AuthResult(token, user.getUsername(), user.getEmail(), user.getRole());
     }
 }

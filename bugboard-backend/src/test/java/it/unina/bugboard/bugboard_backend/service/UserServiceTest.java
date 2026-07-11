@@ -18,7 +18,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.Month;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +43,9 @@ class UserServiceTest {
 
     @Mock
     private InvitationRepository invitationRepository;
+
+    @Mock
+    private Clock clock;
 
     @InjectMocks
     private UserService userService;
@@ -139,6 +146,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_Success_HashesPasswordAndSavesUser() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = new UserRegistrationRequest(
                 "token", "username", "email@test.com", "password123"
         );
@@ -149,7 +161,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula il comportamento di save restituendo l'utente passato come argomento
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simulates save behavior by returning the user passed as argument
 
         UserResponse response = userService.registerUser(request);
         assertNotNull(response);
@@ -167,6 +179,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_Success_DeletesInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
 
@@ -174,7 +191,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simula il comportamento di save restituendo l'utente passato come argomento
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Simulates save behavior by returning the user passed as argument
 
         userService.registerUser(request);
 
@@ -184,6 +201,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_UsernameAlreadyExists() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
         when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
@@ -194,6 +216,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_EmailAlreadyExists() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getMockInvitation();
 
@@ -213,6 +240,11 @@ class UserServiceTest {
 
     @Test
     void registerUser_ThrowsInvalidInvitationException_WhenTokenIsExpired() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
         UserRegistrationRequest request = getRegistrationRequest();
         Invitation mockInvitation = getExpiredMockInvitation();
         when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
@@ -226,19 +258,22 @@ class UserServiceTest {
                 "token", "username", "email@test.com", "password123"
         );
     }
-    private static Invitation getMockInvitation() {
+
+    private Invitation getMockInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.now(clock);
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now().plusDays(1))
+                .expiresAt(fixedNow.plusDays(1))
                 .build();
     }
 
-    private static Invitation getExpiredMockInvitation() {
+    private Invitation getExpiredMockInvitation() {
+        LocalDateTime fixedNow = LocalDateTime.now(clock);
         return Invitation.builder()
                 .token("token")
                 .role(Role.TECHNICAL)
-                .expiresAt(LocalDateTime.now().minusDays(1))
+                .expiresAt(fixedNow.minusDays(1))
                 .build();
     }
 

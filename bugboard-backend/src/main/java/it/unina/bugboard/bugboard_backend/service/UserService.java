@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final InvitationRepository invitationRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final Clock clock;
 
     public List<UserResponse> getAllUsers() {
         return userRepository
@@ -46,7 +49,7 @@ public class UserService {
         Invitation invitation = invitationRepository.findByToken(dto.getToken())
                 .orElseThrow(() -> new InvalidInvitationException("Invalid invitation token"));
 
-        if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (invitation.getExpiresAt().isBefore(LocalDateTime.now(clock))) {
             throw new InvalidInvitationException("Invitation expired.");
         }
         if(userRepository.existsByUsername(dto.getUsername())) {

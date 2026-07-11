@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,25 +26,30 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // Inverse relationship with Tag
+    // Relazione inversa: un progetto conosce le sue issue
+    @Builder.Default
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Issue> issues = new ArrayList<>();
+
     @OneToMany(mappedBy = "project")
     private List<Tag> tags;
 
-    // Inverse relationship with Issue
-    @OneToMany(mappedBy = "project")
-    private List<Issue> issues;
+    //@ManyToMany(mappedBy = "projects", fetch = FetchType.LAZY)
+    //private List<User> members;
+
+    // TODO REPORTS
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+        this.createdAt = LocalDateTime.now(ZoneId.systemDefault());
+    }    
 }
