@@ -4,6 +4,7 @@ import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -24,21 +25,20 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private static final int BEARER_LENGTH = 7;
 
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader("Authorization");
+
+        String jwt = getJwt(request);
         UUID userId;
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+
+        if(jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        String jwt =  authorizationHeader.substring(BEARER_LENGTH);
 
         try {
             userId = jwtService.extractUserId(jwt);
@@ -46,13 +46,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             User user = userRepository.findById(userId).orElse(null);
             if(user != null && jwtService.isTokenValid(jwt, user.getId())) {
                 SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        user,
+                        userId.toString(),
                         null,
                         List.of(authority)
                 );
@@ -61,5 +62,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private static String getJwt(@org.jspecify.annotations.NonNull HttpServletRequest request) {
+        String jwt = null;
+        if(request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (SecurityConstants.JWT_COOKIE_NAME.equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        return jwt;
     }
 }

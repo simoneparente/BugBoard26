@@ -13,6 +13,8 @@ import java.util.UUID;
 
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, UUID> {
+    List<Issue> findByProjectId(UUID projectId);
+    Issue findByIdAndProjectId(UUID issueId, UUID projectId);
 
     // Count bugs opened (created) in the month for a project
     long countByProjectIdAndCreatedAtBetween(UUID projectId, LocalDateTime start, LocalDateTime end);
