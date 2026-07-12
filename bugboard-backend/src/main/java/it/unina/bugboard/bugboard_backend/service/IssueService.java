@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 
-import java.util.stream.Stream;
 import java.util.Objects;
 
 import java.util.List;
@@ -41,9 +40,15 @@ public class IssueService {
         List<Tag> tags = tagResponses == null || tagResponses.isEmpty()
             ? List.of()
             : tagResponses.stream()
-            .filter(Objects::nonNull)
-            .flatMap(tagResponse -> Stream.of(tagResponse.mapToEntity())) //flatMap to handle potential nulls (static analysis warning)
-            .toList();
+                .filter(Objects::nonNull)
+                .map(tagResponse -> Tag.builder()
+                    .id(tagResponse.getId())
+                    .name(tagResponse.getName())
+                    .color(tagResponse.getColor())
+                    .project(project)
+                    .build()
+                )
+                .toList();
 
         User assignee = null;
         if (request.getAssigneeUsername() != null) {
