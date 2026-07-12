@@ -23,14 +23,14 @@ export class ReportComponent implements OnInit {
   public readonly report = signal<MonthlyProjectReportResponse | null>(null);
 
   /**
-   * Returns the Italian month name from a month number (1-12).
+   * Returns the English month name from a month number (1-12).
    */
   public readonly monthName = computed(() => {
     const r = this.report();
     if (!r) return '';
     const monthNames = [
-      'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre',
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return monthNames[(r.referenceMonth - 1)] ?? '';
   });
@@ -80,7 +80,7 @@ export class ReportComponent implements OnInit {
     const projectId = this.route.snapshot.paramMap.get('projectId');
     if (!projectId) {
       this.isLoading.set(false);
-      this.errorMessage.set('Project ID mancante nella URL.');
+      this.errorMessage.set('Missing Project ID in URL.');
       return;
     }
 
@@ -92,9 +92,9 @@ export class ReportComponent implements OnInit {
       error: (err) => {
         this.isLoading.set(false);
         if (err.status === 404) {
-          this.errorMessage.set('Progetto non trovato. Verifica l\'ID e riprova.');
+          this.errorMessage.set('Project not found. Check the ID and try again.');
         } else {
-          this.errorMessage.set('Errore nel caricamento del report. Riprova più tardi.');
+          this.errorMessage.set('Error loading report. Please try again later.');
         }
       },
     });
