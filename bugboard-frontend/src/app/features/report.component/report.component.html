@@ -1,6 +1,8 @@
 <!-- Loading State -->
 @if (isLoading()) {
-  <div class="report-loading d-flex flex-column align-items-center justify-content-center min-vh-100">
+  <div
+    class="report-loading d-flex flex-column align-items-center justify-content-center min-vh-100"
+  >
     <div class="spinner-border text-primary mb-3" role="status">
       <span class="visually-hidden">Loading report...</span>
     </div>
@@ -10,7 +12,9 @@
 
 <!-- Error State -->
 @if (!isLoading() && errorMessage()) {
-  <div class="report-error d-flex flex-column align-items-center justify-content-center min-vh-100 px-4">
+  <div
+    class="report-error d-flex flex-column align-items-center justify-content-center min-vh-100 px-4"
+  >
     <div class="text-center">
       <i class="bi bi-exclamation-triangle-fill text-danger display-3 mb-3"></i>
       <h3 class="fw-bold text-dark mb-2">Error</h3>
@@ -25,7 +29,6 @@
 <!-- Report Content -->
 @if (!isLoading() && !errorMessage() && report(); as r) {
   <main class="report-page">
-
     <!-- Report Header -->
     <section class="report-header mb-4 animate-fade-in">
       <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
@@ -41,9 +44,7 @@
               <li class="breadcrumb-item active" aria-current="page">Monthly Report</li>
             </ol>
           </nav>
-          <h2 class="report-title fw-bold text-dark mb-1">
-            Report: {{ r.projectName }}
-          </h2>
+          <h2 class="report-title fw-bold text-dark mb-1">Report: {{ r.projectName }}</h2>
           <p class="text-muted mb-0">
             <i class="bi bi-calendar3 me-1"></i>{{ monthName() }} {{ r.referenceYear }}
           </p>
@@ -112,14 +113,12 @@
               </div>
             </div>
             <div class="d-flex align-items-baseline gap-2 mb-3">
-              <span class="kpi-value display-6 fw-bold text-dark">{{ formatAvgTime(r.averageResolutionTime) }}</span>
+              <span class="kpi-value display-6 fw-bold text-dark">{{
+                formatAvgTime(r.averageResolutionTime)
+              }}</span>
             </div>
             <div class="progress kpi-progress">
-              <div
-                class="progress-bar bg-warning"
-                role="progressbar"
-                style="width: 50%"
-              ></div>
+              <div class="progress-bar bg-warning" role="progressbar" style="width: 50%"></div>
             </div>
           </div>
         </div>
@@ -139,24 +138,33 @@
               @if (r.managedBugs > 0 && r.openedBugs > 0) {
                 <p class="text-secondary small mb-0 lh-lg">
                   The ratio between managed and opened bugs is
-                  <strong class="text-primary">{{ ((r.managedBugs / r.openedBugs) * 100).toFixed(0) }}%</strong>.
+                  <strong class="text-primary"
+                    >{{ ((r.managedBugs / r.openedBugs) * 100).toFixed(0) }}%</strong
+                  >.
                   @if (r.managedBugs >= r.openedBugs) {
-                    The team is resolving bugs at the same rate or faster than they are being opened. Great job!
+                    The team is resolving bugs at the same rate or faster than they are being
+                    opened. Great job!
                   } @else {
-                    There are still open bugs to manage. Consider allocating more resources to resolution.
+                    There are still open bugs to manage. Consider allocating more resources to
+                    resolution.
                   }
                   @if (r.averageResolutionTime > 0) {
-                    The average resolution time is <strong class="text-primary">{{ formatAvgTime(r.averageResolutionTime) }}</strong>.
+                    The average resolution time is
+                    <strong class="text-primary">{{
+                      formatAvgTime(r.averageResolutionTime)
+                    }}</strong
+                    >.
                   }
                 </p>
               } @else if (r.openedBugs === 0 && r.managedBugs === 0) {
                 <p class="text-secondary small mb-0 lh-lg">
-                  No bug tracking activity recorded this month. The project may be in a stable phase.
+                  No bug tracking activity recorded this month. The project may be in a stable
+                  phase.
                 </p>
               } @else {
                 <p class="text-secondary small mb-0 lh-lg">
-                  There were <strong class="text-primary">{{ r.openedBugs }}</strong> bugs opened and
-                  <strong class="text-primary">{{ r.managedBugs }}</strong> managed this month.
+                  There were <strong class="text-primary">{{ r.openedBugs }}</strong> bugs opened
+                  and <strong class="text-primary">{{ r.managedBugs }}</strong> managed this month.
                 </p>
               }
             </div>
@@ -167,12 +175,15 @@
 
     <!-- User Reports Table -->
     <section class="card border-0 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.5s">
-      <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom">
+      <div
+        class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom"
+      >
         <h3 class="fw-semibold mb-0 fs-5">
           <i class="bi bi-people me-2 text-primary"></i>User Reports
         </h3>
         <span class="badge bg-primary-subtle text-primary rounded-pill">
-          {{ r.userMonthlyReports.length }} {{ r.userMonthlyReports.length === 1 ? 'member' : 'members' }}
+          {{ r.userMonthlyReports.length }}
+          {{ r.userMonthlyReports.length === 1 ? 'member' : 'members' }}
         </span>
       </div>
       <div class="table-responsive">
@@ -212,7 +223,9 @@
                     <span class="fw-medium text-dark">{{ user.managedBugs }}</span>
                   </td>
                   <td class="py-3 pe-4">
-                    <span class="fw-medium text-dark">{{ formatAvgTime(user.averageResolutionTime) }}</span>
+                    <span class="fw-medium text-dark">{{
+                      formatAvgTime(user.averageResolutionTime)
+                    }}</span>
                   </td>
                 </tr>
               }
@@ -221,6 +234,5 @@
         </table>
       </div>
     </section>
-
   </main>
 }

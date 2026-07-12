@@ -5,4 +5,3 @@ export const environment = {
   reportApiUrl: '/api/reports',
   production: true,
 };
-

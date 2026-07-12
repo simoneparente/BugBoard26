@@ -100,7 +100,9 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
 .kpi-card {
   border: 1px solid $color-border-subtle !important;
   border-radius: 0.5rem;
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
 
   &:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;

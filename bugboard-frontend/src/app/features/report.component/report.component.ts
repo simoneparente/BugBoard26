@@ -29,10 +29,20 @@ export class ReportComponent implements OnInit {
     const r = this.report();
     if (!r) return '';
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    return monthNames[(r.referenceMonth - 1)] ?? '';
+    return monthNames[r.referenceMonth - 1] ?? '';
   });
 
   /**
