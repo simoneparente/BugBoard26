@@ -1,0 +1,226 @@
+<!-- Loading State -->
+@if (isLoading()) {
+  <div class="report-loading d-flex flex-column align-items-center justify-content-center min-vh-100">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Caricamento report...</span>
+    </div>
+    <p class="text-muted fw-medium">Generazione report in corso...</p>
+  </div>
+}
+
+<!-- Error State -->
+@if (!isLoading() && errorMessage()) {
+  <div class="report-error d-flex flex-column align-items-center justify-content-center min-vh-100 px-4">
+    <div class="text-center">
+      <i class="bi bi-exclamation-triangle-fill text-danger display-3 mb-3"></i>
+      <h3 class="fw-bold text-dark mb-2">Errore</h3>
+      <p class="text-muted mb-4">{{ errorMessage() }}</p>
+      <a routerLink="/dashboard" class="btn btn-primary px-4 py-2">
+        <i class="bi bi-arrow-left me-2"></i>Torna alla Dashboard
+      </a>
+    </div>
+  </div>
+}
+
+<!-- Report Content -->
+@if (!isLoading() && !errorMessage() && report(); as r) {
+  <main class="report-page">
+
+    <!-- Report Header -->
+    <section class="report-header mb-4 animate-fade-in">
+      <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
+        <div>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom mb-2">
+              <li class="breadcrumb-item">
+                <a routerLink="/dashboard" class="text-decoration-none">
+                  <i class="bi bi-house-door me-1"></i>Dashboard
+                </a>
+              </li>
+              <li class="breadcrumb-item">Reports</li>
+              <li class="breadcrumb-item active" aria-current="page">Report Mensile</li>
+            </ol>
+          </nav>
+          <h2 class="report-title fw-bold text-dark mb-1">
+            Report: {{ r.projectName }}
+          </h2>
+          <p class="text-muted mb-0">
+            <i class="bi bi-calendar3 me-1"></i>{{ monthName() }} {{ r.referenceYear }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Cards -->
+    <section class="row g-4 mb-4">
+      <!-- Opened Bugs -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Bug Aperti</span>
+              <div class="kpi-icon kpi-icon--danger">
+                <i class="bi bi-bug"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{ r.openedBugs }}</span>
+            </div>
+            <div class="progress kpi-progress">
+              <div
+                class="progress-bar bg-danger"
+                role="progressbar"
+                [style.width]="getProgressWidth(r.openedBugs, r.openedBugs + r.managedBugs)"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Managed Bugs -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.2s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Bug Gestiti</span>
+              <div class="kpi-icon kpi-icon--success">
+                <i class="bi bi-check-circle"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{ r.managedBugs }}</span>
+            </div>
+            <div class="progress kpi-progress">
+              <div
+                class="progress-bar bg-primary"
+                role="progressbar"
+                [style.width]="getProgressWidth(r.managedBugs, r.openedBugs + r.managedBugs)"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avg Resolution Time -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.3s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Tempo Medio Risoluzione</span>
+              <div class="kpi-icon kpi-icon--warning">
+                <i class="bi bi-clock-history"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{ formatAvgTime(r.averageResolutionTime) }}</span>
+            </div>
+            <div class="progress kpi-progress">
+              <div
+                class="progress-bar bg-warning"
+                role="progressbar"
+                style="width: 50%"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Smart Insight -->
+    <section class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.4s">
+      <div class="col-12">
+        <div class="card insight-card border-0 h-100">
+          <div class="card-body p-4 d-flex align-items-start gap-3">
+            <div class="insight-icon-wrapper">
+              <i class="bi bi-lightbulb-fill"></i>
+            </div>
+            <div>
+              <h4 class="fw-semibold fs-5 text-primary mb-2">Smart Insight</h4>
+              @if (r.managedBugs > 0 && r.openedBugs > 0) {
+                <p class="text-secondary small mb-0 lh-lg">
+                  Il rapporto tra bug gestiti e aperti è del
+                  <strong class="text-primary">{{ ((r.managedBugs / r.openedBugs) * 100).toFixed(0) }}%</strong>.
+                  @if (r.managedBugs >= r.openedBugs) {
+                    Il team sta risolvendo i bug allo stesso ritmo o più velocemente di quanto vengono aperti. Ottimo lavoro!
+                  } @else {
+                    Ci sono ancora bug aperti da gestire. Considera di allocare più risorse alla risoluzione.
+                  }
+                  @if (r.averageResolutionTime > 0) {
+                    Il tempo medio di risoluzione è di <strong class="text-primary">{{ formatAvgTime(r.averageResolutionTime) }}</strong>.
+                  }
+                </p>
+              } @else if (r.openedBugs === 0 && r.managedBugs === 0) {
+                <p class="text-secondary small mb-0 lh-lg">
+                  Nessuna attività di bug tracking registrata in questo mese. Il progetto potrebbe essere in una fase stabile.
+                </p>
+              } @else {
+                <p class="text-secondary small mb-0 lh-lg">
+                  Sono stati aperti <strong class="text-primary">{{ r.openedBugs }}</strong> bug e ne sono stati gestiti
+                  <strong class="text-primary">{{ r.managedBugs }}</strong> in questo mese.
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- User Reports Table -->
+    <section class="card border-0 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.5s">
+      <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom">
+        <h3 class="fw-semibold mb-0 fs-5">
+          <i class="bi bi-people me-2 text-primary"></i>Report degli Utenti
+        </h3>
+        <span class="badge bg-primary-subtle text-primary rounded-pill">
+          {{ r.userMonthlyReports.length }} {{ r.userMonthlyReports.length === 1 ? 'membro' : 'membri' }}
+        </span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr class="table-header-row">
+              <th class="ps-4 py-3">Utente</th>
+              <th class="py-3">Aperti</th>
+              <th class="py-3">Gestiti</th>
+              <th class="py-3 pe-4">Tempo Medio</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (r.userMonthlyReports.length === 0) {
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  Nessuna attività registrata per gli utenti in questo mese.
+                </td>
+              </tr>
+            } @else {
+              @for (user of r.userMonthlyReports; track user.userId) {
+                <tr class="team-row">
+                  <td class="ps-4 py-3">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="user-avatar">
+                        {{ getInitials(user.userName) }}
+                      </div>
+                      <div>
+                        <p class="fw-semibold text-dark mb-0 small">{{ user.userName }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3">
+                    <span class="fw-medium text-dark">{{ user.openedBugs }}</span>
+                  </td>
+                  <td class="py-3">
+                    <span class="fw-medium text-dark">{{ user.managedBugs }}</span>
+                  </td>
+                  <td class="py-3 pe-4">
+                    <span class="fw-medium text-dark">{{ formatAvgTime(user.averageResolutionTime) }}</span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+}
