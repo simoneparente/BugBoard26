@@ -36,9 +36,8 @@ public class AttachmentController {
     public ResponseEntity<AttachmentResponse> uploadAttachment(
             @PathVariable UUID issueId,
             @RequestParam("file") MultipartFile file) {
-        
         AttachmentResponse response = attachmentService.uploadAttachment(issueId, file);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

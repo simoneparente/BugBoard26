@@ -26,7 +26,7 @@ public class TagController {
     @PostMapping
     public ResponseEntity<TagResponse> createTag(@Valid @RequestBody TagRequest request) {
         TagResponse response = tagService.createTag(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

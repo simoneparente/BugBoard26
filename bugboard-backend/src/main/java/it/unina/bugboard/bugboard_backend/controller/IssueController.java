@@ -29,7 +29,7 @@ public class IssueController {
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId, @Valid @RequestBody IssueRequest request) {
         Issue issue = issueService.createIssue(projectId, request);
-        return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponseDTO(issue));
     }
 
     @GetMapping("/{id}")

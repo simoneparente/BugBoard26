@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +25,7 @@ public class ProjectController {
     @PostMapping 
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
         Project project = projectService.createProject(projectRequest);
-        return new ResponseEntity<>(mapToResponseDTO(project), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponseDTO(project));
 
     }
 

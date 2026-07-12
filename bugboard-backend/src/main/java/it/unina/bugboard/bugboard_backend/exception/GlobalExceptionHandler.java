@@ -98,6 +98,6 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
 
-        return new ResponseEntity<>(error, status);
+        return ResponseEntity.status(status).body(error);
     }
 }

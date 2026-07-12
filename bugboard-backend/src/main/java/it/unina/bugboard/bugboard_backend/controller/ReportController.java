@@ -18,8 +18,12 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    // Endpoint to generate a report for a specific project
-    // Responds to: GET http://localhost:8080/api/reports/{projectId}
+
+    /**
+     * Generates a monthly report for a specific project.
+     * @param projectId
+     * @return ResponseEntity containing the MonthlyProjectReportResponse for the specified project.
+     */
     @GetMapping("/{projectId}")
     public ResponseEntity<MonthlyProjectReportResponse> generateReport(@PathVariable UUID projectId) {
         MonthlyProjectReportResponse response = reportService.generateReport(projectId);
