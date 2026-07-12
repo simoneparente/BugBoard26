@@ -7,12 +7,14 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+@Validated
 @Service
 public class JwtService {
     private static final int EXPIRATION_HOURS = 24;

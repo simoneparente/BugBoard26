@@ -299,11 +299,10 @@ class IssueServiceTest {
 	}
 
     private User createUser(String username) {
-        User user = User.builder()
+        return User.builder()
                 .id(UUID.randomUUID())
                 .username(username)
                 .email(username + "@example.com")
                 .build();
-        return user;
     }
 }

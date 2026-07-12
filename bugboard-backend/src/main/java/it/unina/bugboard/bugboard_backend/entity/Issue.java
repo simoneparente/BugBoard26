@@ -6,14 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.ZoneOffset;
 import java.util.List;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
+import java.util.UUID;
 @Entity
 @Table(name = "issues")
 @Getter
@@ -68,12 +65,13 @@ public class Issue {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 }
