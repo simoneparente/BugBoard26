@@ -1,0 +1,93 @@
+<div class="p-8">
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface">My Projects</h2>
+      <p class="text-muted-text font-body-lg text-body-lg">Overview of active bug tracking initiatives and system health.</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button class="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface hover:bg-surface-container-low transition-colors">
+        <span class="material-symbols-outlined">filter_list</span> Filter
+      </button>
+      
+      @if (isAdmin()) {
+        <button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-body-md font-body-md font-semibold custom-shadow hover:bg-primary-container transition-all">
+          <span class="material-symbols-outlined">create_new_folder</span> Create Project
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    
+    @for (project of projects(); track project.id) {
+      <div class="bg-white rounded-xl p-6 custom-shadow border border-outline-variant/30 flex flex-col hover:border-primary/40 transition-colors group cursor-pointer" [routerLink]="['/projects', project.id]">
+        
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 rounded-lg" [ngClass]="'bg-' + getProjectTheme(project).class + '-container/20'">
+            <span class="material-symbols-outlined" [ngClass]="'text-' + getProjectTheme(project).class">{{ getProjectTheme(project).icon }}</span>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider"
+                [ngClass]="'bg-' + getProjectTheme(project).class + '-container text-on-' + getProjectTheme(project).class + '-container'">
+            {{ getProjectTheme(project).label }}
+          </span>
+        </div>
+        
+        <h3 class="font-title-lg text-title-lg text-on-surface group-hover:text-primary transition-colors mb-1">{{ project.name }}</h3>
+        <p class="text-muted-text text-body-md font-body-md line-clamp-2 mb-6">{{ project.description }}</p>
+        
+        <div class="mt-auto">
+          <div class="flex justify-between items-end mb-2">
+            <span class="text-label-md font-label-md text-muted-text uppercase">Bugs Resolved</span>
+            <span class="text-body-md font-semibold text-on-surface">{{ getResolutionStats(project) }}</span>
+          </div>
+          <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full" [ngClass]="'bg-' + getProjectTheme(project).class" [style.width.%]="getProjectProgress(project)"></div>
+          </div>
+        </div>
+        
+        <div class="flex justify-between items-center mt-6 pt-4 border-t border-outline-variant/20">
+          <span class="text-label-md font-label-md text-muted-text">Created {{ project.createdAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+    }
+
+    @if (projects().length > 0) {
+      <div class="md:col-span-2 lg:col-span-1 bg-primary text-white rounded-xl p-6 custom-shadow relative overflow-hidden group">
+        <div class="relative z-10 flex flex-col h-full">
+          <div class="flex justify-between items-start mb-6">
+            <h3 class="font-headline-md text-headline-md font-bold">Health Index</h3>
+            <span class="material-symbols-outlined text-white/50">insights</span>
+          </div>
+          <div class="mb-6">
+            <div class="text-5xl font-bold mb-2">{{ globalStats().health }}%</div>
+            <p class="text-white/70 font-body-md">Overall project stability based on resolved vs total issues.</p>
+          </div>
+          <div class="mt-auto flex gap-4">
+            <div class="flex-1 p-3 bg-white/10 rounded-lg">
+              <p class="text-[10px] uppercase font-bold text-white/50 mb-1">Resolved</p>
+              <p class="text-lg font-bold">{{ globalStats().resolved }}</p>
+            </div>
+            <div class="flex-1 p-3 bg-white/10 rounded-lg">
+              <p class="text-[10px] uppercase font-bold text-white/50 mb-1">Pending</p>
+              <p class="text-lg font-bold">{{ globalStats().pending }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
+          <span class="material-symbols-outlined text-[160px]">shield</span>
+        </div>
+      </div>
+    }
+
+    @if (isAdmin()) {
+      <button class="bg-surface-container-low border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-surface-container transition-all group active:scale-95">
+        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 custom-shadow group-hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined text-primary">add</span>
+        </div>
+        <h3 class="font-title-lg text-title-lg text-on-surface">Create New Project</h3>
+        <p class="text-muted-text text-body-md max-w-[200px] mt-1">Start a new tracking environment for your team.</p>
+      </button>
+    }
+  </div>
+</div>
