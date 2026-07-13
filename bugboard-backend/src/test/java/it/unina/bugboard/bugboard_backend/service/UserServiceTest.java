@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Clock;
@@ -280,5 +281,133 @@ class UserServiceTest {
                 .build();
     }
 
+    @Test
+    void getAllUsers_WithSortingParameter_ReturnsOkAndSortedUsers() {
+        User user1 = User.builder()
+                .id(UUID.randomUUID())
+                .username("alice")
+                .email("alice@example.com")
+                .passwordHash("hash1")
+                .role(Role.TECHNICAL)
+                .build();
+
+        User user2 = User.builder()
+                .id(UUID.randomUUID())
+                .username("bob")
+                .email("bob@example.com")
+                .passwordHash("hash2")
+                .role(Role.ADMIN)
+                .build();
+
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2)));
+
+        Page<UserResponse> responseList = userService.getAllUsers(PageRequest.of(0, 10));
+
+        assertNotNull(responseList);
+        assertEquals(2, responseList.getTotalElements());
+        assertEquals("alice", responseList.getContent().get(0).getUsername());
+        assertEquals("bob", responseList.getContent().get(1).getUsername());
+    }
+
+    @Test
+    void registerUser_WithDifferentRoles_Success() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        UserRegistrationRequest request = getRegistrationRequest();
+        
+        Invitation adminInvitation = Invitation.builder()
+                .token("token")
+                .role(Role.ADMIN)
+                .expiresAt(fixedNow.plusDays(1))
+                .build();
+
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(adminInvitation));
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponse response = userService.registerUser(request);
+        
+        assertNotNull(response);
+        assertEquals(Role.ADMIN, response.getRole());
+    }
+
+    @Test
+    void registerUser_WithExternalRole_Success() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        UserRegistrationRequest request = getRegistrationRequest();
+        
+        Invitation externalInvitation = Invitation.builder()
+                .token("token")
+                .role(Role.EXTERNAL)
+                .expiresAt(fixedNow.plusDays(1))
+                .build();
+
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(externalInvitation));
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hash_sicuro_123");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponse response = userService.registerUser(request);
+        
+        assertNotNull(response);
+        assertEquals(Role.EXTERNAL, response.getRole());
+    }
+
+    @Test
+    void registerUser_VerifyPasswordEncryption() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        UserRegistrationRequest request = new UserRegistrationRequest(
+                "token", "username", "email@test.com", "myPassword123"
+        );
+
+        Invitation mockInvitation = getMockInvitation();
+
+        when(invitationRepository.findByToken("token")).thenReturn(Optional.of(mockInvitation));
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode("myPassword123")).thenReturn("encoded_password_hash");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        userService.registerUser(request);
+
+        ArgumentCaptor<String> passwordCaptor = ArgumentCaptor.forClass(String.class);
+        verify(passwordEncoder).encode(passwordCaptor.capture());
+        assertEquals("myPassword123", passwordCaptor.getValue());
+    }
+
+    @Test
+    void getUserById_MapsCorrectly() {
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .id(userId)
+                .username("mappeduser")
+                .email("mapped@example.com")
+                .passwordHash("hash")
+                .role(Role.ADMIN)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        UserResponse response = userService.getUserById(userId);
+
+        assertEquals(userId, response.getId());
+        assertEquals("mappeduser", response.getUsername());
+        assertEquals("mapped@example.com", response.getEmail());
+        assertEquals(Role.ADMIN, response.getRole());
+    }
 
 }
