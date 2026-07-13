@@ -16,6 +16,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Clock;
@@ -77,23 +80,23 @@ class UserServiceTest {
                 .role(Role.EXTERNAL)
                 .build();
 
-        when(userRepository.findAll()).thenReturn(List.of(user1, user2, user3));
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(user1, user2, user3)));
 
-        List<UserResponse> responseList = userService.getAllUsers();
+        Page<UserResponse> responseList = userService.getAllUsers(Pageable.unpaged());
 
         assertNotNull(responseList);
-        assertEquals(3, responseList.size());
-        assertEquals("user1", responseList.get(0).getUsername());
-        assertEquals("user2", responseList.get(1).getUsername());
-        assertEquals("user3", responseList.get(2).getUsername());
-        assertEquals("user1@example.com", responseList.get(0).getEmail());
-        assertEquals("user2@example.com", responseList.get(1).getEmail());
-        assertEquals("user3@example.com", responseList.get(2).getEmail());
-        assertEquals(Role.TECHNICAL, responseList.get(0).getRole());
-        assertEquals(Role.ADMIN, responseList.get(1).getRole());
-        assertEquals(Role.EXTERNAL, responseList.get(2).getRole());
+        assertEquals(3, responseList.getTotalElements());
+        assertEquals("user1", responseList.getContent().get(0).getUsername());
+        assertEquals("user2", responseList.getContent().get(1).getUsername());
+        assertEquals("user3", responseList.getContent().get(2).getUsername());
+        assertEquals("user1@example.com", responseList.getContent().get(0).getEmail());
+        assertEquals("user2@example.com", responseList.getContent().get(1).getEmail());
+        assertEquals("user3@example.com", responseList.getContent().get(2).getEmail());
+        assertEquals(Role.TECHNICAL, responseList.getContent().get(0).getRole());
+        assertEquals(Role.ADMIN, responseList.getContent().get(1).getRole());
+        assertEquals(Role.EXTERNAL, responseList.getContent().get(2).getRole());
 
-        verify(userRepository).findAll();
+        verify(userRepository).findAll(any(Pageable.class));
     }
 
     @Test

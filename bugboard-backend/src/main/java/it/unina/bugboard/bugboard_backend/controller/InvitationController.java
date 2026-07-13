@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/invitations")
@@ -17,6 +18,6 @@ public class InvitationController {
     @PostMapping
     public ResponseEntity<InvitationResponse> createInvitation(@Valid @RequestBody CreateInvitationRequest request) {
         InvitationResponse invitationResponse = invitationService.createInvitation(request.getRole());
-        return ResponseEntity.ok(invitationResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(invitationResponse);
     }
 }
