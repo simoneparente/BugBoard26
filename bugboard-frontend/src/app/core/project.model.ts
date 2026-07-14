@@ -5,5 +5,5 @@ export interface ProjectResponse {
   name: string;
   description: string;
   createdAt: string; // ISO date string
-  issues: IssueResponse[];
+  issues?: IssueResponse[];
 }

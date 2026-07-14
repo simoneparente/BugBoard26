@@ -30,24 +30,9 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 91, 176, 0.1) !important;
 
-    // Cambia colore al titolo quando l'intera card va in hover (equivalente a group-hover)
     .project-title {
       color: var(--bs-primary) !important;
     }
-  }
-}
-
-.stat-card {
-  .stat-icon-bg {
-    font-size: 160px;
-    bottom: -30px;
-    right: -30px;
-    opacity: 0.1;
-    transition: transform 0.7s ease;
-  }
-
-  &:hover .stat-icon-bg {
-    transform: scale(1.1) rotate(-5deg);
   }
 }
 
