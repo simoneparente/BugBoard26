@@ -123,23 +123,35 @@ progress.kpi-progress {
   &::-webkit-progress-bar {
     background-color: transparent;
   }
-  
+
   &::-webkit-progress-value {
     transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
+
   &::-moz-progress-bar {
     transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  &.kpi-progress-danger::-webkit-progress-value { background-color: var(--bs-danger); }
-  &.kpi-progress-danger::-moz-progress-bar { background-color: var(--bs-danger); }
+  &.kpi-progress-danger::-webkit-progress-value {
+    background-color: var(--bs-danger);
+  }
+  &.kpi-progress-danger::-moz-progress-bar {
+    background-color: var(--bs-danger);
+  }
 
-  &.kpi-progress-primary::-webkit-progress-value { background-color: var(--bs-primary); }
-  &.kpi-progress-primary::-moz-progress-bar { background-color: var(--bs-primary); }
+  &.kpi-progress-primary::-webkit-progress-value {
+    background-color: var(--bs-primary);
+  }
+  &.kpi-progress-primary::-moz-progress-bar {
+    background-color: var(--bs-primary);
+  }
 
-  &.kpi-progress-warning::-webkit-progress-value { background-color: var(--bs-warning); }
-  &.kpi-progress-warning::-moz-progress-bar { background-color: var(--bs-warning); }
+  &.kpi-progress-warning::-webkit-progress-value {
+    background-color: var(--bs-warning);
+  }
+  &.kpi-progress-warning::-moz-progress-bar {
+    background-color: var(--bs-warning);
+  }
 }
 
 // -- Team Performance Table --
