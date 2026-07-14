@@ -39,6 +39,7 @@
 .new-project-btn {
   background-color: var(--bs-secondary-bg-subtle);
   color: var(--bs-body-color);
+  min-height: 100%;
   
   &:hover {
     background-color: var(--bs-tertiary-bg);
