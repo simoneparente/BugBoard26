@@ -5,6 +5,7 @@ import { LoginComponent } from './features/login.component/login.component';
 
 import { DashboardComponent } from './features/dashboard.component/dashboard.component';
 import { RegisterComponent } from './features/register.component/register.component';
+import { ReportComponent } from './features/report.component/report.component';
 
 const authGuard = () => {
   const authService = inject(AuthService);
@@ -33,6 +34,12 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     title: 'BugBoard26 - Dashboard',
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reports/:projectId',
+    component: ReportComponent,
+    title: 'BugBoard26 - Report',
     canActivate: [authGuard],
   },
   {
