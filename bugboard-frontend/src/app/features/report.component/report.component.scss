@@ -2,18 +2,6 @@
 // Report Component Styles
 // ==========================================================================
 
-// -- Design Tokens (from the project's color palette) --
-$color-primary: #005bb0;
-$color-primary-light: #669dd0;
-$color-primary-container: #005bb0;
-$color-danger: #ba1a1a;
-$color-warning: #d97706;
-$color-success: #16a34a;
-$color-muted: #94a3b8;
-$color-surface: #f9f9ff;
-$color-card-bg: #ffffff;
-$color-border-subtle: rgba(194, 198, 212, 0.3);
-
 // -- Animations --
 @keyframes fadeInUp {
   from {
@@ -52,24 +40,24 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   letter-spacing: 0.08em;
 
   .breadcrumb-item {
-    color: $color-muted;
+    color: var(--bs-secondary);
 
     a {
-      color: $color-muted;
+      color: var(--bs-secondary);
       transition: color 0.2s;
 
       &:hover {
-        color: $color-primary;
+        color: var(--bs-primary);
       }
     }
 
     &.active {
-      color: $color-primary;
+      color: var(--bs-primary);
     }
 
     + .breadcrumb-item::before {
       content: '›';
-      color: $color-muted;
+      color: var(--bs-secondary);
     }
   }
 }
@@ -80,25 +68,9 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   letter-spacing: -0.02em;
 }
 
-// -- Export Button --
-.btn-export {
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba($color-primary, 0.2);
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) {
-    box-shadow: 0 6px 16px rgba($color-primary, 0.3);
-    transform: translateY(-1px);
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-}
-
 // -- KPI Cards --
 .kpi-card {
-  border: 1px solid $color-border-subtle !important;
+  border: 1px solid var(--bs-border-color) !important;
   border-radius: 0.5rem;
   transition:
     box-shadow 0.25s ease,
@@ -120,18 +92,18 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   font-size: 1.1rem;
 
   &--danger {
-    background-color: rgba($color-danger, 0.1);
-    color: $color-danger;
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    color: var(--bs-danger);
   }
 
   &--success {
-    background-color: rgba($color-primary, 0.1);
-    color: $color-primary;
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
   }
 
   &--warning {
-    background-color: rgba($color-warning, 0.1);
-    color: $color-warning;
+    background-color: rgba(var(--bs-warning-rgb), 0.1);
+    color: var(--bs-warning);
   }
 }
 
@@ -139,15 +111,35 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   line-height: 1;
 }
 
-.kpi-progress {
+progress.kpi-progress {
+  appearance: none;
+  -webkit-appearance: none;
   height: 4px;
   border-radius: 999px;
   background-color: rgba(0, 0, 0, 0.06);
+  border: none;
+  overflow: hidden;
 
-  .progress-bar {
-    border-radius: 999px;
+  &::-webkit-progress-bar {
+    background-color: transparent;
+  }
+  
+  &::-webkit-progress-value {
     transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  
+  &::-moz-progress-bar {
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &.kpi-progress-danger::-webkit-progress-value { background-color: var(--bs-danger); }
+  &.kpi-progress-danger::-moz-progress-bar { background-color: var(--bs-danger); }
+
+  &.kpi-progress-primary::-webkit-progress-value { background-color: var(--bs-primary); }
+  &.kpi-progress-primary::-moz-progress-bar { background-color: var(--bs-primary); }
+
+  &.kpi-progress-warning::-webkit-progress-value { background-color: var(--bs-warning); }
+  &.kpi-progress-warning::-moz-progress-bar { background-color: var(--bs-warning); }
 }
 
 // -- Team Performance Table --
@@ -157,9 +149,9 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: $color-muted;
-    border-bottom: 1px solid $color-border-subtle;
-    background-color: rgba($color-surface, 0.5);
+    color: var(--bs-secondary);
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: rgba(var(--bs-light-rgb), 0.5);
   }
 }
 
@@ -167,7 +159,7 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   transition: background-color 0.15s;
 
   td {
-    border-bottom: 1px solid rgba($color-border-subtle, 0.5);
+    border-bottom: 1px solid var(--bs-border-color-translucent);
   }
 
   &:last-child td {
@@ -179,60 +171,21 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background-color: rgba($color-primary, 0.1);
-  color: $color-primary;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
   flex-shrink: 0;
-  border: 1px solid $color-border-subtle;
-}
-
-// -- Sparkline Mini-Bars --
-.sparkline-bars {
-  height: 1rem;
-  width: 3rem;
-}
-
-.spark-bar {
-  width: 0.375rem;
-  min-height: 4px;
-  background-color: $color-primary-light;
-  border-radius: 2px 2px 0 0;
-  transition: height 0.3s ease;
-
-  &--accent {
-    background-color: $color-primary-container;
-  }
-}
-
-.team-row:hover .sparkline-bars {
-  .spark-bar {
-    transform: scaleY(1.1);
-    transition: transform 0.2s ease;
-  }
-}
-
-// -- Activity Chart Placeholder --
-.activity-chart-placeholder {
-  height: 12rem;
-  background-color: rgba($color-surface, 0.6);
-
-  .activity-wave {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.4;
-  }
+  border: 1px solid var(--bs-border-color);
 }
 
 // -- Insight Card --
 .insight-card {
-  background-color: rgba($color-primary, 0.03);
-  border: 1px solid rgba($color-primary, 0.12) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.12) !important;
 }
 
 .insight-icon-wrapper {
@@ -240,11 +193,11 @@ $color-border-subtle: rgba(194, 198, 212, 0.3);
   height: 2.75rem;
   min-width: 2.75rem;
   border-radius: 50%;
-  background-color: $color-card-bg;
+  background-color: var(--bs-body-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  color: $color-primary;
+  color: var(--bs-primary);
 }

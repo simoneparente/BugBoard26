@@ -67,13 +67,11 @@
             <div class="d-flex align-items-baseline gap-2 mb-3">
               <span class="kpi-value display-6 fw-bold text-dark">{{ r.openedBugs }}</span>
             </div>
-            <div class="progress kpi-progress">
-              <div
-                class="progress-bar bg-danger"
-                role="progressbar"
-                [style.width]="getProgressWidth(r.openedBugs, r.openedBugs + r.managedBugs)"
-              ></div>
-            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-danger"
+              [value]="r.openedBugs"
+              [max]="r.openedBugs + r.managedBugs"
+            ></progress>
           </div>
         </div>
       </div>
@@ -91,13 +89,11 @@
             <div class="d-flex align-items-baseline gap-2 mb-3">
               <span class="kpi-value display-6 fw-bold text-dark">{{ r.managedBugs }}</span>
             </div>
-            <div class="progress kpi-progress">
-              <div
-                class="progress-bar bg-primary"
-                role="progressbar"
-                [style.width]="getProgressWidth(r.managedBugs, r.openedBugs + r.managedBugs)"
-              ></div>
-            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-primary"
+              [value]="r.managedBugs"
+              [max]="r.openedBugs + r.managedBugs"
+            ></progress>
           </div>
         </div>
       </div>
@@ -117,9 +113,11 @@
                 formatAvgTime(r.averageResolutionTime)
               }}</span>
             </div>
-            <div class="progress kpi-progress">
-              <div class="progress-bar bg-warning" role="progressbar" style="width: 50%"></div>
-            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-warning"
+              value="50"
+              max="100"
+            ></progress>
           </div>
         </div>
       </div>
