@@ -71,7 +71,8 @@
           "options": {
             "host": "0.0.0.0",
             "port": 4200,
-            "allowedHosts": ["localhost"]
+            "allowedHosts": ["localhost"],
+            "proxyConfig": "src/proxy.conf.json"
           },
           "configurations": {
             "production": {
