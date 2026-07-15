@@ -29,9 +29,9 @@ export class ProjectComponent implements OnInit {
     this.loadProjects();
   }
 
-  public getCreatedDate(project: ProjectResponse): string {
-    if (!project.createdAt) return '';
-    return new Date(project.createdAt).toLocaleDateString('it-IT', {
+  public getLastModifiedDate(project: ProjectResponse): string {
+    if (!project.updatedAt) return '';
+    return new Date(project.updatedAt).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
