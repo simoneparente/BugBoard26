@@ -28,11 +28,11 @@ public class ProjectService {
 
     @Transactional
     public Project createProject(ProjectRequest projectrequest) {
+        User currentUser = getCurrentUser();
+
         if (projectRepository.existsByName(projectrequest.getName())) {
             throw new IllegalArgumentException("Project with the same name already exists.");
         }
-
-        User currentUser = getCurrentUser();
 
         Project project = Project.builder()
                 .name(projectrequest.getName())
@@ -63,7 +63,7 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Project> getAllProjects(Pageable pageable) {
+    public Page<Project> getProjects(Pageable pageable) {
         User currentUser = getCurrentUser();
         
         // ADMIN can see all projects
@@ -75,7 +75,6 @@ public class ProjectService {
         return projectRepository.findByMembersId(currentUser.getId(), pageable);
     }
 
-    // Rimosso @Transactional inutile
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         

@@ -1,6 +1,7 @@
 package it.unina.bugboard.bugboard_backend.controller;
-
+import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,9 @@ class ProjectControllerTest {
     @InjectMocks
     private ProjectController projectController;
 
+    @Mock
+    private ProjectMapper projectMapper;
+
     private Project dummyProject;
     private ProjectRequest dummyRequest;
 
@@ -49,29 +53,37 @@ class ProjectControllerTest {
     }
 
     @Test
-    void getAllProjects_ReturnsOkResponse() {
+    void getProjects_ReturnsOkResponse() {
         List<Project> projects = List.of(dummyProject);
         Page<Project> page = new PageImpl<>(projects);
         Pageable pageable = PageRequest.of(0, 10);
-        when(projectService.getAllProjects(pageable)).thenReturn(page);
+        when(projectService.getProjects(pageable)).thenReturn(page);
 
-        ResponseEntity<?> responseEntity = projectController.getAllProjects(pageable);
+        ResponseEntity<?> responseEntity = projectController.getProjects(pageable);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        verify(projectService, times(1)).getAllProjects(pageable);
+        verify(projectService, times(1)).getProjects(pageable);
     }
 
     @Test
     void createProject_ReturnsCreatedResponse() {
-        when(projectService.createProject(any(it.unina.bugboard.bugboard_backend.dto.ProjectRequest.class))).thenReturn(dummyProject);
+        when(projectService.createProject(any(ProjectRequest.class))).thenReturn(dummyProject);
+        
+        when(projectMapper.toResponse(any(Project.class))).thenReturn(ProjectResponse.builder()
+                .id(dummyProject.getId())
+                .name(dummyProject.getName())
+                .description(dummyProject.getDescription())
+                .createdAt(dummyProject.getCreatedAt())
+                .updatedAt(dummyProject.getUpdatedAt())
+            .build());
 
         ResponseEntity<?> responseEntity = projectController.createProject(dummyRequest);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        verify(projectService, times(1)).createProject(any(it.unina.bugboard.bugboard_backend.dto.ProjectRequest.class));
+        verify(projectService, times(1)).createProject(any(ProjectRequest.class));
     }
 }

@@ -1,6 +1,11 @@
 package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.entity.Role;
+import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,20 +34,46 @@ class ProjectServiceTest {
     @Mock
     private ProjectRepository projectRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private ProjectService projectService;
 
     private UUID projectId;
+    private UUID userId;
+
     private Project dummyProject;
+    private User dummyUser;
 
     @BeforeEach
     void setUp() {
         projectId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+
         dummyProject = Project.builder()
                 .id(projectId)
                 .name("BugBoard Core")
                 .description("test description")
                 .build();
+
+        dummyUser = User.builder()
+                .id(userId)
+                .username("tesuser")
+                .email("test@example.com")
+                .role(Role.ADMIN)
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(userId.toString());
+        when(authentication.isAuthenticated()).thenReturn(true);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
     }
 
     @Test
@@ -104,13 +136,13 @@ class ProjectServiceTest {
     }
 
     @Test
-    void getAllProjects_ReturnsPage() {
+    void getProjects_ReturnsPage() {
         List<Project> projectList = List.of(dummyProject);
         Page<Project> projectPage = new PageImpl<>(projectList);
         Pageable pageable = PageRequest.of(0, 10);
         when(projectRepository.findAll(pageable)).thenReturn(projectPage);
 
-        Page<Project> result = projectService.getAllProjects(pageable);
+        Page<Project> result = projectService.getProjects(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());

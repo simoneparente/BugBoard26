@@ -5,6 +5,8 @@ import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -15,15 +17,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")
+@RequiredArgsConstructor
 public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectMapper projectMapper;
-
-    public ProjectController(ProjectService projectService, ProjectMapper projectMapper) {
-        this.projectService = projectService;
-        this.projectMapper = projectMapper;
-    }
 
     @PostMapping 
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
@@ -38,8 +36,8 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProjectResponse>> getAllProjects(Pageable pageable) {
-        Page<ProjectResponse> projects = projectService.getAllProjects(pageable)
+    public ResponseEntity<Page<ProjectResponse>> getProjects(Pageable pageable) {
+        Page<ProjectResponse> projects = projectService.getProjects(pageable)
                 .map(projectMapper::toResponse);
         return ResponseEntity.ok(projects);
     }
