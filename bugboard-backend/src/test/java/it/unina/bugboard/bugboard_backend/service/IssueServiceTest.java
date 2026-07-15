@@ -127,23 +127,20 @@ class IssueServiceTest {
 		UUID tagTwoId = UUID.randomUUID();
 
 		TagResponse tagOne = TagResponse.builder()
-				.projectService(projectService)
-				.id(tagOneId)
-				.name("backend")
-				.color("#112233")
-				.projectId(projectId)
-				.build();
+			.id(tagOneId)
+			.name("backend")
+			.color("#112233")
+			.projectId(projectId)
+			.build();
 		TagResponse tagTwo = TagResponse.builder()
-				.projectService(projectService)
-				.id(tagTwoId)
-				.name("frontend")
-				.color("#445566")
-				.projectId(projectId)
-				.build();
+			.id(tagTwoId)
+			.name("frontend")
+			.color("#445566")
+			.projectId(projectId)
+			.build();
 
 		IssueRequest request = createRequest(null, List.of(tagOne, tagTwo), null);
 		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
-		when(projectService.getProjectById(projectId)).thenReturn(project);
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		Issue result = issueService.createIssue(projectId, request);

@@ -1,0 +1,101 @@
+\begin{longtable}{|p{4cm}|p{11cm}|}
+    \hline
+    \textbf{ID - Nome dello UC} & 1 - Creazione di una issue \cite{uc1-figma} \\
+    \hline
+    \textbf{Data di creazione} & 11/10/2025 \\
+    \hline
+    \textbf{Attore primario} & Utente \\
+    \hline
+    \textbf{Trigger} & L'utente indica di voler creare una nuova issue \\
+    \hline
+    \textbf{Descrizione} & L'utente ha trovato un problema e intende aprire una nuova issue per tenere traccia di esso. \\
+    \hline
+    \textbf{Precondizioni} & \textbf{PRE-1.} L'utente è stato registrato da un amministratore ed ha effettuato correttamente l'autenticazione \newline
+    \textbf{PRE-2.} Il sistema ha caricato la pagina di riepilogo delle issues \\
+    \hline
+    \textbf{Postcondizioni} & \textbf{POST-1.} La nuova issue è salvata nel sistema \newline
+    \textbf{POST-2.} La nuova issue è visibile nella vista di riepilogo delle issue \\
+    \hline
+    \textbf{Scenario di successo} & 1. L'utente indica di voler segnalare una nuova issue (M1) \newline
+    2. Il sistema apre la modale di creazione di una nuova issue (M2) \newline
+    3. L'utente inserisce il titolo della issue (M3) \newline
+    4. L'utente indica i dettagli della issue nella descrizione (M4) \newline
+    4a. [Opzionale] L'utente sceglie una priorità per la issue \newline
+    4b. [Opzionale] L'utente può allegare un'immagine \newline
+    4c. [Opzionale] L'utente sceglie un tipo per la issue \newline
+    5. L'utente segnala di aver terminato l'inserimento dei dati richiesti (M5) \newline
+    6. Il sistema valida i dati inseriti dall'utente \newline
+    7. Il sistema salva la nuova issue \newline
+    8. Il sistema mostra un messaggio di successo (M6) \\
+    \hline
+
+    \multicolumn{2}{r}{\small Continua nella pagina successiva} \\
+    \textbf{Estensioni} & \textbf{4a. Scelta della priorità per la issue:} \newline
+    4a1. L'utente clicca sul menù “priorità” (M9) \newline
+    4a2. Il sistema apre un menù con le possibili priorità (M10) \newline
+    4a3. L'utente sceglie una tra le alternative (M11) \newline
+    4a4. Il sistema mostra l'alternativa scelta (M12) \newline
+    4a5. Il flusso ritorna al termine del punto 4 dello scenario di successo \newline
+
+    \textbf{4b. Caricamento di un'immagine:} \newline
+    4b1. L'utente clicca sul bottone per caricare un'immagine (M13) \newline
+    4b2. Il sistema apre il file explorer (M14) \newline
+    4b3. L'utente seleziona un'immagine dal proprio dispositivo (M15, M16) \newline
+    4b4. Il sistema valida il formato e la dimensione dell'immagine \newline
+    4b5. Il sistema sostituisce l'icona di “allega” con un messaggio di successo (\checkmark) e aggiunge un bottone di eliminazione accanto alla label “immagine”(M17) \newline
+    4b7. Il flusso torna al termine del punto 4a dello scenario di successo \newline
+
+    \textbf{4b3a. L'utente annulla il caricamento dell'immagine:} \newline
+    4b3a1. L'utente clicca sul bottone “annulla” \newline
+    4b3a2. Il flusso ritorna al termine del punto 4 dello scenario di successo \newline
+
+    \textbf{4b4a. Errore di validazione dell'immagine:} \newline
+    4b4a1. Il sistema mostra un messaggio di errore e invita l'utente a riprovare (M18) \newline
+    4b4a2. Il flusso ritorna al termine del punto 4 dello scenario di successo \newline
+
+    \textbf{4b6a. Eliminazione dell'immagine allegata:} \newline
+    4b6a1. L'utente clicca sul bottone di eliminazione \newline
+    4b6a2. Il sistema elimina l'immagine allegata \newline
+    4b6a3. Il sistema sostituisce l'icona di successo (\checkmark) con il bottone “allega” e rimuove il bottone di eliminazione \newline
+    4b6a4. Il flusso ritorna al termine del punto 4 dello scenario di successo \\
+    \hline
+    \multicolumn{2}{r}{\small Continua nella pagina successiva}
+    \end{longtable}
+
+
+    \begin{longtable}{|p{4cm}|p{11cm}|}
+    \hline
+    \textbf{Estensioni} & 
+    \textbf{4c. Scelta del tipo di issue:} \newline
+    4c1. L'utente clicca sul menù “tipo” (M19) \newline
+    4c2. Il sistema apre il menù con i vari tipi di issues (M20) \newline
+    4c3. L'utente sceglie un tipo di issue (M21) \newline
+    4c4. Il sistema mostra il tipo scelto (M22) \newline
+    4c5. Il flusso ritorna al termine del punto 4 dello scenario di successo \newline
+
+    \textbf{6a. Errore nella validazione dell'input (titolo):} \newline
+    6a1. L'utente inserisce un titolo non valido \newline
+    6a2. Il sistema evidenzia il campo del titolo e mostra un messaggio all'utente, segnalando la non validità del titolo scelto (M7) \newline
+    6a3. L'utente modifica il titolo, inserendone uno corretto (M3) \newline
+    6a4. Il flusso ritorna al punto 4 dello scenario di successo \newline
+
+    \textbf{6b. Errore nella validazione dell'input (descrizione):} \newline
+    6b1. L'utente inserisce una descrizione non valida \newline
+    6b2. Il sistema evidenzia il campo della descrizione e mostra un messaggio all'utente, segnalando la non validità della descrizione scelta (M8) \newline
+    6b3. L'utente inserisce una descrizione valida (M4) \newline
+    6b4. Il flusso ritorna al punto 5 nello scenario di successo \newline
+
+    \textbf{7a. Errore nel salvataggio della issue:} \newline
+    7a1. Il sistema riscontra un errore durante il salvataggio della issue \newline
+    7a2. Il sistema mostra uno specifico messaggio di errore, invitando l'utente a riprovare (M23) \newline
+    7a3. Il flusso ritorna al termine del punto 4 nello scenario di successo \\
+    \hline
+    \textbf{Priorità} & Alta \\
+    \hline
+    \textbf{Frequenza d'uso} & Presumibilmente tutti gli utenti, tra 1 e 5 volte al giorno per utente \\
+    \hline
+    \textbf{Informazioni associate} & Mostrato nella tabella ~\ref{tab:uc1-proprieta} \\
+    \hline
+\end{longtable}
+
+\newpage

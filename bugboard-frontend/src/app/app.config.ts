@@ -22,9 +22,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    provideAppInitializer(async () => {
+    provideAppInitializer(() => {
       const authService = inject(AuthService);
-      authService.checkSession().subscribe();
+      return firstValueFrom(authService.checkSession());
     }),
   ],
 };

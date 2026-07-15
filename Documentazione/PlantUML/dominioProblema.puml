@@ -1,0 +1,51 @@
+@startuml
+skinparam style strictuml
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+
+class User {
+    username
+    email
+    role
+}
+
+class Project {
+    name
+    description
+}
+
+class Issue {
+    title
+    description
+    priority
+    type
+    status
+}
+
+class Tag {
+    name
+    color
+}
+
+class Attachment {
+    fileName
+    fileSize
+}
+
+class Report{
+}
+
+
+
+' Relazioni principali
+User "0..*" -left- "0..*" Project : partecipa 
+Project "1" *-down- "0..*" Issue : contiene 
+Project "1" *-- "0..*" Tag : definisce 
+Issue "0..*" -- "0..*" Tag : etichettata con 
+Issue "1" *-- "0..*" Attachment : include 
+User "1" -- "0..*" Issue : assegnatario 
+Report *-- "1" User : genera
+
+@enduml

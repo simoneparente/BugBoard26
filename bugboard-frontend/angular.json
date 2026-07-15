@@ -71,7 +71,8 @@
           "options": {
             "host": "0.0.0.0",
             "port": 4200,
-            "allowedHosts": ["localhost", "bugboard26-frontend.icyisland-a27a4eea.italynorth.azurecontainerapps.io"]
+            "allowedHosts": ["localhost", "bugboard26-frontend.icyisland-a27a4eea.italynorth.azurecontainerapps.io"],
+            "proxyConfig": "src/proxy.conf.json"
           },
           "configurations": {
             "production": {
