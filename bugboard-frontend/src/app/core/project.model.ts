@@ -1,4 +1,4 @@
-import { IssueResponse } from "./issue.model";
+import { IssueResponse } from './issue.model';
 
 export interface ProjectResponse {
   id: string;

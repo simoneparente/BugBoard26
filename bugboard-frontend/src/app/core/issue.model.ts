@@ -1,5 +1,5 @@
-import { AttachmentResponse } from "./attachments.model";
-import { TagResponse } from "./tag.model";
+import { AttachmentResponse } from './attachments.model';
+import { TagResponse } from './tag.model';
 
 export interface IssueResponse {
   id: string;

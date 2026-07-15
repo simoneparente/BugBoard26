@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
 import { InviteUserComponent } from '../invite-user.component/invite-user.component';
 import { AuthService } from '../../core/auth/auth-service';
-import {ProjectComponent} from "../project.component/project.component";
+import { ProjectComponent } from '../project.component/project.component';
 
 @Component({
   selector: 'app-dashboard.component',
