@@ -10,7 +10,7 @@ import { forkJoin } from 'rxjs';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './issue-create.component.html',
-  styleUrls: ['./issue-create.component.scss']
+  styleUrls: ['./issue-create.component.scss'],
 })
 export class IssueCreateComponent {
   private fb = inject(FormBuilder);
@@ -30,7 +30,7 @@ export class IssueCreateComponent {
       title: ['', Validators.required],
       description: ['', Validators.required],
       priority: ['MEDIUM', Validators.required],
-      type: ['BUG', Validators.required]
+      type: ['BUG', Validators.required],
     });
   }
 
@@ -50,16 +50,18 @@ export class IssueCreateComponent {
     const projectId = this.projectId;
     const payload = {
       ...this.issueForm.value,
-      projectId
+      projectId,
     };
 
     this.issueService.createIssue(projectId, payload).subscribe({
       next: (response) => {
         if (this.selectedFiles.length > 0) {
-          const uploadRequests = this.selectedFiles.map(file => this.issueService.uploadAttachment(response.id, file));
+          const uploadRequests = this.selectedFiles.map((file) =>
+            this.issueService.uploadAttachment(response.id, file),
+          );
           forkJoin(uploadRequests).subscribe({
             next: () => this.router.navigate(['/projects', projectId, 'issues']),
-            error: () => this.showError = true
+            error: () => (this.showError = true),
           });
         } else {
           this.router.navigate(['/projects', projectId, 'issues']);
@@ -67,7 +69,7 @@ export class IssueCreateComponent {
       },
       error: () => {
         this.showError = true;
-      }
+      },
     });
   }
 
@@ -87,7 +89,7 @@ export class IssueCreateComponent {
   discardDraft() {
     this.issueForm.reset({
       priority: 'MEDIUM',
-      type: 'BUG'
+      type: 'BUG',
     });
     this.submitted = false;
     this.showError = false;

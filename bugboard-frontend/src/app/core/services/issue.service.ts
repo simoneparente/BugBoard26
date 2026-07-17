@@ -13,7 +13,7 @@ export interface CreateIssueDto {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class IssueService {
   private http = inject(HttpClient);
