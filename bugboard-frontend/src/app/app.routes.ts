@@ -43,6 +43,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'projects/:projectId/issues/create',
+    loadComponent: () => import('./features/issue-create.component/issue-create.component').then(m => m.IssueCreateComponent),
+    title: 'BugBoard26 - Create Issue',
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     redirectTo: '/dashboard',
     pathMatch: 'full',
