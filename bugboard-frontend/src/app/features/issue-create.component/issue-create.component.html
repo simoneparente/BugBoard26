@@ -109,7 +109,7 @@
 
     <!-- Footer Actions -->
     <div class="mt-5 pt-4 border-top d-flex align-items-center justify-content-end gap-3">
-        <button type="button" class="btn btn-light fw-medium px-4" routerLink="/dashboard">Cancel</button>
+        <button type="button" class="btn btn-light fw-medium px-4" [routerLink]="['/projects', projectId, 'issues']">Cancel</button>
         <button type="submit" class="btn btn-primary fw-bold px-5 shadow">Create Issue</button>
     </div>
     </form>

@@ -58,11 +58,11 @@ export class IssueCreateComponent {
         if (this.selectedFiles.length > 0) {
           const uploadRequests = this.selectedFiles.map(file => this.issueService.uploadAttachment(response.id, file));
           forkJoin(uploadRequests).subscribe({
-            next: () => this.router.navigate(['/dashboard']),
+            next: () => this.router.navigate(['/projects', projectId, 'issues']),
             error: () => this.showError = true
           });
         } else {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/projects', projectId, 'issues']);
         }
       },
       error: () => {
