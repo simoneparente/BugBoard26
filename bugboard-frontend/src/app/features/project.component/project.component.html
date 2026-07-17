@@ -7,6 +7,7 @@
     <div class="d-flex gap-2">
       @if (isAdmin()) {
         <button
+          [routerLink]="['/projects/create']"
           class="btn btn-primary d-flex align-items-center gap-2 rounded-3 fw-medium shadow-sm"
         >
           <span class="bi bi-folder-plus fs-5"></span> Create Project
@@ -18,9 +19,9 @@
   <!-- Loading -->
   @if (loading()) {
     <div class="d-flex justify-content-center py-5">
-      <div class="spinner-border text-primary" role="status">
+      <output class="spinner-border text-primary">
         <span class="visually-hidden">Loading...</span>
-      </div>
+      </output>
     </div>
   }
 
@@ -33,7 +34,7 @@
   }
 
   <!-- Empty state -->
-  @if (!loading() && !error() && projects().length === 0) {
+  @if (!loading() && !error() && projectList().length === 0) {
     <div class="text-center py-5">
       <span class="bi bi-folder-x text-muted mb-3" style="font-size: 3rem"></span>
       <h5 class="fw-bold text-dark">No projects yet</h5>
@@ -42,9 +43,9 @@
   }
 
   <!-- Project grid -->
-  @if (!loading() && !error() && projects().length > 0) {
+  @if (!loading() && !error() && projectList().length > 0) {
     <div class="row g-4">
-      @for (project of projects(); track project.id) {
+      @for (project of projectList(); track project.id) {
         <div class="col-12 col-md-6 col-lg-4">
           <div
             class="card h-100 border-0 shadow-sm rounded-4 project-card cursor-pointer"
@@ -53,7 +54,7 @@
             <div class="card-body d-flex flex-column p-4">
               <div class="d-flex justify-content-between align-items-start mb-3"></div>
 
-              <h5 class="fw-bold text-dark project-title transition-colors mb-1">
+              <h5 class="fw-bold text-primary project-title transition-colors mb-1">
                 {{ project.name }}
               </h5>
               <p class="text-muted small line-clamp-2 mb-3">{{ project.description }}</p>
@@ -63,14 +64,23 @@
                   <span class="bi bi-calendar3 me-1"></span>{{ getLastModifiedDate(project) }}
                 </span>
 
-                <span class="badge bg-secondary-subtle text-secondary rounded-pill small">
-                  {{ getIssueCount(project) }} issue{{ getIssueCount(project) !== 1 ? 's' : '' }}
-                </span>
+                <span
+                  class="bi bi-trash text-danger cursor-pointer"
+                  (click)="deleteProject(project.id)"
+                ></span>
               </div>
             </div>
           </div>
         </div>
       }
     </div>
+
+    <!-- Pagination -->
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      [totalElements]="totalElements()"
+      (pageChange)="onPageChange($event)"
+    />
   }
 </div>
