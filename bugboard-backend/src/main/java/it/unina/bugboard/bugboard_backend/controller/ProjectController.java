@@ -41,4 +41,10 @@ public class ProjectController {
                 .map(projectMapper::toResponse);
         return ResponseEntity.ok(projects);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
+        projectService.deleteProject(id);
+        return ResponseEntity.noContent().build();
+    }
 }

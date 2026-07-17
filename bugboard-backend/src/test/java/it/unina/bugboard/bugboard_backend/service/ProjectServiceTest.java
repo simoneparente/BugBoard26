@@ -1,13 +1,20 @@
 package it.unina.bugboard.bugboard_backend.service;
 
-import it.unina.bugboard.bugboard_backend.entity.Project;
-import it.unina.bugboard.bugboard_backend.entity.Role;
-import it.unina.bugboard.bugboard_backend.entity.User;
-import it.unina.bugboard.bugboard_backend.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
-import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,14 +26,16 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.entity.Role;
+import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
+import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectServiceTest {
@@ -147,5 +156,111 @@ class ProjectServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals("BugBoard Core", result.getContent().get(0).getName());
+    }
+
+    @Test
+    void deleteProject_Success() {
+       doNothing().when(projectRepository).deleteById(projectId);
+
+       projectService.deleteProject(projectId);
+
+       verify(projectRepository, times(1)).deleteById(projectId);
+   } 
+
+  @Test
+    void deleteProject_ThrowsException_WhenNotAdmin() {
+        dummyUser.setRole(Role.TECHNICAL);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+
+        assertThrows(UnauthorizedException.class, () -> {
+            projectService.deleteProject(projectId);
+        });
+
+        verify(projectRepository, never()).deleteById(projectId);
+    }
+
+    @Test
+    void getProjectById_Success_AsNonAdmin_WhenMember() {
+        // Setup: change user role to TECHNICAL and is member
+        dummyUser.setRole(Role.TECHNICAL);
+        dummyProject.setMembers(List.of(dummyUser));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+        when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(true);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+
+        // Act
+        Project result = projectService.getProjectById(projectId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(projectId, result.getId());
+        verify(projectRepository, times(1)).existsByIdAndMembersId(projectId, userId);
+    }
+
+    @Test
+    void getProjectById_ThrowsException_WhenNonAdminAndNotMember() {
+        // Setup: change user role to TECHNICAL and NOT a member
+        dummyUser.setRole(Role.TECHNICAL);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+        when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(false);
+
+        // Act & Assert
+        assertThrows(UnauthorizedException.class, () -> {
+            projectService.getProjectById(projectId);
+        });
+
+        verify(projectRepository, never()).findById(projectId);
+    }
+
+    @Test
+    void getProjects_ReturnsAllProjects_AsAdmin() {
+        // Setup: user is ADMIN
+        List<Project> projectList = List.of(dummyProject);
+        Page<Project> projectPage = new PageImpl<>(projectList);
+        Pageable pageable = PageRequest.of(0, 10);
+        when(projectRepository.findAll(pageable)).thenReturn(projectPage);
+
+        // Act
+        Page<Project> result = projectService.getProjects(pageable);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(projectRepository, times(1)).findAll(pageable);
+        verify(projectRepository, never()).findByMembersId(any(), any());
+    }
+
+    @Test
+    void getProjects_ReturnsOnlyMemberProjects_AsNonAdmin() {
+        // Setup: change user role to TECHNICAL
+        dummyUser.setRole(Role.TECHNICAL);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+        
+        List<Project> projectList = List.of(dummyProject);
+        Page<Project> projectPage = new PageImpl<>(projectList);
+        Pageable pageable = PageRequest.of(0, 10);
+        when(projectRepository.findByMembersId(userId, pageable)).thenReturn(projectPage);
+
+        // Act
+        Page<Project> result = projectService.getProjects(pageable);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(projectRepository, times(1)).findByMembersId(userId, pageable);
+        verify(projectRepository, never()).findAll(pageable);
+    }
+
+    @Test
+    void deleteProject_ThrowsException_WhenUnauthenticated() {
+        // Setup: no authentication
+        SecurityContextHolder.clearContext();
+
+        // Act & Assert
+        assertThrows(UnauthorizedException.class, () -> {
+            projectService.deleteProject(projectId);
+        });
+
+        verify(projectRepository, never()).deleteById(projectId);
     }
 }

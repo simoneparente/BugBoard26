@@ -75,6 +75,15 @@ public class ProjectService {
         return projectRepository.findByMembersId(currentUser.getId(), pageable);
     }
 
+    @Transactional
+    public void deleteProject(UUID id) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() != Role.ADMIN) {
+            throw new UnauthorizedException("Only ADMIN users can delete projects.");
+        }
+        projectRepository.deleteById(id);
+    }
+
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         

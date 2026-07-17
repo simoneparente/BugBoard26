@@ -86,4 +86,58 @@ class ProjectControllerTest {
         assertNotNull(responseEntity.getBody());
         verify(projectService, times(1)).createProject(any(ProjectRequest.class));
     }
+
+    @Test
+    void getProjectById_ReturnsOkResponse() {
+        UUID projectId = UUID.randomUUID();
+        when(projectService.getProjectById(projectId)).thenReturn(dummyProject);
+        when(projectMapper.toResponse(any(Project.class))).thenReturn(ProjectResponse.builder()
+                .id(dummyProject.getId())
+                .name(dummyProject.getName())
+                .description(dummyProject.getDescription())
+                .createdAt(dummyProject.getCreatedAt())
+                .updatedAt(dummyProject.getUpdatedAt())
+                .build());
+
+        ResponseEntity<?> responseEntity = projectController.getProjectById(projectId);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        verify(projectService, times(1)).getProjectById(projectId);
+        verify(projectMapper, times(1)).toResponse(any(Project.class));
+    }
+
+    @Test
+    void deleteProject_ReturnsNoContent() {
+        UUID projectId = UUID.randomUUID();
+        doNothing().when(projectService).deleteProject(projectId);
+
+        ResponseEntity<Void> responseEntity = projectController.deleteProject(projectId);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        verify(projectService, times(1)).deleteProject(projectId);
+    }
+
+    @Test
+    void getProjectById_ReturnsProjectResponse() {
+        UUID projectId = dummyProject.getId();
+        ProjectResponse projectResponse = ProjectResponse.builder()
+                .id(projectId)
+                .name("BugBoard Core")
+                .description("Quality Gate test project")
+                .build();
+
+        when(projectService.getProjectById(projectId)).thenReturn(dummyProject);
+        when(projectMapper.toResponse(dummyProject)).thenReturn(projectResponse);
+
+        ResponseEntity<?> responseEntity = projectController.getProjectById(projectId);
+
+        assertNotNull(responseEntity.getBody());
+        ProjectResponse body = (ProjectResponse) responseEntity.getBody();
+        assertEquals(projectId, body.getId());
+        assertEquals("BugBoard Core", body.getName());
+        assertEquals("Quality Gate test project", body.getDescription());
+    }
 }
