@@ -4,6 +4,7 @@ import it.unina.bugboard.bugboard_backend.security.CustomAccessDeniedHandler;
 import it.unina.bugboard.bugboard_backend.security.JwtAuthenticationEntryPoint;
 import it.unina.bugboard.bugboard_backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -25,6 +27,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+
+    @Value("${cors.allowed-origins:http://localhost:4200}")
+    private String corsAllowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
@@ -62,11 +67,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept"));
+        
+        // Parse allowed origins from configuration (comma-separated)
+        List<String> allowedOrigins = Arrays.asList(corsAllowedOrigins.split(","));
+        allowedOrigins = allowedOrigins.stream()
+                .map(String::trim)
+                .toList();
+        
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource src =  new UrlBasedCorsConfigurationSource();
+        config.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", config);
         return src;
     }
