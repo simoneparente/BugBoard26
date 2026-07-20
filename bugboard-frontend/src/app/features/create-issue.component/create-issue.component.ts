@@ -59,11 +59,11 @@ export class CreateIssueComponent {
             this.issueService.uploadAttachment(response.id, file),
           );
           forkJoin(uploadRequests).subscribe({
-            next: () => this.router.navigate(['/projects', projectId, 'issues']),
+            next: () => this.router.navigate(['/projects', projectId, 'issues', response.id]),
             error: () => (this.showError = true),
           });
         } else {
-          this.router.navigate(['/projects', projectId, 'issues']);
+          this.router.navigate(['/projects', projectId, 'issues', response.id]);
         }
       },
       error: () => {
