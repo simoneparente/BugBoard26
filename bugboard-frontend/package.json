@@ -6,6 +6,7 @@
     "start": "ng serve --host 0.0.0.0 --port 4200",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "build:prod": "ng build --configuration production",
     "test": "ng test",
     "serve:ssr:bugboard-frontend": "node dist/bugboard-frontend/server/server.mjs",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json,md}\"",

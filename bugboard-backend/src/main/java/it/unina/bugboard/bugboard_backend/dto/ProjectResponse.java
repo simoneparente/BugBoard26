@@ -15,5 +15,8 @@ public class ProjectResponse {
     private String name;
     private String description;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<IssueResponse> issues;
+    private List<TagResponse> tags;
+    private List<UserResponse> members;
 }
