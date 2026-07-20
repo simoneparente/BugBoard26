@@ -33,26 +33,27 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
-        // CSRF protection is intentionally disabled. Even if we use cookie-based authentication, 
-        // CSRF defense is enforced by the 'SameSite=Strict' attribute configured on the HttpOnly 
-        // JWT cookie. This tells the browser to never attach the authentication cookie to 
+        // CSRF protection is intentionally disabled. Even if we use cookie-based
+        // authentication,
+        // CSRF defense is enforced by the 'SameSite=Strict' attribute configured on the
+        // HttpOnly
+        // JWT cookie. This tells the browser to never attach the authentication cookie
+        // to
         // cross-site requests, preventing CSRF attacks.
         @SuppressWarnings("squid:S4502")
         HttpSecurity configuredHttp = http.csrf(AbstractHttpConfigurer::disable);
 
         configuredHttp
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/me").authenticated()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exc -> exc
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
+                        .accessDeniedHandler(accessDeniedHandler))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -63,7 +64,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -87,5 +88,3 @@ public class SecurityConfig {
     }
 
 }
-
-

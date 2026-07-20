@@ -1,0 +1,63 @@
+<nav aria-label="Page navigation" class="pagination-container">
+  <div class="pagination-wrapper">
+    <!-- Previous Button -->
+    <button
+      type="button"
+      class="pagination-btn pagination-btn-prev"
+      [disabled]="isPrevDisabled()"
+      (click)="onPrevious()"
+      aria-label="Previous page"
+      title="Previous page"
+    >
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- Page Numbers Container -->
+    <div class="page-numbers">
+      <!-- Ellipsis Before -->
+      @if (showEllipsisBefore()) {
+        <span class="ellipsis">...</span>
+      }
+
+      <!-- Page Numbers -->
+      @for (pageNum of visiblePages(); track pageNum) {
+        <button
+          type="button"
+          class="page-number"
+          [class.active]="pageNum === currentPage()"
+          (click)="onPageClick(pageNum)"
+          [attr.aria-label]="
+            'Go to page ' +
+            displayPageNumber(pageNum) +
+            (pageNum === currentPage() ? ' (current page)' : '')
+          "
+          [attr.aria-current]="pageNum === currentPage() ? 'page' : null"
+        >
+          {{ displayPageNumber(pageNum) }}
+        </button>
+      }
+
+      <!-- Ellipsis After -->
+      @if (showEllipsisAfter()) {
+        <span class="ellipsis">...</span>
+      }
+    </div>
+
+    <!-- Next Button -->
+    <button
+      type="button"
+      class="pagination-btn pagination-btn-next"
+      [disabled]="isNextDisabled()"
+      (click)="onNext()"
+      aria-label="Next page"
+      title="Next page"
+    >
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Page Info -->
+  <div class="pagination-info">
+    Showing {{ displayPageNumber(currentPage()) }} of {{ totalPages() }} pages
+  </div>
+</nav>
