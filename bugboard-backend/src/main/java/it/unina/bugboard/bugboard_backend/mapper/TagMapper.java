@@ -22,4 +22,17 @@ public class TagMapper {
                 .project(project)
                 .build();
     }
+
+    public TagResponse toResponse(Tag tag) {
+        if (tag == null) {
+            return null;
+        }
+
+        return TagResponse.builder()
+                .id(tag.getId())
+                .name(tag.getName())
+                .color(tag.getColor())
+                .projectId(tag.getProject() != null ? tag.getProject().getId() : null)
+                .build();
+    }
 }

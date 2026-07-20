@@ -3,53 +3,48 @@ package it.unina.bugboard.bugboard_backend.controller;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")
+@RequiredArgsConstructor
 public class ProjectController {
 
     private final ProjectService projectService;
-
-    public ProjectController(ProjectService projectService) {
-        this.projectService = projectService;
-    }
+    private final ProjectMapper projectMapper;
 
     @PostMapping 
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
         Project project = projectService.createProject(projectRequest);
-        return new ResponseEntity<>(mapToResponseDTO(project), HttpStatus.CREATED);
-
+        return new ResponseEntity<>(projectMapper.toResponse(project), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getProjectById(@PathVariable UUID id) {
         Project project = projectService.getProjectById(id);
-        return ResponseEntity.ok(mapToResponseDTO(project));
+        return ResponseEntity.ok(projectMapper.toResponse(project));
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProjectResponse>> getAllProjects(Pageable pageable) {
-        Page<ProjectResponse> projects = projectService.getAllProjects(pageable)
-                .map(this::mapToResponseDTO);
+    public ResponseEntity<Page<ProjectResponse>> getProjects(Pageable pageable) {
+        Page<ProjectResponse> projects = projectService.getProjects(pageable)
+                .map(projectMapper::toResponse);
         return ResponseEntity.ok(projects);
     }
 
-    private ProjectResponse mapToResponseDTO(Project project) {
-        return ProjectResponse.builder()
-                .id(project.getId())
-                .name(project.getName())
-                .description(project.getDescription())
-                .createdAt(project.getCreatedAt())
-                .build();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
+        projectService.deleteProject(id);
+        return ResponseEntity.noContent().build();
     }
-    
 }
