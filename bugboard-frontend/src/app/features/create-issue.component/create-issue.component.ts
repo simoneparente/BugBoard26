@@ -65,7 +65,8 @@ export class CreateIssueComponent {
               this.notificationService.showSuccess('Success', 'Issue created with attachments!');
               this.router.navigate(['/projects', projectId, 'issues', response.id]);
             },
-            error: () => this.notificationService.showError('Upload Error', 'Failed to upload attachments.'),
+            error: () =>
+              this.notificationService.showError('Upload Error', 'Failed to upload attachments.'),
           });
         } else {
           this.notificationService.showSuccess('Success', 'Issue created successfully!');
@@ -81,7 +82,7 @@ export class CreateIssueComponent {
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files) {
-      for(let file of files) {
+      for (let file of files) {
         this.selectedFiles.push(file);
       }
     }
