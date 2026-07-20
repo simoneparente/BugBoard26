@@ -18,18 +18,19 @@
   </div>
 
   <!-- Global Error Alert -->
-  <div
-    class="alert alert-danger d-flex align-items-start shadow-sm mb-4 error-shake"
-    role="alert"
-    *ngIf="showError"
-  >
-    <i class="bi bi-exclamation-triangle-fill mt-1 me-3 fs-5"></i>
-    <div class="flex-grow-1">
-      <h5 class="alert-heading fw-bold mb-1">Failed to create issue</h5>
-      <p class="mb-0">Please check the fields and try again.</p>
+  @if (showError) {
+    <div
+      class="alert alert-danger d-flex align-items-start shadow-sm mb-4 error-shake"
+      role="alert"
+    >
+      <i class="bi bi-exclamation-triangle-fill mt-1 me-3 fs-5"></i>
+      <div class="flex-grow-1">
+        <h5 class="alert-heading fw-bold mb-1">Failed to create issue</h5>
+        <p class="mb-0">Please check the fields and try again.</p>
+      </div>
+      <button type="button" class="btn-close" (click)="showError = false" aria-label="Close"></button>
     </div>
-    <button type="button" class="btn-close" (click)="showError = false" aria-label="Close"></button>
-  </div>
+  }
 
   <!-- Multi-Panel Layout -->
   <form [formGroup]="issueForm" (ngSubmit)="onSubmit()">
@@ -50,12 +51,11 @@
                 formControlName="title"
                 [class.is-invalid]="submitted && f['title'].errors"
               />
-              <div
-                *ngIf="submitted && f['title'].errors"
-                class="invalid-feedback d-flex align-items-center mt-2"
-              >
-                <i class="bi bi-exclamation-circle me-1"></i> Title is required
-              </div>
+              @if (submitted && f['title'].errors) {
+                <div class="invalid-feedback d-flex align-items-center mt-2">
+                  <i class="bi bi-exclamation-circle me-1"></i> Title is required and must be less than 256 characters
+                </div>
+              }
             </div>
 
             <div class="mb-4">
@@ -70,20 +70,20 @@
                 formControlName="description"
                 [class.is-invalid]="submitted && f['description'].errors"
               ></textarea>
-              <div
-                *ngIf="submitted && f['description'].errors"
-                class="invalid-feedback d-flex align-items-center mt-2"
-              >
-                <i class="bi bi-exclamation-circle me-1"></i> Description is required
-              </div>
+              @if (submitted && f['description'].errors) {
+                <div class="invalid-feedback d-flex align-items-center mt-2">
+                  <i class="bi bi-exclamation-circle me-1"></i> Description is required and must be less than 1000 characters
+                </div>
+              }
             </div>
 
             <div class="pt-4 border-top">
-              <label class="form-label fw-bold text-dark">Attachments</label>
+              <label for="attachments" class="form-label fw-bold text-dark">Attachments</label>
               <div
                 class="border border-2 border-dashed rounded-3 p-5 text-center text-secondary position-relative hover-bg-light transition-all"
               >
                 <input
+                  id="attachments"
                   type="file"
                   multiple
                   class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
@@ -93,21 +93,22 @@
                 <p class="fw-medium mb-1">Click or drag images to upload</p>
                 <p class="small text-muted mb-0">PNG, JPG, or GIF up to 10MB</p>
               </div>
-              <ul class="list-group mt-3" *ngIf="selectedFiles.length > 0">
-                <li
-                  class="list-group-item d-flex justify-content-between align-items-center"
-                  *ngFor="let file of selectedFiles; let i = index"
-                >
-                  {{ file.name }}
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger"
-                    (click)="removeFile(i)"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </li>
-              </ul>
+              @if (selectedFiles.length > 0) {
+                <ul class="list-group mt-3">
+                  @for (file of selectedFiles; track $index; let i = $index) {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      {{ file.name }}
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="removeFile(i)"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
             </div>
           </div>
         </div>
@@ -122,10 +123,10 @@
             </h5>
 
             <div class="mb-4">
-              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider"
+              <label for="priority" class="form-label small fw-bold text-muted text-uppercase tracking-wider"
                 >Priority</label
               >
-              <select class="form-select bg-light" formControlName="priority">
+              <select id="priority" class="form-select bg-light" formControlName="priority">
                 <option value="LOWEST">Lowest</option>
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -135,10 +136,10 @@
             </div>
 
             <div class="mb-4">
-              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider"
+              <label for="type" class="form-label small fw-bold text-muted text-uppercase tracking-wider"
                 >Type</label
               >
-              <select class="form-select bg-light" formControlName="type">
+              <select id="type" class="form-select bg-light" formControlName="type">
                 <option value="BUG">Bug</option>
                 <option value="FEATURE">Feature</option>
                 <option value="QUESTION">Question</option>

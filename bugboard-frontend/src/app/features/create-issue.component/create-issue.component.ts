@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -13,10 +14,11 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./create-issue.component.scss'],
 })
 export class CreateIssueComponent {
-  private fb = inject(FormBuilder);
-  private issueService = inject(IssueService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder);
+  private readonly issueService = inject(IssueService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly notificationService = inject(NotificationService);
 
   issueForm: FormGroup;
   submitted = false;
@@ -27,8 +29,8 @@ export class CreateIssueComponent {
   constructor() {
     this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
     this.issueForm = this.fb.group({
-      title: ['', Validators.required],
-      description: ['', Validators.required],
+      title: ['', [Validators.required, Validators.maxLength(256)]],
+      description: ['', [Validators.required, Validators.maxLength(1000)]],
       priority: ['MEDIUM', Validators.required],
       type: ['BUG', Validators.required],
     });
@@ -59,10 +61,14 @@ export class CreateIssueComponent {
             this.issueService.uploadAttachment(response.id, file),
           );
           forkJoin(uploadRequests).subscribe({
-            next: () => this.router.navigate(['/projects', projectId, 'issues', response.id]),
-            error: () => (this.showError = true),
+            next: () => {
+              this.notificationService.showSuccess('Success', 'Issue created with attachments!');
+              this.router.navigate(['/projects', projectId, 'issues', response.id]);
+            },
+            error: () => this.notificationService.showError('Upload Error', 'Failed to upload attachments.'),
           });
         } else {
+          this.notificationService.showSuccess('Success', 'Issue created successfully!');
           this.router.navigate(['/projects', projectId, 'issues', response.id]);
         }
       },
@@ -75,8 +81,8 @@ export class CreateIssueComponent {
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files) {
-      for (let i = 0; i < files.length; i++) {
-        this.selectedFiles.push(files[i]);
+      for(let file of files) {
+        this.selectedFiles.push(file);
       }
     }
   }
@@ -90,6 +96,7 @@ export class CreateIssueComponent {
       priority: 'MEDIUM',
       type: 'BUG',
     });
+    this.selectedFiles = [];
     this.submitted = false;
     this.showError = false;
   }

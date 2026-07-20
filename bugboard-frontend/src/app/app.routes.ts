@@ -1,5 +1,6 @@
 import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { CreateIssueComponent } from './features/create-issue.component/create-issue.component';
 import { AuthService } from './core/auth/auth-service';
 import { LoginComponent } from './features/login.component/login.component';
 
@@ -60,10 +61,7 @@ export const routes: Routes = [
       },
       {
         path: 'projects/:projectId/issues/create',
-        loadComponent: () =>
-          import('./features/create-issue.component/create-issue.component').then(
-            (m) => m.CreateIssueComponent,
-          ),
+        component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
       },
       {
