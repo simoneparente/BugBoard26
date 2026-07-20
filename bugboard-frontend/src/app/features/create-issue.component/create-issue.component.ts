@@ -6,13 +6,13 @@ import { IssueService } from '../../core/services/issue.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
-  selector: 'app-issue-create',
+  selector: 'app-create-issue',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './issue-create.component.html',
-  styleUrls: ['./issue-create.component.scss'],
+  templateUrl: './create-issue.component.html',
+  styleUrls: ['./create-issue.component.scss'],
 })
-export class IssueCreateComponent {
+export class CreateIssueComponent {
   private fb = inject(FormBuilder);
   private issueService = inject(IssueService);
   private router = inject(Router);
@@ -50,7 +50,6 @@ export class IssueCreateComponent {
     const projectId = this.projectId;
     const payload = {
       ...this.issueForm.value,
-      projectId,
     };
 
     this.issueService.createIssue(projectId, payload).subscribe({

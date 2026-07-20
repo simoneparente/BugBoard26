@@ -3,14 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface CreateIssueDto {
-  title: string;
-  description: string;
-  priority: string;
-  type: string;
-  assigneeId?: string;
-  projectId: string;
-}
+import { CreateIssueDto } from '../models/create-issue.dto';
 
 @Injectable({
   providedIn: 'root',

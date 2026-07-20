@@ -3,19 +3,19 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { IssueCreateComponent } from './issue-create.component';
+import { CreateIssueComponent } from './create-issue.component';
 
-describe('IssueCreateComponent', () => {
-  let component: IssueCreateComponent;
-  let fixture: ComponentFixture<IssueCreateComponent>;
+describe('CreateIssueComponent', () => {
+  let component: CreateIssueComponent;
+  let fixture: ComponentFixture<CreateIssueComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IssueCreateComponent],
+      imports: [CreateIssueComponent],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(IssueCreateComponent);
+    fixture = TestBed.createComponent(CreateIssueComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();

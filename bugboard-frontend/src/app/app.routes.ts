@@ -61,8 +61,8 @@ export const routes: Routes = [
       {
         path: 'projects/:projectId/issues/create',
         loadComponent: () =>
-          import('./features/issue-create.component/issue-create.component').then(
-            (m) => m.IssueCreateComponent,
+          import('./features/create-issue.component/create-issue.component').then(
+            (m) => m.CreateIssueComponent,
           ),
         title: 'BugBoard26 - Create Issue',
       },
