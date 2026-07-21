@@ -11,6 +11,7 @@ import { InvitationResponse } from '../invitation.model';
 import { ROLES } from '../roles.model';
 import { Page } from '../page.model';
 import { ProjectResponse } from '../project.model';
+import { IssueResponse } from '../issue.model';
 
 @Injectable({
   providedIn: 'root',
@@ -45,6 +46,17 @@ export class ApiService {
     create: (name: string, description: string) =>
       this.http.post<ProjectResponse>(`${this.baseUrl}/projects`, { name, description }),
     delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/projects/${id}`),
+  };
+
+  readonly issues = {
+    create: (projectId: string, payload: any) =>
+      this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
+    uploadAttachment: (issueId: string, file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      //TODO: Use a better type for the response
+      return this.http.post<any>(`${this.baseUrl}/attachments/issue/${issueId}`, formData);
+    },
   };
 
   readonly reports = {
