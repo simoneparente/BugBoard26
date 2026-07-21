@@ -1,5 +1,4 @@
 <div class="container-fluid py-4 px-4">
-
   <!-- Header Section -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -10,32 +9,76 @@
     <div class="d-flex gap-2">
       <!-- Dropdown Filtro Stato -->
       <div class="dropdown">
-        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+        >
           {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
         </button>
         <ul class="dropdown-menu shadow-sm">
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')">In Progress</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')">Marked For Review</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')">Not Fixed</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')">Completed</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a></li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a>
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
+              >In Progress</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
+              >Marked For Review</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
+              >Not Fixed</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
+              >Completed</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
+          </li>
         </ul>
       </div>
 
       <!-- Dropdown Filtro Priorità -->
       <div class="dropdown">
-        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+        >
           {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
         </button>
         <ul class="dropdown-menu shadow-sm">
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')">All Priorities</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a></li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
+              >All Priorities</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')"
+              >Highest</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a>
+          </li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
+          </li>
           <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a></li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
+          </li>
         </ul>
       </div>
 
@@ -52,9 +95,14 @@
         <thead class="table-light text-muted">
           <tr>
             <th class="ps-4 py-3 cursor-pointer" (click)="sortData('id')">
-              ID 
-              <i class="bi"
-                [ngClass]="{'bi-arrow-down': sortDirection() === 'asc', 'bi-arrow-up': sortDirection() === 'desc'}"></i>
+              ID
+              <i
+                class="bi"
+                [ngClass]="{
+                  'bi-arrow-down': sortDirection() === 'asc',
+                  'bi-arrow-up': sortDirection() === 'desc',
+                }"
+              ></i>
             </th>
             <th class="py-3">Title</th>
             <th class="py-3">Priority</th>
@@ -66,78 +114,100 @@
         </thead>
         <tbody>
           @for (issue of issues(); track issue.id) {
-          <tr>
-            <td class="ps-4 text-primary fw-medium">#{{ issue.id.substring(0, 4) }}</td>
-            <td class="fw-medium">{{ issue.title }}</td>
-            
-            <!-- Priority Badge -->
-            <td>
-              <span class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1" [ngClass]="getPriorityStyle(issue.priority)">
-                <i class="bi" [ngClass]="{
-                  'bi-chevron-double-up': issue.priority.toLowerCase() === 'highest',
-                  'bi-chevron-up': issue.priority.toLowerCase() === 'high',
-                  'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
-                  'bi-chevron-down': issue.priority.toLowerCase() === 'low',
-                  'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest'
-                }"></i>
-                {{ issue.priority | titlecase }}
-              </span>
-            </td>
+            <tr>
+              <td class="ps-4 text-primary fw-medium">#{{ issue.id.substring(0, 4) }}</td>
+              <td class="fw-medium">{{ issue.title }}</td>
 
-            <!-- Status Badge -->
-            <td>
-              <span class="badge rounded-pill"
-                [ngClass]="issue.status === 'TO_DO' ? 'bg-light text-dark border' : 'bg-primary text-white'">
-                {{ getStatusLabel(issue.status) }}
-              </span>
-            </td>
-
-            <!-- Assignee / User Avatar -->
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                  style="width: 30px; height: 30px; font-size: 12px;">
-                  {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
-                </div>
-                {{ issue.assigneeUsername || 'Unassigned' }}
-              </div>
-            </td>
-
-            <!-- Tags / Labels -->
-            <td>
-              <div class="d-flex gap-1 flex-wrap">
-                @for (tag of issue.tags; track tag.id) {
-                <span class="badge border rounded-pill" [ngClass]="getTagStyle(tag.name)">
-                  {{ tag.name }}
+              <!-- Priority Badge -->
+              <td>
+                <span
+                  class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                  [ngClass]="getPriorityStyle(issue.priority)"
+                >
+                  <i
+                    class="bi"
+                    [ngClass]="{
+                      'bi-chevron-double-up': issue.priority.toLowerCase() === 'highest',
+                      'bi-chevron-up': issue.priority.toLowerCase() === 'high',
+                      'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
+                      'bi-chevron-down': issue.priority.toLowerCase() === 'low',
+                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest',
+                    }"
+                  ></i>
+                  {{ issue.priority | titlecase }}
                 </span>
-                }
-              </div>
-            </td>
+              </td>
 
-            <!-- Action Menu -->
-            <td class="text-end pe-4">
-              <div class="dropdown">
-                <button class="btn btn-link text-secondary p-0" type="button" data-bs-toggle="dropdown">
-                  <i class="bi bi-three-dots-vertical fs-5"></i>
-                </button>
+              <!-- Status Badge -->
+              <td>
+                <span
+                  class="badge rounded-pill"
+                  [ngClass]="
+                    issue.status === 'TO_DO' ? 'bg-light text-dark border' : 'bg-primary text-white'
+                  "
+                >
+                  {{ getStatusLabel(issue.status) }}
+                </span>
+              </td>
 
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                  <li><button class="dropdown-item" (click)="editIssue(issue.id)">Edit</button></li>
-                  <li><button class="dropdown-item text-danger" (click)="deleteIssue(issue.id)">Delete</button></li>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-                  <li><button class="dropdown-item">View Details</button></li>
-                </ul>
-              </div>
-            </td>
-          </tr>
+              <!-- Assignee / User Avatar -->
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div
+                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                    style="width: 30px; height: 30px; font-size: 12px"
+                  >
+                    {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
+                  </div>
+                  {{ issue.assigneeUsername || 'Unassigned' }}
+                </div>
+              </td>
+
+              <!-- Tags / Labels -->
+              <td>
+                <div class="d-flex gap-1 flex-wrap">
+                  @for (tag of issue.tags; track tag.id) {
+                    <span class="badge border rounded-pill" [ngClass]="getTagStyle(tag.name)">
+                      {{ tag.name }}
+                    </span>
+                  }
+                </div>
+              </td>
+
+              <!-- Action Menu -->
+              <td class="text-end pe-4">
+                <div class="dropdown">
+                  <button
+                    class="btn btn-link text-secondary p-0"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                  >
+                    <i class="bi bi-three-dots-vertical fs-5"></i>
+                  </button>
+
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                      <button class="dropdown-item" (click)="editIssue(issue.id)">Edit</button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" (click)="deleteIssue(issue.id)">
+                        Delete
+                      </button>
+                    </li>
+                    <li>
+                      <hr class="dropdown-divider" />
+                    </li>
+                    <li><button class="dropdown-item">View Details</button></li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
           } @empty {
-          <tr>
-            <td colspan="7" class="text-center py-4 text-muted">
-              Nessuna issue trovata con i filtri selezionati.
-            </td>
-          </tr>
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">
+                Nessuna issue trovata con i filtri selezionati.
+              </td>
+            </tr>
           }
         </tbody>
       </table>
@@ -145,14 +215,16 @@
 
     <!-- Pagination Footer -->
     <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
-      <span class="text-muted">Showing {{ issues().length }} of {{ allIssues.length }} issues</span>
-      <nav>
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item"><button class="page-link"><i class="bi bi-chevron-left"></i></button></li>
-          <li class="page-item active"><button class="page-link">1</button></li>
-          <li class="page-item"><button class="page-link"><i class="bi bi-chevron-right"></i></button></li>
-        </ul>
-      </nav>
+      <span class="text-muted"
+        >Showing {{ issues().length }} of {{ totalElements() }} issues (Page
+        {{ currentPage() + 1 }} of {{ totalPages() }})</span
+      >
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalPages]="totalPages()"
+        [totalElements]="totalElements()"
+        (pageChange)="onPageChange($event)"
+      />
     </div>
   </div>
 </div>

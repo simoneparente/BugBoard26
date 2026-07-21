@@ -1,23 +1,36 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
+import { Page } from '../../core/page.model';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-issue',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './issue.component.html'
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
+  templateUrl: './issue.component.html',
 })
 export class IssueComponent implements OnInit {
-  private issueService = inject(IssueService);
-  private route = inject(ActivatedRoute);
+  private readonly issueService = inject(IssueService);
+  private readonly route = inject(ActivatedRoute);
 
-  allIssues: IssueResponse[] = [];
+  // Paginazione
+  currentPage = signal<number>(0);
+  pageSize = signal<number>(10);
+  private readonly projectId = signal<string>('');
 
-  issues = signal<IssueResponse[]>([]);
+  // Dati paginati dal backend
+  issuesPage = signal<Page<IssueResponse> | null>(null);
+
+  // Computed
+  issues = computed(() => this.issuesPage()?.content ?? []);
+  totalPages = computed(() => this.issuesPage()?.totalPages ?? 0);
+  totalElements = computed(() => this.issuesPage()?.totalElements ?? 0);
+
+  // Filtri e ordinamento
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
   isLoading = signal<boolean>(false);
@@ -27,55 +40,48 @@ export class IssueComponent implements OnInit {
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('projectId');
     if (projectId) {
-      this.loadIssues(projectId);
+      this.projectId.set(projectId);
+      this.loadIssues();
     }
   }
 
-  loadIssues(projectId: string): void {
+  loadIssues(): void {
+    const projectId = this.projectId();
+    if (!projectId) return;
+
     this.isLoading.set(true);
-    this.issueService.getIssuesByProject(projectId).subscribe({
+    const page = this.currentPage();
+    const size = this.pageSize();
+
+    this.issueService.getIssuesByProject(projectId, page, size).subscribe({
       next: (response) => {
-        console.log('Risposta integrale del backend:', response);
-        
-        this.allIssues = Array.isArray(response) ? response : (response.content || []);
-        
-        this.applyFilters();
+        this.issuesPage.set(response);
         this.isLoading.set(false);
       },
       error: (error) => {
         console.error('Failed to load issues', error);
         this.isLoading.set(false);
-      }
+      },
     });
   }
 
-
   // UI ACTIONS
 
-  applyFilters(): void {
-    let filtered = [...this.allIssues];
-
-    // Filtro per Stato
-    if (this.statusFilter() !== 'ALL') {
-      filtered = filtered.filter(i => i.status === this.statusFilter());
-    }
-
-    // Filtro per Priorità
-    if (this.priorityFilter() !== 'ALL') {
-      filtered = filtered.filter(i => i.priority === this.priorityFilter());
-    }
-
-    this.issues.set(filtered);
+  onPageChange(newPage: number): void {
+    this.currentPage.set(newPage);
+    this.loadIssues();
   }
 
   onStatusChange(status: string): void {
     this.statusFilter.set(status);
-    this.applyFilters();
+    this.currentPage.set(0);
+    this.loadIssues();
   }
 
   onPriorityChange(priority: string): void {
     this.priorityFilter.set(priority);
-    this.applyFilters();
+    this.currentPage.set(0);
+    this.loadIssues();
   }
 
   sortData(field: string): void {
@@ -88,16 +94,9 @@ export class IssueComponent implements OnInit {
       this.sortDirection.set('asc');
     }
 
-    const sorted = [...this.issues()].sort((a, b) => {
-      const valA = a.id;
-      const valB = b.id;
-      const modifier = this.sortDirection() === 'asc' ? 1 : -1;
-      return valA > valB ? (1 * modifier) : (-1 * modifier);
-    });
-
-    this.issues.set(sorted);
+    this.currentPage.set(0);
+    this.loadIssues();
   }
-
 
   getPriorityStyle(priority: string): string {
     if (!priority) return 'bg-light text-secondary border';
@@ -125,11 +124,11 @@ export class IssueComponent implements OnInit {
 
   getTagStyle(tagName: string): string {
     const styles: { [key: string]: string } = {
-      'Security': 'bg-danger-subtle text-danger border-danger',
-      'Mobile': 'bg-info-subtle text-info border-info',
+      Security: 'bg-danger-subtle text-danger border-danger',
+      Mobile: 'bg-info-subtle text-info border-info',
       'UI/UX': 'bg-warning-subtle text-warning border-warning',
-      'Content': 'bg-secondary-subtle text-secondary border-secondary',
-      'Feature': 'bg-success-subtle text-success border-success'
+      Content: 'bg-secondary-subtle text-secondary border-secondary',
+      Feature: 'bg-success-subtle text-success border-success',
     };
     return styles[tagName] || 'bg-light text-secondary border';
   }

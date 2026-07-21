@@ -51,7 +51,7 @@ export const routes: Routes = [
         title: 'BugBoard26 - Projects',
       },
       {
-        path: ':projectId/issues',
+        path: 'projects/:projectId/issues',
         component: IssueComponent,
         title: 'BugBoard26 - Issue',
         canActivate: [authGuard],

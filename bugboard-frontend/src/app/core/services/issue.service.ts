@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 import { CreateIssueDto } from '../models/create-issue.dto';
+import { Page } from '../page.model';
+import { IssueResponse } from '../issue.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,13 +24,15 @@ export class IssueService {
     return this.http.post<any>(`${this.API_URL}/attachments/issue/${issueId}`, formData);
   }
 
-  getIssuesByProject(projectId: string, page: number = 0, size: number = 10): Observable<SpringPage<IssueResponse>> {
-    const url = `${this.projectsApiUrl}/${projectId}/issues`;
-    
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-      
-    return this.http.get<SpringPage<IssueResponse>>(url, { params });
+  getIssuesByProject(
+    projectId: string,
+    page: number = 0,
+    size: number = 20,
+  ): Observable<Page<IssueResponse>> {
+    const url = `${this.API_URL}/projects/${projectId}/issues`;
+
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
+    return this.http.get<Page<IssueResponse>>(url, { params });
   }
 }
