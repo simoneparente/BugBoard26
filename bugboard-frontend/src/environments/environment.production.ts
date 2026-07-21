@@ -1,8 +1,4 @@
 export const environment = {
-  apiUrl: '/api',
-  authApiUrl: '/api/auth',
-  userApiUrl: '/api/users',
-  projectApiUrl: '/api/projects',
-  reportApiUrl: '/api/reports',
+  apiBaseUrl: 'https://bugboard26-api.icyisland-a27a4eea.italynorth.azurecontainerapps.io/api',
   production: true,
 };
