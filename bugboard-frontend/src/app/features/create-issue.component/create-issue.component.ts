@@ -89,7 +89,6 @@ export class CreateIssueComponent implements OnInit {
     this.isLoadingTags = true;
     this.tagService.getTagsByProjectId(projectId).subscribe({
       next: (tags) => {
-        console.log('Fetched tags for project:', projectId, tags);
         this.availableTags = tags || [];
         this.isLoadingTags = false;
         this.cdr.detectChanges();
@@ -202,7 +201,6 @@ export class CreateIssueComponent implements OnInit {
     this.submitted = false;
     this.showError = false;
     this.selectedTags = [];
-    this.selectedFiles = [];
     this.tagSearchQuery = '';
   }
 }
