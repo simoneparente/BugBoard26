@@ -41,12 +41,10 @@ export class ApiService {
       this.http.get<Page<ProjectResponse>>(`${this.baseUrl}/projects`, {
         params: { page: page.toString(), size: size.toString() },
       }),
-    getById: (id: string) =>
-      this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${id}`),
+    getById: (id: string) => this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${id}`),
     create: (name: string, description: string) =>
       this.http.post<ProjectResponse>(`${this.baseUrl}/projects`, { name, description }),
-    delete: (id: string) =>
-      this.http.delete<void>(`${this.baseUrl}/projects/${id}`),
+    delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/projects/${id}`),
   };
 
   readonly reports = {
