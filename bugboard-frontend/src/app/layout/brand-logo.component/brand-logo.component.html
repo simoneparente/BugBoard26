@@ -3,6 +3,7 @@
     class="brand-title fw-bold m-0"
     [class.text-white]="theme() === 'light'"
     [class.text-dark]="theme() === 'dark'"
+    (click)="goToDashboard()"
   >
     BugBoard<span [class.text-black]="theme() === 'light'" [class.text-primary]="theme() === 'dark'"
       >26</span
