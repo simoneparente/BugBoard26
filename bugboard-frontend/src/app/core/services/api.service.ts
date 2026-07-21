@@ -49,6 +49,10 @@ export class ApiService {
   };
 
   readonly issues = {
+    getByProject: (projectId: string, page: number, size: number) =>
+      this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
+        params: { page: page.toString(), size: size.toString() },
+      }),
     create: (projectId: string, payload: any) =>
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
     uploadAttachment: (issueId: string, file: File) => {
