@@ -212,12 +212,11 @@
         </tbody>
       </table>
     </div>
-
   </div>
-      <app-pagination
-        [currentPage]="currentPage()"
-        [totalPages]="totalPages()"
-        [totalElements]="totalElements()"
-        (pageChange)="onPageChange($event)"
-      />
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    [totalElements]="totalElements()"
+    (pageChange)="onPageChange($event)"
+  />
 </div>
