@@ -1,0 +1,30 @@
+// Blocca il ridimensionamento orizzontale/verticale della textarea
+.resize-none {
+  resize: none;
+}
+
+// Transizioni per breadcrumb e pulsanti
+.transition-colors {
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.hover-primary:hover {
+  color: var(--bs-primary) !important;
+}
+
+// Effetto click/hover sul pulsante principale (scala leggermente e aumenta l'ombra)
+.primary-btn-hover {
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 91, 176, 0.3) !important;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

@@ -15,4 +15,3 @@ podman compose ps
 podman logs --tail 120 bugboard26-backend-1
 
 echo "✅ BugBoard backend started successfully!"
-

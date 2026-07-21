@@ -1,12 +1,12 @@
-import { AttachmentResponse } from "./attachments.model";
-import { TagResponse } from "./tag.model";
+import { AttachmentResponse } from './attachments.model';
+import { TagResponse } from './tag.model';
 
 export interface IssueResponse {
   id: string;
   title: string;
   description: string;
-  createdAt: string;
-  updatedAt: string; 
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
   status: string;
   priority: string;
   type: string;

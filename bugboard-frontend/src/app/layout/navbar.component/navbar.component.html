@@ -1,0 +1,26 @@
+<nav class="navbar navbar-light bg-primary border-bottom px-4 py-3">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+    <!-- Brand Logo-->
+    <app-brand-logo></app-brand-logo>
+
+    <!-- Right side actions -->
+    <div class="d-flex gap-2 align-items-center">
+      <app-invite-user></app-invite-user>
+
+      <button
+        class="btn btn-primary"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#inviteUserOffcanvas"
+        aria-controls="inviteUserOffcanvas"
+        title="Invite User"
+      >
+        <i class="bi bi-person-plus-fill"></i>
+      </button>
+
+      <button class="btn btn-danger" (click)="logout()" title="Logout">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</nav>
