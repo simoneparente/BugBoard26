@@ -19,8 +19,11 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TagService } from '../../core/services/tag.service';
+import { ProjectService } from '../../core/services/project.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TagResponse } from '../../core/tag.model';
 import { UserResponse } from '../../core/auth/auth.models';
+import { ProjectResponse } from '../../core/project.model';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -34,6 +37,8 @@ export class CreateIssueComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly issueService = inject(IssueService);
   private readonly tagService = inject(TagService);
+  private readonly projectService = inject(ProjectService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notificationService = inject(NotificationService);
@@ -119,6 +124,7 @@ export class CreateIssueComponent implements OnInit {
         this.projectId = id || '';
         if (this.projectId) {
           this.loadTags(this.projectId);
+          this.loadProjectDetails(this.projectId);
         } else {
           this.isLoadingTags = false;
         }
@@ -136,6 +142,19 @@ export class CreateIssueComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load users:', err);
+      },
+    });
+  }
+
+  private loadProjectDetails(projectId: string) {
+    this.projectService.getById(projectId).subscribe({
+      next: (project: ProjectResponse) => {
+        if (project?.name) {
+          this.breadcrumbService.setProjectName(project.name);
+        }
+      },
+      error: (err: any) => {
+        console.error('Failed to load project details for breadcrumbs:', err);
       },
     });
   }
