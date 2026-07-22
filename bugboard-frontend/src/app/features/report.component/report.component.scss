@@ -32,36 +32,6 @@
   min-height: 60vh;
 }
 
-// -- Breadcrumb --
-.breadcrumb-custom {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-
-  .breadcrumb-item {
-    color: var(--bs-secondary);
-
-    a {
-      color: var(--bs-secondary);
-      transition: color 0.2s;
-
-      &:hover {
-        color: var(--bs-primary);
-      }
-    }
-
-    &.active {
-      color: var(--bs-primary);
-    }
-
-    + .breadcrumb-item::before {
-      content: '›';
-      color: var(--bs-secondary);
-    }
-  }
-}
-
 // -- Report Title --
 .report-title {
   font-size: 1.75rem;

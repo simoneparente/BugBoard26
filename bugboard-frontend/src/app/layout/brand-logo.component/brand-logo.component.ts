@@ -1,18 +1,13 @@
-import { Component, input, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, input } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-brand-logo',
   standalone: true,
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './brand-logo.component.html',
   styleUrl: './brand-logo.component.scss',
 })
 export class BrandLogoComponent {
-  private readonly router = inject(Router);
   theme = input<'light' | 'dark'>('light');
-
-  goToDashboard() {
-    this.router.navigate(['/dashboard']);
-  }
 }
