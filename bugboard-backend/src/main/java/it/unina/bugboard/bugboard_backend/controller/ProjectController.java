@@ -1,19 +1,31 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
-import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
-import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
-import it.unina.bugboard.bugboard_backend.entity.Project;
-import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
-import it.unina.bugboard.bugboard_backend.service.ProjectService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import it.unina.bugboard.bugboard_backend.dto.AddProjectMembersRequest;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
+import it.unina.bugboard.bugboard_backend.dto.UserResponse;
+import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
+import it.unina.bugboard.bugboard_backend.mapper.UserMapper;
+import it.unina.bugboard.bugboard_backend.service.ProjectService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -22,6 +34,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectMapper projectMapper;
+    private final UserMapper userMapper;
 
     @PostMapping 
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
@@ -46,5 +59,33 @@ public class ProjectController {
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<Page<UserResponse>> getProjectMembers(
+            @PathVariable UUID projectId,
+            Pageable pageable) {
+        Page<User> members = projectService.getProjectMembers(projectId, pageable);
+        return ResponseEntity.ok(members.map(userMapper::toResponse));
+    }
+
+    @GetMapping("/{projectId}/available-users")
+    public ResponseEntity<Page<UserResponse>> getAvailableUsers(
+            @PathVariable UUID projectId,
+            Pageable pageable) {
+        Page<User> availableUsers = projectService.getAvailableUsers(projectId, pageable);
+        return ResponseEntity.ok(availableUsers.map(userMapper::toResponse));
+    }
+
+    @PostMapping("/{projectId}/members")
+    public ResponseEntity<List<UserResponse>> addMembersToProject(
+            @PathVariable UUID projectId,
+            @Valid @RequestBody AddProjectMembersRequest request) {
+        List<User> addedMembers = projectService.addMembersToProject(projectId, request.getUserIds());
+        return new ResponseEntity<>(
+                addedMembers.stream()
+                        .map(userMapper::toResponse)
+                        .toList(),
+                HttpStatus.CREATED);
     }
 }
