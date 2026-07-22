@@ -120,34 +120,172 @@
               <i class="bi bi-tag-fill text-primary me-2"></i> Classification
             </h5>
 
-            <div class="mb-4">
-              <label
-                for="priority"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Priority</label
-              >
-              <select id="priority" class="form-select bg-light" formControlName="priority">
-                <option value="LOWEST">Lowest</option>
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="HIGHEST">Highest</option>
-              </select>
+            <!-- Assignee Section (Searchable Filter with Animated Chip) -->
+            <div class="mb-4 users-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Assignee
+              </label>
+
+              @if (selectedAssignee) {
+                <div
+                  class="assigned-user-chip"
+                  (click)="removeAssignee()"
+                  title="Click to remove assignee"
+                >
+                  <div class="d-flex align-items-center gap-2">
+                    <div
+                      class="avatar-circle fw-bold d-flex align-items-center justify-content-center rounded-circle"
+                    >
+                      {{ selectedAssignee.username.substring(0, 2) | uppercase }}
+                    </div>
+                    <span class="assignee-label-text fw-semibold">{{
+                      selectedAssignee.username
+                    }}</span>
+                  </div>
+                  <i class="bi bi-x-lg remove-icon"></i>
+                </div>
+              } @else {
+                <div class="position-relative">
+                  <i
+                    class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                  ></i>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm ps-5 bg-light rounded-pill border-0 shadow-none"
+                    placeholder="Search user to assign..."
+                    [(ngModel)]="userSearchQuery"
+                    [ngModelOptions]="{ standalone: true }"
+                    (focus)="isUserDropdownOpen = true"
+                    (click)="isUserDropdownOpen = true"
+                  />
+                  @if (userSearchQuery) {
+                    <button
+                      type="button"
+                      class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
+                      (click)="userSearchQuery = ''"
+                    >
+                      <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                  }
+                </div>
+
+                @if (isUserDropdownOpen && availableUsers && availableUsers.length > 0) {
+                  <div
+                    class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3"
+                  >
+                    <div class="popover-list p-2" style="max-height: 200px; overflow-y: auto">
+                      @for (u of filteredUsers; track u.id) {
+                        <div
+                          class="popover-user-item d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
+                          (click)="selectAssignee(u)"
+                        >
+                          <div class="d-flex align-items-center gap-2">
+                            <div
+                              class="avatar-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center rounded-circle"
+                              style="width: 26px; height: 26px; font-size: 0.7rem"
+                            >
+                              {{ u.username.substring(0, 2) | uppercase }}
+                            </div>
+                            <div>
+                              <div class="fw-medium text-dark small">{{ u.username }}</div>
+                              <div class="text-muted extra-small" style="font-size: 0.7rem">
+                                {{ u.role }}
+                              </div>
+                            </div>
+                          </div>
+                          <i class="bi bi-plus-lg text-primary opacity-75"></i>
+                        </div>
+                      }
+                      @if (filteredUsers.length === 0) {
+                        <div class="text-muted small fst-italic p-3 text-center">
+                          <span>No users matching "{{ userSearchQuery }}"</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
             </div>
 
-            <div class="mb-4">
-              <label
-                for="type"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Type</label
+            <!-- Custom Priority Dropdown -->
+            <div class="mb-4 priority-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Priority
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isPriorityDropdownOpen = !isPriorityDropdownOpen"
               >
-              <select id="type" class="form-select bg-light" formControlName="type">
-                <option value="BUG">Bug</option>
-                <option value="FEATURE">Feature</option>
-                <option value="QUESTION">Question</option>
-                <option value="DOCUMENTATION">Documentation</option>
-                <option value="OTHER">Other</option>
-              </select>
+                <span
+                  class="badge rounded-pill px-3 py-1.5 fw-bold"
+                  [ngClass]="currentPriorityObj.class"
+                >
+                  {{ currentPriorityObj.label }}
+                </span>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isPriorityDropdownOpen) {
+                <div
+                  class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (p of priorities; track p.value) {
+                    <div
+                      class="popover-user-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectPriority(p.value)"
+                    >
+                      <span class="badge rounded-pill px-3 py-1.5 fw-bold" [ngClass]="p.class">
+                        {{ p.label }}
+                      </span>
+                      @if (issueForm.get('priority')?.value === p.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Custom Type Dropdown -->
+            <div class="mb-4 type-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Type
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isTypeDropdownOpen = !isTypeDropdownOpen"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi" [ngClass]="currentTypeObj.icon"></i>
+                  <span class="fw-semibold text-dark small">{{ currentTypeObj.label }}</span>
+                </div>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isTypeDropdownOpen) {
+                <div
+                  class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (t of types; track t.value) {
+                    <div
+                      class="popover-user-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectType(t.value)"
+                    >
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi fs-6" [ngClass]="t.icon"></i>
+                        <span class="fw-medium text-dark small">{{ t.label }}</span>
+                      </div>
+                      @if (issueForm.get('type')?.value === t.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
             <!-- Tags Section -->

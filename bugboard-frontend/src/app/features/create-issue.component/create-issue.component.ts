@@ -20,6 +20,7 @@ import { IssueService } from '../../core/services/issue.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TagService } from '../../core/services/tag.service';
 import { TagResponse } from '../../core/tag.model';
+import { UserResponse } from '../../core/auth/auth.models';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -44,12 +45,48 @@ export class CreateIssueComponent implements OnInit {
   submitted = false;
   showError = false;
   isLoadingTags = true;
+
   isTagDropdownOpen = false;
+  isUserDropdownOpen = false;
+  isPriorityDropdownOpen = false;
+  isTypeDropdownOpen = false;
+
   tagSearchQuery: string = '';
+  userSearchQuery: string = '';
+
   selectedFiles: File[] = [];
   projectId: string = '';
   availableTags: TagResponse[] = [];
   selectedTags: TagResponse[] = [];
+
+  availableUsers: UserResponse[] = [];
+  selectedAssignee: UserResponse | null = null;
+
+  priorities = [
+    { value: 'LOWEST', label: 'Lowest', class: 'priority-lowest' },
+    { value: 'LOW', label: 'Low', class: 'priority-low' },
+    { value: 'MEDIUM', label: 'Medium', class: 'priority-medium' },
+    { value: 'HIGH', label: 'High', class: 'priority-high' },
+    { value: 'HIGHEST', label: 'Highest', class: 'priority-highest' },
+  ];
+
+  types = [
+    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill', class: 'type-bug' },
+    { value: 'FEATURE', label: 'Feature', icon: 'bi-sparkles', class: 'type-feature' },
+    {
+      value: 'QUESTION',
+      label: 'Question',
+      icon: 'bi-question-circle-fill',
+      class: 'type-question',
+    },
+    {
+      value: 'DOCUMENTATION',
+      label: 'Documentation',
+      icon: 'bi-file-earmark-text-fill',
+      class: 'type-documentation',
+    },
+    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill', class: 'type-other' },
+  ];
 
   constructor() {
     this.issueForm = this.fb.group({
@@ -61,8 +98,9 @@ export class CreateIssueComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Only run API calls in the browser to avoid SSR 401 unauthenticated requests during server pre-rendering
     if (isPlatformBrowser(this.platformId)) {
+      this.loadUsers();
+
       this.route.paramMap.subscribe((params) => {
         let id = params.get('projectId') || this.route.parent?.snapshot.paramMap.get('projectId');
 
@@ -85,6 +123,18 @@ export class CreateIssueComponent implements OnInit {
     }
   }
 
+  private loadUsers() {
+    this.issueService.getAllUsers().subscribe({
+      next: (users) => {
+        this.availableUsers = users || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load users:', err);
+      },
+    });
+  }
+
   private loadTags(projectId: string) {
     this.isLoadingTags = true;
     this.tagService.getTagsByProjectId(projectId).subscribe({
@@ -105,6 +155,46 @@ export class CreateIssueComponent implements OnInit {
     return this.issueForm.controls;
   }
 
+  get currentPriorityObj() {
+    const current = this.issueForm.get('priority')?.value || 'MEDIUM';
+    return this.priorities.find((p) => p.value === current) || this.priorities[2];
+  }
+
+  get currentTypeObj() {
+    const current = this.issueForm.get('type')?.value || 'BUG';
+    return this.types.find((t) => t.value === current) || this.types[0];
+  }
+
+  selectPriority(value: string) {
+    this.issueForm.patchValue({ priority: value });
+    this.isPriorityDropdownOpen = false;
+  }
+
+  selectType(value: string) {
+    this.issueForm.patchValue({ type: value });
+    this.isTypeDropdownOpen = false;
+  }
+
+  selectAssignee(user: UserResponse) {
+    this.selectedAssignee = user;
+    this.isUserDropdownOpen = false;
+    this.userSearchQuery = '';
+  }
+
+  removeAssignee() {
+    this.selectedAssignee = null;
+  }
+
+  get filteredUsers(): UserResponse[] {
+    const q = (this.userSearchQuery || '').trim().toLowerCase();
+    return (this.availableUsers || []).filter(
+      (u) =>
+        q === '' ||
+        u.username.toLowerCase().includes(q) ||
+        (u.role && u.role.toLowerCase().includes(q)),
+    );
+  }
+
   onSubmit() {
     this.submitted = true;
     this.showError = false;
@@ -118,6 +208,7 @@ export class CreateIssueComponent implements OnInit {
     const payload = {
       ...this.issueForm.value,
       tags: this.selectedTags,
+      assigneeUsername: this.selectedAssignee ? this.selectedAssignee.username : null,
     };
 
     this.issueService.createIssue(projectId, payload).subscribe({
@@ -171,11 +262,19 @@ export class CreateIssueComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    const clickedInside = this.elementRef.nativeElement
-      .querySelector('.tags-dropdown-wrapper')
-      ?.contains(event.target);
-    if (!clickedInside) {
+    const nativeEl = this.elementRef.nativeElement;
+
+    if (!nativeEl.querySelector('.tags-dropdown-wrapper')?.contains(event.target)) {
       this.isTagDropdownOpen = false;
+    }
+    if (!nativeEl.querySelector('.users-dropdown-wrapper')?.contains(event.target)) {
+      this.isUserDropdownOpen = false;
+    }
+    if (!nativeEl.querySelector('.priority-dropdown-wrapper')?.contains(event.target)) {
+      this.isPriorityDropdownOpen = false;
+    }
+    if (!nativeEl.querySelector('.type-dropdown-wrapper')?.contains(event.target)) {
+      this.isTypeDropdownOpen = false;
     }
   }
 
