@@ -15,6 +15,8 @@ import { BrandLogoComponent } from '../brand-logo.component/brand-logo.component
 export class NavbarComponent {
   private readonly authService = inject(AuthService);
 
+  public readonly currentUser = this.authService.currentUser;
+
   public logout() {
     this.authService.logout();
   }

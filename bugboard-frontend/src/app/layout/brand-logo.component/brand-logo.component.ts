@@ -1,10 +1,10 @@
 import { Component, input, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-brand-logo',
   standalone: true,
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './brand-logo.component.html',
   styleUrl: './brand-logo.component.scss',
 })
