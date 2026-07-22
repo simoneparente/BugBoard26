@@ -80,37 +80,20 @@ export class ProjectComponent implements OnInit {
     });
   }
 
-  public deleteProject(projectId: string, event?: Event): void {
-    // Prevent click propagation to parent routerLink
-    if (event) {
-      event.stopPropagation();
-    }
-
+  public deleteProject(projectId: string): void {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       return;
     }
-
-    // Optimistic update: remove from UI immediately
-    const currentProjects = this.projects();
-    if (currentProjects) {
-      const updatedContent = currentProjects.content.filter((p) => p.id !== projectId);
-      this.projects.set({
-        ...currentProjects,
-        content: updatedContent,
-        totalElements: currentProjects.totalElements - 1,
-      });
-    }
-
     this.projectService.delete(projectId).subscribe({
       next: () => {
         this.notificationService.showSuccess(
           'Project Deleted',
           'The project has been successfully deleted.',
         );
+        this.loadProjects();
       },
       error: () => {
         this.error.set('There was an error deleting the project. Please try again.');
-        this.loadProjects();
       },
     });
   }
