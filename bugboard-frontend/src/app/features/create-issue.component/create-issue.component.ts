@@ -109,8 +109,6 @@ export class CreateIssueComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.loadUsers();
-
       this.route.paramMap.subscribe((params) => {
         let id = params.get('projectId') || this.route.parent?.snapshot.paramMap.get('projectId');
 
@@ -132,18 +130,6 @@ export class CreateIssueComponent implements OnInit {
     } else {
       this.isLoadingTags = false;
     }
-  }
-
-  private loadUsers() {
-    this.issueService.getAllUsers().subscribe({
-      next: (users) => {
-        this.availableUsers = users || [];
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to load users:', err);
-      },
-    });
   }
 
   private loadProjectDetails(projectId: string) {
