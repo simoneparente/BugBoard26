@@ -1,9 +1,9 @@
 @if (isAdmin()) {
-  <div class="add-members-container">
+  <div class="add-members-container d-flex justify-content-center justify-content-md-end flex-shrink-0">
     <!-- Toggle Button -->
     <button
       type="button"
-      class="btn btn-primary d-flex align-items-center gap-2 rounded-3 fw-medium shadow-sm"
+      class="btn btn-primary btn-sm d-flex align-items-center gap-2 rounded-3 fw-medium shadow-sm flex-shrink-0"
       (click)="toggleDropdown()"
       [disabled]="isLoadingUsers()"
     >
@@ -11,8 +11,8 @@
         <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
         <span>Loading...</span>
       } @else {
-        <i class="bi bi-person-plus fs-5"></i>
-        <span>Add members to this project</span>
+        <i class="bi bi-person-plus"></i>
+        <span>Add members</span>
       }
     </button>
 

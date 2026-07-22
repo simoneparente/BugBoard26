@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.container-fluid {
+  background-color: #f8f9fa;
+}
+
+.card {
+  border-radius: 1rem;
+  border: none;
+  background-color: #ffffff;
+  
+  &:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 91, 176, 0.1) !important;
+  }
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-title {
+  color: #1a1a1a;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 1rem;
+}
+
+.alert {
+  border-radius: 0.75rem;
+  border: none;
+}
+
+.btn-link {
+  text-decoration: none;
+  font-size: 0.95rem;
+  
+  &:hover {
+    color: #005bb0 !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .row {
+    flex-direction: column-reverse;
+  }
+}

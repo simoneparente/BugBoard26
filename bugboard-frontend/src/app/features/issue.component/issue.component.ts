@@ -1,12 +1,11 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { AddProjectMembersComponent } from '../../shared/components/add-project-members/add-project-members.component';
 
 @Component({
   selector: 'app-issue',
@@ -16,13 +15,13 @@ import { AddProjectMembersComponent } from '../../shared/components/add-project-
     FormsModule,
     RouterModule,
     PaginationComponent,
-    AddProjectMembersComponent,
   ],
   templateUrl: './issue.component.html',
 })
 export class IssueComponent implements OnInit {
   private readonly issueService = inject(IssueService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   // Paginazione
   currentPage = signal<number>(0);
@@ -148,6 +147,10 @@ export class IssueComponent implements OnInit {
 
   editIssue(id: string): void {
     console.log('Edit issue:', id);
+  }
+
+  goToSettings(): void {
+    this.router.navigate(['/projects', this.projectId(), 'settings']);
   }
 
   deleteIssue(id: string): void {
