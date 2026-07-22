@@ -227,10 +227,7 @@ export class IssueDetailComponent implements OnInit {
           this.issue.set(updatedIssue);
           this.syncSelectedAssignee(updatedIssue);
           this.isUpdatingAssignee.set(false);
-          this.notificationService.showSuccess(
-            'Assignee Removed',
-            'The issue is now unassigned.',
-          );
+          this.notificationService.showSuccess('Assignee Removed', 'The issue is now unassigned.');
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -280,7 +277,10 @@ export class IssueDetailComponent implements OnInit {
       this.issueService.uploadAttachment(this.issueId, file).subscribe({
         next: () => {
           this.isUploadingFile.set(false);
-          this.notificationService.showSuccess('Attachment Uploaded', 'File uploaded successfully!');
+          this.notificationService.showSuccess(
+            'Attachment Uploaded',
+            'File uploaded successfully!',
+          );
           this.fetchIssue();
         },
         error: (err) => {
@@ -367,7 +367,10 @@ export class IssueDetailComponent implements OnInit {
             'Please assign a user to the issue before starting progress.',
           );
         } else {
-          this.notificationService.showError('Status Error', backendMessage || 'Failed to change issue status.');
+          this.notificationService.showError(
+            'Status Error',
+            backendMessage || 'Failed to change issue status.',
+          );
         }
         this.cdr.detectChanges();
       },

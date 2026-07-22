@@ -62,32 +62,32 @@ export class ApiService {
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assign`,
         null,
-        { params: { assigneeId } }
+        { params: { assigneeId } },
       ),
     removeAssignee: (projectId: string, issueId: string) =>
       this.http.delete<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assignee`
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assignee`,
       ),
     setStatus: (projectId: string, issueId: string, status: string) =>
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/status`,
         null,
-        { params: { status } }
+        { params: { status } },
       ),
     startProgress: (projectId: string, issueId: string) =>
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/start-progress`,
-        null
+        null,
       ),
     accept: (projectId: string, issueId: string) =>
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/accept`,
-        null
+        null,
       ),
     previous: (projectId: string, issueId: string) =>
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/previous`,
-        null
+        null,
       ),
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();

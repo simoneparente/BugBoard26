@@ -19,7 +19,11 @@ export class IssueService {
     return this.apiService.issues.getById(projectId, issueId);
   }
 
-  public assignIssue(projectId: string, issueId: string, assigneeId: string): Observable<IssueResponse> {
+  public assignIssue(
+    projectId: string,
+    issueId: string,
+    assigneeId: string,
+  ): Observable<IssueResponse> {
     return this.apiService.issues.assign(projectId, issueId, assigneeId);
   }
 

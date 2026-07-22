@@ -1,5 +1,7 @@
 .card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .description-content {
@@ -81,7 +83,8 @@
   background-color: #d97706;
   border-color: #b45309;
   color: #ffffff;
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #b45309;
     border-color: #92400e;
     color: #ffffff;
@@ -92,7 +95,8 @@
   background-color: #005bb0;
   border-color: #00488c;
   color: #ffffff;
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #00488c;
     border-color: #003669;
     color: #ffffff;
@@ -103,7 +107,8 @@
   background-color: #16a34a;
   border-color: #15803d;
   color: #ffffff;
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #15803d;
     border-color: #166534;
     color: #ffffff;
@@ -114,7 +119,8 @@
   background-color: #ba1a1a;
   border-color: #991515;
   color: #ffffff;
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #991515;
     border-color: #7a1010;
     color: #ffffff;
@@ -125,7 +131,8 @@
   background-color: #1e293b;
   border-color: #0f172a;
   color: #ffffff;
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     background-color: #0f172a;
     border-color: #020617;
     color: #ffffff;
@@ -162,7 +169,10 @@
   .remove-icon {
     font-size: 0.85rem;
     opacity: 0.6;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, color 0.25s ease;
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s ease,
+      color 0.25s ease;
   }
 
   .assignee-label-text {
