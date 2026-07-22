@@ -1,0 +1,181 @@
+<div class="container-fluid py-4 px-md-4">
+  <!-- Header -->
+  <div class="mb-4">
+    <h2 class="fw-bold text-dark mb-1">Tag Management</h2>
+    <p class="text-muted mb-0">Create, edit, and manage tags for this project.</p>
+  </div>
+
+  <!-- Form Section -->
+  <div class="tag-form card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold text-primary mb-3">
+      {{ formTitle() }}
+    </h5>
+
+    <form [formGroup]="tagForm" (ngSubmit)="onSubmit()" class="row g-3">
+      <!-- Name Field -->
+      <div class="col-12 col-md-6">
+        <label for="tagName" class="form-label fw-medium">Tag Name</label>
+        <input
+          type="text"
+          id="tagName"
+          class="form-control rounded-3"
+          [class.is-invalid]="isFieldInvalid('name')"
+          formControlName="name"
+          placeholder="e.g., Bug, Feature, Enhancement"
+        />
+        @if (isFieldInvalid('name')) {
+          <div class="invalid-feedback d-block">
+            @if (tagForm.get('name')?.hasError('required')) {
+              Tag name is required
+            }
+            @if (tagForm.get('name')?.hasError('minlength')) {
+              Tag name must be at least 2 characters
+            }
+            @if (tagForm.get('name')?.hasError('maxlength')) {
+              Tag name must not exceed 50 characters
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Color Field -->
+      <div class="col-12 col-md-6">
+        <label for="tagColor" class="form-label fw-medium">Color</label>
+        <div class="input-group">
+          <input
+            type="color"
+            id="tagColor"
+            class="form-control form-control-color rounded-3"
+            [class.is-invalid]="isFieldInvalid('color')"
+            formControlName="color"
+            style="width: 60px; cursor: pointer"
+          />
+          <input
+            id="tagColorText"
+            type="text"
+            class="form-control rounded-3"
+            [class.is-invalid]="isFieldInvalid('color')"
+            formControlName="color"
+            readonly
+          />
+        </div>
+        @if (isFieldInvalid('color')) {
+          <div class="invalid-feedback d-block">
+            @if (tagForm.get('color')?.hasError('required')) {
+              Color is required
+            }
+            @if (tagForm.get('color')?.hasError('pattern')) {
+              Color must be a valid hex code (e.g., #6366f1)
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Buttons -->
+      <div class="col-12 d-flex gap-2">
+        <button
+          type="submit"
+          class="btn btn-primary rounded-3 fw-medium"
+          [disabled]="tagForm.invalid || isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Submitting...
+          } @else {
+            {{ submitButtonText() }}
+          }
+        </button>
+
+        @if (isEditMode()) {
+          <button
+            type="button"
+            class="btn btn-outline-secondary rounded-3 fw-medium"
+            (click)="onCancelEdit()"
+            [disabled]="isSubmitting()"
+          >
+            Cancel
+          </button>
+        }
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="d-flex justify-content-center py-5">
+      <div class="spinner-border text-primary">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+      <span class="bi bi-exclamation-triangle-fill"></span>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && !error() && tags().length === 0) {
+    <div class="text-center py-5">
+      <span class="bi bi-tag text-muted mb-3" style="font-size: 3rem"></span>
+      <h5 class="fw-bold text-dark">No tags yet</h5>
+      <p class="text-muted">Create your first tag using the form above.</p>
+    </div>
+  }
+
+  <!-- Tags List -->
+  @if (!loading() && !error() && tags().length > 0) {
+    <div>
+      <h5 class="fw-bold text-dark mb-3">Tags ({{ tags().length }})</h5>
+
+      <div class="row g-3">
+        @for (tag of tags(); track tag.id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
+              <div class="d-flex align-items-start justify-content-between mb-3">
+                <!-- Color Badge -->
+                <div
+                  class="rounded-pill px-3 py-2 text-white fw-medium"
+                  [style.backgroundColor]="tag.color"
+                >
+                  {{ tag.name }}
+                </div>
+
+                <!-- Actions -->
+                <div class="btn-group" role="group">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary rounded-circle"
+                    (click)="onEditTag(tag)"
+                    title="Edit tag"
+                  >
+                    <span class="bi bi-pencil"></span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger rounded-circle"
+                    (click)="onDeleteTag(tag)"
+                    title="Delete tag"
+                  >
+                    <span class="bi bi-trash"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tag Details -->
+              <div class="small text-muted">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="bi bi-palette-fill"></span>
+                  <code>{{ tag.color }}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
