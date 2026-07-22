@@ -7,6 +7,11 @@
     </div>
 
     <div class="d-flex gap-2">
+      <!-- Add Project Members Component -->
+      <app-add-project-members
+        [projectId]="projectId()"
+      ></app-add-project-members>
+      
       <!-- Dropdown Filtro Stato -->
       <div class="dropdown">
         <button

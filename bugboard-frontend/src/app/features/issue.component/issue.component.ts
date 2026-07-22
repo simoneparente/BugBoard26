@@ -6,11 +6,18 @@ import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { AddProjectMembersComponent } from '../../shared/components/add-project-members/add-project-members.component';
 
 @Component({
   selector: 'app-issue',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    PaginationComponent,
+    AddProjectMembersComponent,
+  ],
   templateUrl: './issue.component.html',
 })
 export class IssueComponent implements OnInit {
@@ -20,7 +27,7 @@ export class IssueComponent implements OnInit {
   // Paginazione
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
-  private readonly projectId = signal<string>('');
+  readonly projectId = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);

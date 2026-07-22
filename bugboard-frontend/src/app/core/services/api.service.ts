@@ -67,4 +67,19 @@ export class ApiService {
     getMonthlyReport: (projectId: string) =>
       this.http.get<any>(`${this.baseUrl}/reports/${projectId}`),
   };
+
+  readonly projectMembers = {
+    getMembers: (projectId: string, page: number, size: number) =>
+      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectId}/members`, {
+        params: { page: page.toString(), size: size.toString() },
+      }),
+    getAvailable: (projectId: string, page: number, size: number) =>
+      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectId}/available-users`, {
+        params: { page: page.toString(), size: size.toString() },
+      }),
+    addMembers: (projectId: string, userIds: string[]) =>
+      this.http.post<UserResponse[]>(`${this.baseUrl}/projects/${projectId}/members`, {
+        userIds,
+      }),
+  };
 }

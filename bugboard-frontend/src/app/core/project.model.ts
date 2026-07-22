@@ -1,4 +1,5 @@
 import { IssueResponse } from './issue.model';
+import { UserResponse } from './auth/auth.models';
 
 export interface ProjectResponse {
   id: string;
@@ -7,4 +8,5 @@ export interface ProjectResponse {
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   issues?: IssueResponse[];
+  members?: UserResponse[];
 }
