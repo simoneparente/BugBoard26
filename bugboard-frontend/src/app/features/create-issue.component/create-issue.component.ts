@@ -71,21 +71,26 @@ export class CreateIssueComponent implements OnInit {
   ];
 
   types = [
-    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill', class: 'type-bug' },
-    { value: 'FEATURE', label: 'Feature', icon: 'bi-sparkles', class: 'type-feature' },
+    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill text-danger', class: 'type-bug' },
+    {
+      value: 'FEATURE',
+      label: 'Feature',
+      icon: 'bi-star-fill text-primary',
+      class: 'type-feature',
+    },
     {
       value: 'QUESTION',
       label: 'Question',
-      icon: 'bi-question-circle-fill',
+      icon: 'bi-question-circle-fill text-warning',
       class: 'type-question',
     },
     {
       value: 'DOCUMENTATION',
       label: 'Documentation',
-      icon: 'bi-file-earmark-text-fill',
+      icon: 'bi-file-earmark-text-fill text-info',
       class: 'type-documentation',
     },
-    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill', class: 'type-other' },
+    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill text-secondary', class: 'type-other' },
   ];
 
   constructor() {
