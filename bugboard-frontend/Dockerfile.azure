@@ -1,0 +1,8 @@
+FROM node:18-alpine
+WORKDIR /app
+# Serve for node disabling SSL verification 
+RUN npm config set strict-ssl false && npm install -g serve
+
+COPY dist/bugboard-frontend ./public
+EXPOSE 8080
+CMD ["serve", "-s", "public/browser", "-l", "8080"]

@@ -1,9 +1,10 @@
 import { Component, input } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-brand-logo',
   standalone: true,
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './brand-logo.component.html',
   styleUrl: './brand-logo.component.scss',
 })

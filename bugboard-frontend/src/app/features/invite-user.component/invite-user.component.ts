@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InvitationResponse } from '../../core/invitation.model';
 import { ROLES } from '../../core/roles.model';
 import { NotificationService } from '../../core/services/notification.service';
+import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-invite-user',
@@ -13,11 +13,9 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrl: './invite-user.component.scss',
 })
 export class InviteUserComponent {
-  private API_URL = 'http://localhost:8080/api/invitations';
-  private http = inject(HttpClient);
-  ROLES = ROLES; // Make ROLES available in the template
-
+  private readonly apiService = inject(ApiService);
   private readonly notificationService = inject(NotificationService);
+  ROLES = ROLES;
 
   isLoading = signal<boolean>(false);
   generatedLink = signal<string | null>(null);
@@ -38,9 +36,9 @@ export class InviteUserComponent {
     }
 
     this.isLoading.set(true);
-    const payload = { role: this.roleControl.value };
+    const payload = { role: this.roleControl.value as ROLES };
 
-    this.http.post<InvitationResponse>(`${this.API_URL}`, payload).subscribe({
+    this.apiService.invitations.create(payload).subscribe({
       next: (response) => {
         const frontendUrl = window.location.origin;
         const fullInviteLink = `${frontendUrl}/register?token=${response.token}`;

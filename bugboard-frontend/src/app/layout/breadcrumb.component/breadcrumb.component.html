@@ -1,0 +1,29 @@
+@if (items().length > 0) {
+  <nav aria-label="breadcrumb" class="container-fluid px-4 pt-3 pb-0">
+    <ol class="breadcrumb mb-0 small">
+      @for (item of items(); track item.label; let last = $last) {
+        <li
+          class="breadcrumb-item"
+          [class.active]="last"
+          [attr.aria-current]="last ? 'page' : null"
+        >
+          @if (!last && item.url) {
+            <a [routerLink]="item.url" class="text-secondary text-decoration-none hover-primary">
+              @if (item.icon) {
+                <i class="bi {{ item.icon }} me-1"></i>
+              }
+              {{ item.label }}
+            </a>
+          } @else {
+            <span class="text-dark fw-medium">
+              @if (item.icon) {
+                <i class="bi {{ item.icon }} me-1 text-muted"></i>
+              }
+              {{ item.label }}
+            </span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+}
