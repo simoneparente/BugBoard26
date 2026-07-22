@@ -1,5 +1,5 @@
-import { Component, input, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, input } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-brand-logo',
@@ -9,10 +9,5 @@ import { Router, RouterModule } from '@angular/router';
   styleUrl: './brand-logo.component.scss',
 })
 export class BrandLogoComponent {
-  private readonly router = inject(Router);
   theme = input<'light' | 'dark'>('light');
-
-  goToDashboard() {
-    this.router.navigate(['/dashboard']);
-  }
 }

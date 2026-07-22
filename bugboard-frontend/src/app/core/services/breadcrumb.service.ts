@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 export interface BreadcrumbItem {
@@ -15,15 +15,27 @@ export class BreadcrumbService {
   private readonly router = inject(Router);
 
   public readonly breadcrumbs = signal<BreadcrumbItem[]>([]);
+  public readonly projectName = signal<string | null>(null);
 
   constructor() {
     this.updateBreadcrumbs(this.router.url);
+
+    this.router.events
+      .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+      .subscribe(() => {
+        this.projectName.set(null);
+      });
 
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.updateBreadcrumbs(event.urlAfterRedirects || event.url);
       });
+  }
+
+  public setProjectName(name: string | null) {
+    this.projectName.set(name);
+    this.updateBreadcrumbs(this.router.url);
   }
 
   private updateBreadcrumbs(url: string) {
@@ -39,7 +51,6 @@ export class BreadcrumbService {
       icon: 'bi-house-door',
     });
 
-    // If on Dashboard or /projects root list, stop at Dashboard
     if (
       segments.length === 0 ||
       segments[0] === 'dashboard' ||
@@ -48,6 +59,8 @@ export class BreadcrumbService {
       this.breadcrumbs.set(items);
       return;
     }
+
+    const currentProjectLabel = this.projectName() ?? 'Project Details';
 
     if (segments[0] === 'projects') {
       if (segments.length === 2 && segments[1] === 'create') {
@@ -58,7 +71,7 @@ export class BreadcrumbService {
       } else if (segments.length >= 2 && segments[1] !== 'create') {
         const projectId = segments[1];
         items.push({
-          label: 'Project Details',
+          label: currentProjectLabel,
           url: `/projects/${projectId}`,
           icon: 'bi-kanban',
         });
@@ -74,7 +87,7 @@ export class BreadcrumbService {
       if (segments.length >= 2) {
         const projectId = segments[1];
         items.push({
-          label: 'Project Details',
+          label: currentProjectLabel,
           url: `/projects/${projectId}`,
           icon: 'bi-kanban',
         });
@@ -84,7 +97,6 @@ export class BreadcrumbService {
         });
       }
     } else {
-      // Fallback for custom routes
       let currentPath = '';
       for (const seg of segments) {
         currentPath += `/${seg}`;
