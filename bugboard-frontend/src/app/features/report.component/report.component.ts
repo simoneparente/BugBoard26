@@ -7,6 +7,8 @@ import {
   UserMonthlyProjectReportResponse,
 } from '../../core/report.models';
 
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
+
 @Component({
   selector: 'app-report',
   standalone: true,
@@ -17,6 +19,7 @@ import {
 export class ReportComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly reportService = inject(ReportService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   public readonly isLoading = signal<boolean>(true);
   public readonly errorMessage = signal<string | null>(null);
@@ -97,6 +100,7 @@ export class ReportComponent implements OnInit {
     this.reportService.getMonthlyReport(projectId).subscribe({
       next: (data) => {
         this.report.set(data);
+        this.breadcrumbService.setProjectName(data.projectName);
         this.isLoading.set(false);
       },
       error: (err) => {
