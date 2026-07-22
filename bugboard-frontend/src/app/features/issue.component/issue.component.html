@@ -1,16 +1,17 @@
-<div class="container-fluid py-4 px-4">
+<div class="container-fluid p-3 p-md-4">
   <!-- Header Section -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
     <div>
       <h2 class="fw-bold mb-1">Issue Tracker</h2>
       <p class="text-muted mb-0">Manage, filter, and resolve active software anomalies.</p>
     </div>
 
-    <div class="d-flex gap-2">
+    <!-- Contenitore Filtri e Pulsante "New Issue" -->
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
       <!-- Dropdown Filtro Stato -->
-      <div class="dropdown">
+      <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
-          class="btn btn-outline-secondary dropdown-toggle"
+          class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
           type="button"
           data-bs-toggle="dropdown"
         >
@@ -24,24 +25,16 @@
             <a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
-              >In Progress</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')">In Progress</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
-              >Marked For Review</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')">Marked For Review</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
-              >Not Fixed</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')">Not Fixed</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
-              >Completed</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')">Completed</a>
           </li>
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
@@ -50,9 +43,9 @@
       </div>
 
       <!-- Dropdown Filtro Priorità -->
-      <div class="dropdown">
+      <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
-          class="btn btn-outline-secondary dropdown-toggle"
+          class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
           type="button"
           data-bs-toggle="dropdown"
         >
@@ -60,14 +53,10 @@
         </button>
         <ul class="dropdown-menu shadow-sm">
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
-              >All Priorities</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')">All Priorities</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')"
-              >Highest</a
-            >
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a>
           </li>
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a>
@@ -75,51 +64,60 @@
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
           </li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
+          <li>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a>
+          </li>
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
           </li>
         </ul>
       </div>
 
-      <button class="btn btn-primary d-flex align-items-center gap-2">
+      <!-- Pulsante New Issue -->
+      <button 
+        class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+        type="button"
+        [routerLink]="['/projects', projectId, 'new']"
+      >
         <i class="bi bi-plus-lg"></i> New Issue
       </button>
     </div>
   </div>
 
   <!-- Table Card -->
-  <div class="card border-0 shadow-sm rounded-3">
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table class="table table-hover align-middle mb-0" style="min-width: 520px;">
         <thead class="table-light text-muted">
           <tr>
-            <th class="ps-4 py-3 cursor-pointer" (click)="sortData('id')">
+            <th class="ps-4 py-3 cursor-pointer" style="width: 80px;" (click)="sortData('id')">
               ID
               <i
                 class="bi"
                 [ngClass]="{
                   'bi-arrow-down': sortDirection() === 'asc',
-                  'bi-arrow-up': sortDirection() === 'desc',
+                  'bi-arrow-up': sortDirection() === 'desc'
                 }"
               ></i>
             </th>
             <th class="py-3">Title</th>
             <th class="py-3">Priority</th>
             <th class="py-3">Status</th>
-            <th class="py-3">Assignee</th>
-            <th class="py-3">Labels</th>
+            <!-- Nascosto su smartphone, visibile da tablet in poi -->
+            <th class="py-3 d-none d-md-table-cell">Assignee</th>
+            <!-- Nascosto su smartphone e tablet, visibile solo da PC -->
+            <th class="py-3 d-none d-lg-table-cell">Labels</th>
             <th class="text-end pe-4 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
           @for (issue of issues(); track issue.id) {
             <tr>
-              <td class="ps-4 text-primary fw-medium">#{{ issue.id.substring(0, 4) }}</td>
-              <td class="fw-medium">{{ issue.title }}</td>
+              <td class="ps-4 text-primary fw-medium text-nowrap">#{{ issue.id.substring(0, 4) }}</td>
+              <td class="fw-medium text-break" style="max-width: 200px;">{{ issue.title }}</td>
 
               <!-- Priority Badge -->
-              <td>
+              <td class="text-nowrap">
                 <span
                   class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
                   [ngClass]="getPriorityStyle(issue.priority)"
@@ -131,7 +129,7 @@
                       'bi-chevron-up': issue.priority.toLowerCase() === 'high',
                       'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
                       'bi-chevron-down': issue.priority.toLowerCase() === 'low',
-                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest',
+                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest'
                     }"
                   ></i>
                   {{ issue.priority | titlecase }}
@@ -150,21 +148,23 @@
                 </span>
               </td>
 
-              <!-- Assignee / User Avatar -->
-              <td>
+              <!-- Assignee / User Avatar (Nascosto su Mobile) -->
+              <td class="d-none d-md-table-cell">
                 <div class="d-flex align-items-center gap-2">
                   <div
-                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
                     style="width: 30px; height: 30px; font-size: 12px"
                   >
                     {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
                   </div>
-                  {{ issue.assigneeUsername || 'Unassigned' }}
+                  <span class="text-truncate" style="max-width: 120px;">
+                    {{ issue.assigneeUsername || 'Unassigned' }}
+                  </span>
                 </div>
               </td>
 
-              <!-- Tags / Labels -->
-              <td>
+              <!-- Tags / Labels (Nascosto su Tablet e Mobile) -->
+              <td class="d-none d-lg-table-cell">
                 <div class="d-flex gap-1 flex-wrap">
                   @for (tag of issue.tags; track tag.id) {
                     <span class="badge border rounded-pill" [ngClass]="getTagStyle(tag.name)">
@@ -213,6 +213,7 @@
       </table>
     </div>
   </div>
+
   <app-pagination
     [currentPage]="currentPage()"
     [totalPages]="totalPages()"

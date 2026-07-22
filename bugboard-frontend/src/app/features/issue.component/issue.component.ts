@@ -20,7 +20,7 @@ export class IssueComponent implements OnInit {
   // Paginazione
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
-  private readonly projectId = signal<string>('');
+  readonly projectId = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
