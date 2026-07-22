@@ -120,4 +120,26 @@ class AttachmentControllerTest {
 
         verify(attachmentService, times(1)).getAttachmentsByIssueId(issueId);
     }
+
+    @Test
+    void downloadAttachment_ReturnsResourceWithAttachmentHeader() throws Exception {
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource("content".getBytes());
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenReturn(resource);
+
+        mockMvc.perform(get("/api/attachments/{id}/download", attachmentId))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"" + TEST_FILE_NAME + "\""));
+    }
+
+    @Test
+    void viewAttachment_ReturnsResourceWithInlineHeader() throws Exception {
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource("content".getBytes());
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenReturn(resource);
+
+        mockMvc.perform(get("/api/attachments/{id}/view", attachmentId))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"" + TEST_FILE_NAME + "\""));
+    }
 }

@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(IssueController.class)
@@ -160,5 +160,20 @@ class IssueControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
+    }
+
+    @Test
+    void setStatus_Success_ReturnsStatus200() throws Exception {
+        UUID issueId = dummyIssue.getId();
+        dummyIssue.setStatus(IssueStatus.IN_PROGRESS);
+        when(issueService.setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS))).thenReturn(dummyIssue);
+
+        mockMvc.perform(put("/api/projects/{projectId}/issues/{id}/status", projectId, issueId)
+                .with(csrf())
+                .param("status", "IN_PROGRESS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(issueService, times(1)).setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS));
     }
 }
