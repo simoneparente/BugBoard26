@@ -40,6 +40,8 @@ services:
       - SEED_PASSWORD=${SEED_PASSWORD:-bugboard}
     ports:
       - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -56,3 +58,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:

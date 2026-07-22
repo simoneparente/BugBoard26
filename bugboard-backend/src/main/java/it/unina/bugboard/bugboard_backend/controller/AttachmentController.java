@@ -52,6 +52,47 @@ public class AttachmentController {
     }
 
     /**
+     * Endpoint to download a file attachment.
+     * GET /api/attachments/{id}/download
+     */
+    @GetMapping("/{id}/download")
+    public ResponseEntity<org.springframework.core.io.Resource> downloadAttachment(@PathVariable UUID id) {
+        AttachmentResponse metadata = attachmentService.getAttachmentById(id);
+        org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.fileName() + "\"")
+                .body(resource);
+    }
+
+    /**
+     * Endpoint to inline view a file attachment.
+     * GET /api/attachments/{id}/view
+     */
+    @GetMapping("/{id}/view")
+    public ResponseEntity<org.springframework.core.io.Resource> viewAttachment(@PathVariable UUID id) {
+        AttachmentResponse metadata = attachmentService.getAttachmentById(id);
+        org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
+
+        String mimeType = "application/octet-stream";
+        if (metadata.fileName() != null) {
+            String lower = metadata.fileName().toLowerCase();
+            if (lower.endsWith(".png")) mimeType = "image/png";
+            else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
+            else if (lower.endsWith(".gif")) mimeType = "image/gif";
+            else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
+            else if (lower.endsWith(".pdf")) mimeType = "application/pdf";
+            else if (lower.endsWith(".txt")) mimeType = "text/plain";
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + metadata.fileName() + "\"")
+                .body(resource);
+    }
+
+    /**
      * Endpoint to retrieve all attachments belonging to a specific Issue.
      * GET /api/attachments/issue/{issueId}
      */

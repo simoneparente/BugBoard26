@@ -53,6 +53,12 @@ public class IssueController {
     }
 
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<IssueResponse> setStatus(@PathVariable UUID id, @RequestParam it.unina.bugboard.bugboard_backend.entity.IssueStatus status) {
+        Issue issue = issueService.setStatus(id, status);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
+
     @PutMapping("/{id}/start-progress")
     public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
         Issue issue = issueService.startIssueProgress(id);
@@ -96,6 +102,8 @@ public class IssueController {
                         .map(tag -> TagResponse.builder()
                                 .id(tag.getId())
                                 .name(tag.getName())
+                                .color(tag.getColor())
+                                .projectId(tag.getProject() != null ? tag.getProject().getId() : null)
                                 .build())
                         .toList())
                 .attachments(issue.getAttachments().stream()
