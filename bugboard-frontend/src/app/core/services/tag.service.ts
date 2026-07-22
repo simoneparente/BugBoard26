@@ -2,20 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { TagRequest, TagResponse } from '../tag.model';
+import { TagResponse, TagRequest } from '../tag.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TagService {
-  private readonly http = inject(HttpClient);
-  private readonly API_URL = `${environment.apiUrl}/tags`;
+  private http = inject(HttpClient);
+  private readonly API_URL = environment.apiUrl;
 
-  /**
+
+/**
    * Retrieve all tags for a specific project.
    */
   public getTagsByProjectId(projectId: string): Observable<TagResponse[]> {
-    return this.http.get<TagResponse[]>(`${this.API_URL}/project/${projectId}`);
+    return this.http.get<TagResponse[]>(`${this.API_URL}/tags/project/${projectId}`);
   }
 
   /**

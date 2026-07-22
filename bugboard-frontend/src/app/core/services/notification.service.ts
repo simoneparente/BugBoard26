@@ -6,13 +6,13 @@ import { ToastMessage } from '../toast.model';
 })
 export class NotificationService {
   //Signal queue to hold the toast messages
-  private toastsSignal = signal<ToastMessage[]>([]);
+  private readonly toastsSignal = signal<ToastMessage[]>([]);
 
   readonly toasts = this.toastsSignal.asReadonly();
 
   private counter = 0;
   //Map to hold active timeouts for each toast message
-  private activeTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
+  private readonly activeTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
 
   show(title: string, message: string, type: ToastMessage['type'] = 'info', duration = 5000) {
     const id = this.counter++;
@@ -49,7 +49,7 @@ export class NotificationService {
   remove(id: number) {
     // Clear the timeout for the toast if it exists
     if (this.activeTimeouts.has(id)) {
-      clearTimeout(this.activeTimeouts.get(id));
+      clearTimeout(this.activeTimeouts.get(id)!);
       this.activeTimeouts.delete(id);
     }
     this.toastsSignal.update((currentToasts) => currentToasts.filter((toast) => toast.id !== id));

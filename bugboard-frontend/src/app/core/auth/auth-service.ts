@@ -1,20 +1,17 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { catchError, tap, Observable, of } from 'rxjs';
 import { AuthRequest, AuthResponse, UserRegistrationRequest, UserResponse } from './auth.models';
-import { environment } from '../../../environments/environment';
 import { NotificationService } from '../services/notification.service';
+import { ApiService } from '../services/api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private http = inject(HttpClient);
-  private notificationService = inject(NotificationService);
-  private router = inject(Router);
-  private readonly AUTH_API_URL = environment.authApiUrl;
-  private readonly USER_API_URL = environment.userApiUrl;
+  private readonly apiService = inject(ApiService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
 
   private readonly currentUserSignal = signal<AuthResponse | null>(null);
 
@@ -26,8 +23,8 @@ export class AuthService {
    * Authenticates the user and updates the signal.
    */
   public login(credentials: AuthRequest) {
-    return this.http
-      .post<AuthResponse>(`${this.AUTH_API_URL}/login`, credentials)
+    return this.apiService.auth
+      .login(credentials)
       .pipe(tap((response) => this.currentUserSignal.set(response)));
   }
 
@@ -36,14 +33,14 @@ export class AuthService {
    * Note: This does not automatically log the user in.
    */
   public register(payload: UserRegistrationRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${this.USER_API_URL}/register`, payload);
+    return this.apiService.users.register(payload);
   }
 
   /**
    * Checks the current session and updates the signal.
    */
   public checkSession(): Observable<AuthResponse | null> {
-    return this.http.get<AuthResponse>(`${this.AUTH_API_URL}/me`).pipe(
+    return this.apiService.auth.me().pipe(
       tap((response) => this.currentUserSignal.set(response)),
       catchError(() => {
         //If cookie is missing or invalid, clear state
@@ -57,7 +54,7 @@ export class AuthService {
    * Logs out the user and clears the signal.
    */
   public logout() {
-    this.http.post(`${this.AUTH_API_URL}/logout`, {}).subscribe({
+    this.apiService.auth.logout().subscribe({
       next: () => {
         this.currentUserSignal.set(null);
         this.notificationService.showSuccess('Success', 'Logged out successfully');

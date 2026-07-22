@@ -1,6 +1,17 @@
 import { AttachmentResponse } from './attachments.model';
 import { TagResponse } from './tag.model';
 
+export interface IssueRequest {
+  title: string;
+  description: string;
+  assigneeUsername?: string;
+  status?: string;
+  type: string;
+  priority: string;
+  tags?: any[];
+  attachments?: any[];
+}
+
 export interface IssueResponse {
   id: string;
   title: string;
