@@ -9,10 +9,9 @@ import { TagResponse, TagRequest } from '../tag.model';
 })
 export class TagService {
   private http = inject(HttpClient);
-  private readonly API_URL = environment.apiUrl;
+  private readonly API_URL = environment.apiBaseUrl;
 
-
-/**
+  /**
    * Retrieve all tags for a specific project.
    */
   public getTagsByProjectId(projectId: string): Observable<TagResponse[]> {
@@ -23,27 +22,27 @@ export class TagService {
    * Retrieve a single tag by its ID.
    */
   public getTagById(id: string): Observable<TagResponse> {
-    return this.http.get<TagResponse>(`${this.API_URL}/${id}`);
+    return this.http.get<TagResponse>(`${this.API_URL}/tags/${id}`);
   }
 
   /**
    * Create a new tag.
    */
   public createTag(request: TagRequest): Observable<TagResponse> {
-    return this.http.post<TagResponse>(this.API_URL, request);
+    return this.http.post<TagResponse>(`${this.API_URL}/tags`, request);
   }
 
   /**
    * Update an existing tag.
    */
   public updateTag(id: string, request: TagRequest): Observable<TagResponse> {
-    return this.http.put<TagResponse>(`${this.API_URL}/${id}`, request);
+    return this.http.put<TagResponse>(`${this.API_URL}/tags/${id}`, request);
   }
 
   /**
    * Delete a tag by its ID.
    */
   public deleteTag(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/${id}`);
+    return this.http.delete<void>(`${this.API_URL}/tags/${id}`);
   }
 }
