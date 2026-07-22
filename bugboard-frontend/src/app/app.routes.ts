@@ -10,6 +10,7 @@ import { ProjectComponent } from './features/project.component/project.component
 import { ReportComponent } from './features/report.component/report.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
+import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
 const authGuard = () => {
   const authService = inject(AuthService);
@@ -63,6 +64,11 @@ export const routes: Routes = [
         path: 'projects/:projectId/issues/create',
         component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
+      },
+      {
+        path: 'projects/:projectId/issues/:issueId',
+        component: IssueDetailComponent,
+        title: 'BugBoard26 - Issue Details',
       },
       {
         path: '',

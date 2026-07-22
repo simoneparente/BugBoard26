@@ -30,6 +30,7 @@ export class ApiService {
   readonly users = {
     register: (payload: UserRegistrationRequest) =>
       this.http.post<UserResponse>(`${this.baseUrl}/users/register`, payload),
+    getAll: () => this.http.get<UserResponse[]>(`${this.baseUrl}/users`),
   };
 
   readonly invitations = {
@@ -51,6 +52,43 @@ export class ApiService {
   readonly issues = {
     create: (projectId: string, payload: any) =>
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
+    getById: (projectId: string, issueId: string) =>
+      this.http.get<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
+    getByProject: (projectId: string, page = 0, size = 10) =>
+      this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
+        params: { page: page.toString(), size: size.toString() },
+      }),
+    assign: (projectId: string, issueId: string, assigneeId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assign`,
+        null,
+        { params: { assigneeId } }
+      ),
+    removeAssignee: (projectId: string, issueId: string) =>
+      this.http.delete<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assignee`
+      ),
+    setStatus: (projectId: string, issueId: string, status: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/status`,
+        null,
+        { params: { status } }
+      ),
+    startProgress: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/start-progress`,
+        null
+      ),
+    accept: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/accept`,
+        null
+      ),
+    previous: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/previous`,
+        null
+      ),
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);
