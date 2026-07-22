@@ -54,7 +54,6 @@ export class ProjectMembersListComponent implements OnInit {
   }
 
   onMembersAdded(addedMembers: UserResponse[]): void {
-    this.notificationService.showSuccess('Success', `Added ${addedMembers.length} member(s)`);
     this.loadMembers();
   }
 

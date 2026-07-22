@@ -1,28 +1,26 @@
 package it.unina.bugboard.bugboard_backend.service;
 
-import it.unina.bugboard.bugboard_backend.entity.Project;
-import it.unina.bugboard.bugboard_backend.entity.Role;
-import it.unina.bugboard.bugboard_backend.entity.User;
-import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
-import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
-import it.unina.bugboard.bugboard_backend.repository.UserRepository;
-import jakarta.annotation.Resource;
-import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
-import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.ObjectProvider;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.entity.Role;
+import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
+import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -33,37 +31,48 @@ public class ProjectService {
 
     private static final String PROJECT_NOT_FOUND_MESSAGE = "Project not found.";
 
-    @Resource
-    private final ObjectProvider<ProjectService> selfProvider;
-
+    /**
+     * Creates a new project with the current user as the initial member.
+     *
+     * @param projectRequest project creation request
+     * @return the created project
+     * @throws IllegalArgumentException if project name already exists
+     */
     @Transactional
-    public Project createProject(ProjectRequest projectrequest) {
+    public Project createProject(ProjectRequest projectRequest) {
         User currentUser = getCurrentUser();
 
-        if (projectRepository.existsByName(projectrequest.getName())) {
+        if (projectRepository.existsByName(projectRequest.getName())) {
             throw new IllegalArgumentException("Project with the same name already exists.");
         }
 
         Project project = Project.builder()
-                .name(projectrequest.getName())
-                .description(projectrequest.getDescription())
+                .name(projectRequest.getName())
+                .description(projectRequest.getDescription())
                 .members(List.of(currentUser)) 
                 .build();
                 
         return projectRepository.save(project);
     }   
 
+    /**
+     * Retrieves a project by ID with access control.
+     * ADMIN can see all projects; others can only see projects they belong to.
+     *
+     * @param id project ID
+     * @return the project
+     * @throws ResourceNotFoundException if project not found
+     * @throws UnauthorizedException if user lacks access
+     */
     @Transactional(readOnly = true)
     public Project getProjectById(UUID id) {
         User currentUser = getCurrentUser();
         
-        // ADMIN can see all projects
         if (currentUser.getRole() == Role.ADMIN) {
             return projectRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MESSAGE));
         }
         
-        // TECHNICAL and EXTERNAL can only see projects they are members of
         if (!projectRepository.existsByIdAndMembersId(id, currentUser.getId())) {
             throw new UnauthorizedException("You don't have access to this project.");
         }
@@ -72,70 +81,84 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MESSAGE));
     }
 
+    /**
+     * Retrieves all projects accessible to the current user with pagination.
+     * ADMIN sees all projects; others see only their projects.
+     *
+     * @param pageable pagination information
+     * @return page of projects
+     */
     @Transactional(readOnly = true)
     public Page<Project> getProjects(Pageable pageable) {
         User currentUser = getCurrentUser();
         
-        // ADMIN can see all projects
         if (currentUser.getRole() == Role.ADMIN) {
             return projectRepository.findAll(pageable);
         }
         
-        // TECHNICAL and EXTERNAL can only see projects they are members of
         return projectRepository.findByMembersId(currentUser.getId(), pageable);
     }
 
+    /**
+     * Deletes a project (ADMIN only).
+     *
+     * @param id project ID
+     * @throws UnauthorizedException if user is not ADMIN
+     */
     @Transactional
     public void deleteProject(UUID id) {
         User currentUser = getCurrentUser();
-        if (currentUser.getRole() != Role.ADMIN) {
-            throw new UnauthorizedException("Only ADMIN users can delete projects.");
-        }
+        validateUserIsAdmin(currentUser);
         projectRepository.deleteById(id);
     }
 
+    /**
+     * Retrieves paginated members of a project.
+     * Delegates database pagination to the repository.
+     *
+     * @param projectId project ID
+     * @param pageable pagination information
+     * @return page of project members
+     * @throws ResourceNotFoundException if project not found
+     */
     @Transactional(readOnly = true)
     public Page<User> getProjectMembers(UUID projectId, Pageable pageable) {
-        Project project = selfProvider.getObject().getProjectById(projectId);
-        List<User> members = project.getMembers();
-        
-        int pageSize = pageable.getPageSize();
-        int pageNumber = pageable.getPageNumber();
-        int start = pageNumber * pageSize;
-        int end = Math.min(start + pageSize, members.size());
-        
-        List<User> pageContent = members.subList(start, end);
-        return new PageImpl<>(pageContent, pageable, members.size());
+        getAndValidateProject(projectId);
+        return projectRepository.findMembersByProjectId(projectId, pageable);
     }
 
+    /**
+     * Retrieves available users (non-ADMIN, not yet members) for a project.
+     * Delegates database pagination and filtering to the repository.
+     *
+     * @param projectId project ID
+     * @param pageable pagination information
+     * @return page of available users
+     * @throws ResourceNotFoundException if project not found
+     */
     @Transactional(readOnly = true)
     public Page<User> getAvailableUsers(UUID projectId, Pageable pageable) {
-        Project project = selfProvider.getObject().getProjectById(projectId);
-        Set<UUID> memberIds = project.getMembers().stream()
-                .map(User::getId)
-                .collect(Collectors.toSet());
-        
-        Page<User> allUsers = userRepository.findAll(pageable);
-        List<User> availableUsers = allUsers.stream()
-                .filter(user -> !memberIds.contains(user.getId()))
-                // ADMIN can only add TECHNICAL and EXTERNAL users to projects
-                .filter(user -> user.getRole() != Role.ADMIN)
-                .toList();
-        
-        return new PageImpl<>(availableUsers, pageable, availableUsers.size());
+        getAndValidateProject(projectId);
+        return projectRepository.findAvailableUsersForProject(projectId, pageable);
     }
 
+    /**
+     * Adds members to a project (ADMIN only).
+     * Validates that users are not already members and are not ADMIN users.
+     *
+     * @param projectId project ID
+     * @param userIds user IDs to add
+     * @return list of newly added members
+     * @throws UnauthorizedException if user is not ADMIN
+     * @throws ResourceNotFoundException if project or users not found
+     * @throws IllegalArgumentException if all users are already members
+     */
     @Transactional
     public List<User> addMembersToProject(UUID projectId, List<UUID> userIds) {
         User currentUser = getCurrentUser();
+        validateUserIsAdmin(currentUser);
         
-        // Only ADMIN can add members to projects
-        if (currentUser.getRole() != Role.ADMIN) {
-            throw new UnauthorizedException("Only ADMIN users can add members to projects.");
-        }
-        
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MESSAGE));
+        Project project = getAndValidateProject(projectId);
         
         Set<UUID> currentMemberIds = project.getMembers().stream()
                 .map(User::getId)
@@ -147,7 +170,6 @@ public class ProjectService {
             throw new ResourceNotFoundException("One or more users not found.");
         }
         
-        // ADMIN can only add TECHNICAL and EXTERNAL users to projects, not other ADMIN users
         boolean hasAdminUsers = usersToAdd.stream()
                 .anyMatch(user -> user.getRole() == Role.ADMIN);
         
@@ -169,6 +191,38 @@ public class ProjectService {
         return newMembers;
     }
 
+    // ============ PRIVATE AUTHORIZATION & UTILITY METHODS ============
+
+    /**
+     * Validates that the user has ADMIN role.
+     *
+     * @param user the user to validate
+     * @throws UnauthorizedException if user is not ADMIN
+     */
+    private void validateUserIsAdmin(User user) {
+        if (user.getRole() != Role.ADMIN) {
+            throw new UnauthorizedException("Only ADMIN users can perform this operation.");
+        }
+    }
+
+    /**
+     * Retrieves and validates a project exists.
+     *
+     * @param projectId project ID
+     * @return the project
+     * @throws ResourceNotFoundException if project not found
+     */
+    private Project getAndValidateProject(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MESSAGE));
+    }
+
+    /**
+     * Retrieves the current authenticated user.
+     *
+     * @return the current user
+     * @throws UnauthorizedException if user not authenticated or not found
+     */
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
