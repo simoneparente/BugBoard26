@@ -33,6 +33,7 @@ import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.Tag;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.repository.TagRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
@@ -248,5 +249,333 @@ class TagServiceTest {
         });
 
         verify(tagRepository, times(1)).findById(tagId);
+    }
+
+    @Test
+    void updateTag_Success() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+        
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        Tag existingTag = Tag.builder()
+            .id(tagId)
+            .name("Old Bug")
+            .color("#FF0000")
+            .project(mockProject)
+            .build();
+
+        Tag updatedTag = Tag.builder()
+            .id(tagId)
+            .name("Updated Bug")
+            .color("#00FF00")
+            .project(mockProject)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
+            when(tagRepository.existsByNameAndProjectId(request.getName(), projectId)).thenReturn(false);
+            when(tagRepository.save(any(Tag.class))).thenReturn(updatedTag);
+
+            // ACT
+            TagResponse response = tagService.updateTag(tagId, request);
+
+            // ASSERT
+            assertNotNull(response);
+            assertEquals("Updated Bug", response.getName());
+            assertEquals("#00FF00", response.getColor());
+            assertEquals(projectId, response.getProjectId());
+
+            verify(tagRepository, times(1)).save(any(Tag.class));
+        }
+    }
+
+    @Test
+    void updateTag_ThrowsException_WhenTagNotFound() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+        
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
+
+            // ACT & ASSERT
+            assertThrows(ResourceNotFoundException.class, () -> {
+                tagService.updateTag(tagId, request);
+            });
+
+            verify(tagRepository, never()).save(any(Tag.class));
+        }
+    }
+
+    @Test
+    void updateTag_ThrowsException_WhenDuplicateNameInProject() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+        
+        TagRequest request = new TagRequest("Existing Tag", "#00FF00", projectId);
+
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        Tag existingTag = Tag.builder()
+            .id(tagId)
+            .name("Old Name")
+            .color("#FF0000")
+            .project(mockProject)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
+            when(tagRepository.existsByNameAndProjectId("Existing Tag", projectId)).thenReturn(true);
+
+            // ACT & ASSERT
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+                tagService.updateTag(tagId, request);
+            });
+
+            assertTrue(exception.getMessage().contains("already exists"));
+            verify(tagRepository, never()).save(any(Tag.class));
+        }
+    }
+
+    @Test
+    void deleteTag_Success() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        Tag mockTag = Tag.builder()
+            .id(tagId)
+            .name("Bug")
+            .color("#FF0000")
+            .project(mockProject)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.of(mockTag));
+
+            // ACT
+            tagService.deleteTag(tagId);
+
+            // ASSERT
+            verify(tagRepository, times(1)).deleteById(tagId);
+        }
+    }
+
+    @Test
+    void deleteTag_ThrowsException_WhenTagNotFound() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
+
+            // ACT & ASSERT
+            assertThrows(ResourceNotFoundException.class, () -> {
+                tagService.deleteTag(tagId);
+            });
+
+            verify(tagRepository, never()).deleteById(any());
+        }
+    }
+
+    @Test
+    void createTag_ThrowsException_WhenUserNotMember() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
+
+        Project mockProject = Project.builder()
+            .id(projectId)
+            .name("Test Project")
+            .build();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.EXTERNAL)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(false);
+
+            // ACT & ASSERT
+            assertThrows(UnauthorizedException.class, () -> {
+                tagService.createTag(request);
+            });
+
+            verify(tagRepository, never()).save(any(Tag.class));
+        }
+    }
+
+    @Test
+    void updateTag_ThrowsException_WhenTagDoesNotBelongToProject() {
+        // ARRANGE
+        UUID userId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
+        UUID differentProjectId = UUID.randomUUID();
+        UUID tagId = UUID.randomUUID();
+        
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+
+        Project mockProject = Project.builder()
+            .id(differentProjectId)
+            .name("Different Project")
+            .build();
+
+        User mockUser = User.builder()
+            .id(userId)
+            .username("testuser")
+            .email("test@example.com")
+            .passwordHash("hashedPassword")
+            .role(Role.ADMIN)
+            .build();
+
+        Tag existingTag = Tag.builder()
+            .id(tagId)
+            .name("Old Bug")
+            .color("#FF0000")
+            .project(mockProject)
+            .build();
+
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
+
+            // ACT & ASSERT
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+                tagService.updateTag(tagId, request);
+            });
+
+            assertTrue(exception.getMessage().contains("does not belong"));
+            verify(tagRepository, never()).save(any(Tag.class));
+        }
     }
 }
