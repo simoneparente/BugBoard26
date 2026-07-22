@@ -1,7 +1,6 @@
 import { AttachmentResponse } from './attachments.model';
 import { TagResponse } from './tag.model';
 
-
 export interface IssueRequest {
   title: string;
   description: string;
