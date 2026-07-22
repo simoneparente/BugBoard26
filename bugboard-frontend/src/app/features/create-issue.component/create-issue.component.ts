@@ -191,16 +191,4 @@ export class CreateIssueComponent implements OnInit {
       this.selectedTags.splice(index, 1);
     }
   }
-
-  discardDraft() {
-    this.issueForm.reset({
-      priority: 'MEDIUM',
-      type: 'BUG',
-    });
-    this.selectedFiles = [];
-    this.submitted = false;
-    this.showError = false;
-    this.selectedTags = [];
-    this.tagSearchQuery = '';
-  }
 }
