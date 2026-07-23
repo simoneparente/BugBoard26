@@ -121,6 +121,11 @@ export class ApiService {
       ),
     delete: (projectId: string, issueId: string) =>
       this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
+    export: (projectId: string, format: string) =>
+      this.http.get(`${this.baseUrl}/projects/${projectId}/issues/export`, {
+        params: { format },
+        responseType: 'blob',
+      }),
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);

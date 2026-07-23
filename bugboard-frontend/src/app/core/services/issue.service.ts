@@ -73,6 +73,10 @@ export class IssueService {
     return this.apiService.issues.delete(projectId, issueId);
   }
 
+  public exportIssues(projectId: string, format: string): Observable<Blob> {
+    return this.apiService.issues.export(projectId, format);
+  }
+
   public getAllUsers(): Observable<UserResponse[]> {
     return this.apiService.users.getAll();
   }

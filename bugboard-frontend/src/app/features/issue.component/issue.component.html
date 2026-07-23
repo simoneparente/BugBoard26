@@ -43,6 +43,29 @@
       >
         <i class="bi bi-plus-lg"></i> New Issue
       </button>
+
+      <!-- Export Button with Dropdown -->
+      <div class="dropdown">
+        <button
+          class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          data-bs-toggle="dropdown"
+          [disabled]="isLoading()"
+        >
+          <i class="bi bi-download"></i> Export
+        </button>
+        <ul class="dropdown-menu shadow-sm">
+          <li>
+            <a
+              class="dropdown-item cursor-pointer"
+              (click)="onExportIssues('CSV')"
+              [class.disabled]="isLoading()"
+            >
+              <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 

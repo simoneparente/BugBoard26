@@ -240,4 +240,23 @@ export class IssueComponent implements OnInit, OnDestroy {
   deleteIssue(id: string): void {
     console.log('Delete issue:', id);
   }
+
+  onExportIssues(format: string): void {
+    this.isLoading.set(true);
+    this.issueService.exportIssues(this.projectId(), format).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `issues_${Date.now()}.${format.toLowerCase()}`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Export failed', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
 }
