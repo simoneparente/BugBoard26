@@ -32,6 +32,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   pageSize = signal<number>(10);
 
   @Input() projectId!: string;
+  projectName = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
@@ -52,6 +53,17 @@ export class IssueComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.projectId) {
       this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    }
+
+    if (this.projectId) {
+      this.projectService.getById(this.projectId).subscribe({
+        next: (project) => {
+          this.projectName.set(project.name);
+          this.breadcrumbService.setProjectName(project.name);
+        },
+        error: (err) => console.error('Failed to load project details', err),
+      });
+      this.loadIssues();
     }
 
     this.searchSubscription = this.searchSubject
@@ -82,14 +94,6 @@ export class IssueComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
         },
       });
-
-    if (this.projectId) {
-      this.projectService.getById(this.projectId).subscribe({
-        next: (project) => this.breadcrumbService.setProjectName(project.name),
-        error: (err) => console.error('Failed to load project details', err),
-      });
-      this.loadIssues();
-    }
   }
 
   ngOnDestroy(): void {
