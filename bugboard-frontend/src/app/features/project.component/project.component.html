@@ -64,11 +64,14 @@
                   <span class="bi bi-calendar3 me-1"></span>{{ getLastModifiedDate(project) }}
                 </span>
 
-                <a
-                  class="bi bi-gear text-muted cursor-pointer transition-colors"
-                  [routerLink]="['/projects', project.id, 'settings']"
-                  title="Project Settings"
-                ></a>
+                @if (!isReadonly()) {
+                  <a
+                    class="bi bi-gear text-muted cursor-pointer transition-colors"
+                    [routerLink]="['/projects', project.id, 'settings']"
+                    (click)="$event.stopPropagation()"
+                    title="Project Settings"
+                  ></a>
+                }
               </div>
             </div>
           </div>

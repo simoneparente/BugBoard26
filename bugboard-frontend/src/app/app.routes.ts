@@ -64,7 +64,7 @@ export const routes: Routes = [
         path: 'projects/:projectId/settings',
         component: ProjectSettingsComponent,
         title: 'BugBoard26 - Project Settings',
-        canActivate: [authGuard],
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/create',
