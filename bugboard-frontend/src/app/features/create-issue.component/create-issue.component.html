@@ -120,34 +120,85 @@
               <i class="bi bi-tag-fill text-primary me-2"></i> Classification
             </h5>
 
-            <div class="mb-4">
-              <label
-                for="priority"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Priority</label
+            <!-- Custom Priority Dropdown -->
+            <div class="mb-4 priority-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Priority
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isPriorityDropdownOpen = !isPriorityDropdownOpen"
               >
-              <select id="priority" class="form-select bg-light" formControlName="priority">
-                <option value="LOWEST">Lowest</option>
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="HIGHEST">Highest</option>
-              </select>
+                <span
+                  class="badge rounded-pill px-3 py-1.5 fw-bold"
+                  [ngClass]="currentPriorityObj.class"
+                >
+                  {{ currentPriorityObj.label }}
+                </span>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isPriorityDropdownOpen) {
+                <div
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (p of priorities; track p.value) {
+                    <div
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectPriority(p.value)"
+                    >
+                      <span class="badge rounded-pill px-3 py-1.5 fw-bold" [ngClass]="p.class">
+                        {{ p.label }}
+                      </span>
+                      @if (issueForm.get('priority')?.value === p.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
-            <div class="mb-4">
-              <label
-                for="type"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Type</label
+            <!-- Custom Type Dropdown -->
+            <div class="mb-4 type-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Type
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isTypeDropdownOpen = !isTypeDropdownOpen"
               >
-              <select id="type" class="form-select bg-light" formControlName="type">
-                <option value="BUG">Bug</option>
-                <option value="FEATURE">Feature</option>
-                <option value="QUESTION">Question</option>
-                <option value="DOCUMENTATION">Documentation</option>
-                <option value="OTHER">Other</option>
-              </select>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi" [ngClass]="currentTypeObj.icon"></i>
+                  <span class="fw-semibold text-dark small">{{ currentTypeObj.label }}</span>
+                </div>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isTypeDropdownOpen) {
+                <div
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (t of types; track t.value) {
+                    <div
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectType(t.value)"
+                    >
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi fs-6" [ngClass]="t.icon"></i>
+                        <span class="fw-medium text-dark small">{{ t.label }}</span>
+                      </div>
+                      @if (issueForm.get('type')?.value === t.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
             <!-- Tags Section -->
