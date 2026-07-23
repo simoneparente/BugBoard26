@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -80,15 +81,15 @@ class ProjectServiceTest {
                 .build();
 
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn(userId.toString());
-        when(authentication.isAuthenticated()).thenReturn(true);
+        lenient().when(authentication.getName()).thenReturn(userId.toString());
+        lenient().when(authentication.isAuthenticated()).thenReturn(true);
 
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
 
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
     }
 
     @Nested
@@ -270,7 +271,7 @@ class ProjectServiceTest {
             User user2 = User.builder().id(UUID.randomUUID()).username("user2").role(Role.TECHNICAL).build();
 
             dummyProject.setMembers(List.of(user1, user2));
-            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
 
             it.unina.bugboard.bugboard_backend.entity.Issue highPriorityIssue = it.unina.bugboard.bugboard_backend.entity.Issue.builder()
                     .assignee(user1)

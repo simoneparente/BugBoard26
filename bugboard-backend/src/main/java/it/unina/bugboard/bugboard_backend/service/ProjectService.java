@@ -96,7 +96,8 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<AssigneeRecommendationResponse> getRecommendedAssignees(UUID projectId) {
-        Project project = getProjectById(projectId);
+        Project project = projectRepository.findByIdWithMembers(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
 
         List<User> members = project.getMembers();
         if (members == null || members.isEmpty()) {
