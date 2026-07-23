@@ -30,12 +30,15 @@ describe('IssueComponent', () => {
   });
 
   it('should update searchQuery and reset page on onSearchInput', () => {
+    vi.useFakeTimers();
     const spy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
     component.onSearchInput('login');
 
     expect(component.searchQuery()).toBe('login');
+    vi.advanceTimersByTime(300);
     expect(component.currentPage()).toBe(0);
     expect(spy).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it('should clear searchQuery on clearSearch', () => {
@@ -45,6 +48,16 @@ describe('IssueComponent', () => {
     component.clearSearch();
 
     expect(component.searchQuery()).toBe('');
+    expect(component.currentPage()).toBe(0);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('should trigger search immediately on onSearchEnter', () => {
+    component.searchQuery.set('error');
+    const spy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
+
+    component.onSearchEnter();
+
     expect(component.currentPage()).toBe(0);
     expect(spy).toHaveBeenCalled();
   });
