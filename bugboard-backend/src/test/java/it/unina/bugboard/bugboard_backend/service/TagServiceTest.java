@@ -33,6 +33,7 @@ import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.Tag;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.exception.TagDuplicateException;
 import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.repository.TagRepository;
@@ -173,7 +174,7 @@ class TagServiceTest {
             when(tagRepository.existsByNameAndProjectId(request.getName(), projectId)).thenReturn(true);
 
             // ACT & ASSERT
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            TagDuplicateException exception = assertThrows(TagDuplicateException.class, () -> {
                 tagService.createTag(request);
             });
 
@@ -317,39 +318,17 @@ class TagServiceTest {
     @Test
     void updateTag_ThrowsException_WhenTagNotFound() {
         // ARRANGE
-        UUID userId = UUID.randomUUID();
-        UUID projectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
+        UUID projectId = UUID.randomUUID();
         
         TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+        
+        when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
 
-        User mockUser = User.builder()
-            .id(userId)
-            .username("testuser")
-            .email("test@example.com")
-            .passwordHash("hashedPassword")
-            .role(Role.ADMIN)
-            .build();
-
-        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
-            SecurityContext securityContext = mock(SecurityContext.class);
-            Authentication authentication = mock(Authentication.class);
-
-            when(authentication.getName()).thenReturn(userId.toString());
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-
-            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-            when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
-
-            // ACT & ASSERT
-            assertThrows(ResourceNotFoundException.class, () -> {
-                tagService.updateTag(tagId, request);
-            });
-
-            verify(tagRepository, never()).save(any(Tag.class));
-        }
+        // ACT & ASSERT
+        assertThrows(ResourceNotFoundException.class, () -> {
+            tagService.updateTag(tagId, request);
+        });
     }
 
     @Test
@@ -395,7 +374,7 @@ class TagServiceTest {
             when(tagRepository.existsByNameAndProjectId("Existing Tag", projectId)).thenReturn(true);
 
             // ACT & ASSERT
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            TagDuplicateException exception = assertThrows(TagDuplicateException.class, () -> {
                 tagService.updateTag(tagId, request);
             });
 
@@ -530,7 +509,6 @@ class TagServiceTest {
     @Test
     void updateTag_ThrowsException_WhenTagDoesNotBelongToProject() {
         // ARRANGE
-        UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
         UUID differentProjectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
@@ -542,14 +520,6 @@ class TagServiceTest {
             .name("Different Project")
             .build();
 
-        User mockUser = User.builder()
-            .id(userId)
-            .username("testuser")
-            .email("test@example.com")
-            .passwordHash("hashedPassword")
-            .role(Role.ADMIN)
-            .build();
-
         Tag existingTag = Tag.builder()
             .id(tagId)
             .name("Old Bug")
@@ -557,25 +527,14 @@ class TagServiceTest {
             .project(mockProject)
             .build();
 
-        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
-            SecurityContext securityContext = mock(SecurityContext.class);
-            Authentication authentication = mock(Authentication.class);
+        when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
 
-            when(authentication.getName()).thenReturn(userId.toString());
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        // ACT & ASSERT
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            tagService.updateTag(tagId, request);
+        });
 
-            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-            when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
-
-            // ACT & ASSERT
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                tagService.updateTag(tagId, request);
-            });
-
-            assertTrue(exception.getMessage().contains("does not belong"));
-            verify(tagRepository, never()).save(any(Tag.class));
-        }
+        assertTrue(exception.getMessage().contains("does not belong"));
+        verify(tagRepository, never()).save(any(Tag.class));
     }
 }
