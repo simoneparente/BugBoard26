@@ -19,7 +19,10 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { TagService } from '../../core/services/tag.service';
+import { ProjectService } from '../../core/services/project.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TagResponse } from '../../core/tag.model';
+import { ProjectResponse } from '../../core/project.model';
 import { forkJoin, of, switchMap, map } from 'rxjs';
 
 @Component({
@@ -33,6 +36,8 @@ export class CreateIssueComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly issueService = inject(IssueService);
   private readonly tagService = inject(TagService);
+  private readonly projectService = inject(ProjectService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notificationService = inject(NotificationService);
@@ -44,12 +49,45 @@ export class CreateIssueComponent implements OnInit {
   submitted = false;
   showError = false;
   isLoadingTags = true;
+
   isTagDropdownOpen = false;
+  isPriorityDropdownOpen = false;
+  isTypeDropdownOpen = false;
+
   tagSearchQuery: string = '';
+
   selectedFiles: File[] = [];
   projectId: string = '';
   availableTags: TagResponse[] = [];
   selectedTags: TagResponse[] = [];
+
+  priorities = [
+    { value: 'LOWEST', label: 'Lowest', class: 'priority-lowest' },
+    { value: 'LOW', label: 'Low', class: 'priority-low' },
+    { value: 'MEDIUM', label: 'Medium', class: 'priority-medium' },
+    { value: 'HIGH', label: 'High', class: 'priority-high' },
+    { value: 'HIGHEST', label: 'Highest', class: 'priority-highest' },
+  ];
+
+  types = [
+    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill text-danger' },
+    {
+      value: 'FEATURE',
+      label: 'Feature',
+      icon: 'bi-star-fill text-primary',
+    },
+    {
+      value: 'QUESTION',
+      label: 'Question',
+      icon: 'bi-question-circle-fill text-warning',
+    },
+    {
+      value: 'DOCUMENTATION',
+      label: 'Documentation',
+      icon: 'bi-file-earmark-text-fill text-info',
+    },
+    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill text-secondary' },
+  ];
 
   constructor() {
     this.issueForm = this.fb.group({
@@ -61,7 +99,6 @@ export class CreateIssueComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Only run API calls in the browser to avoid SSR 401 unauthenticated requests during server pre-rendering
     if (isPlatformBrowser(this.platformId)) {
       this.route.paramMap.subscribe((params) => {
         let id = params.get('projectId') || this.route.parent?.snapshot.paramMap.get('projectId');
@@ -76,6 +113,7 @@ export class CreateIssueComponent implements OnInit {
         this.projectId = id || '';
         if (this.projectId) {
           this.loadTags(this.projectId);
+          this.loadProjectDetails(this.projectId);
         } else {
           this.isLoadingTags = false;
         }
@@ -83,6 +121,19 @@ export class CreateIssueComponent implements OnInit {
     } else {
       this.isLoadingTags = false;
     }
+  }
+
+  private loadProjectDetails(projectId: string) {
+    this.projectService.getById(projectId).subscribe({
+      next: (project: ProjectResponse) => {
+        if (project?.name) {
+          this.breadcrumbService.setProjectName(project.name);
+        }
+      },
+      error: (err: any) => {
+        console.error('Failed to load project details for breadcrumbs:', err);
+      },
+    });
   }
 
   private loadTags(projectId: string) {
@@ -94,7 +145,7 @@ export class CreateIssueComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load tags for project:', projectId, err);
+        this.notificationService.showError('Error', 'Failed to load tags for the project.');
         this.isLoadingTags = false;
         this.cdr.detectChanges();
       },
@@ -103,6 +154,26 @@ export class CreateIssueComponent implements OnInit {
 
   get f() {
     return this.issueForm.controls;
+  }
+
+  get currentPriorityObj() {
+    const current = this.issueForm.get('priority')?.value || 'MEDIUM';
+    return this.priorities.find((p) => p.value === current) || this.priorities[2];
+  }
+
+  get currentTypeObj() {
+    const current = this.issueForm.get('type')?.value || 'BUG';
+    return this.types.find((t) => t.value === current) || this.types[0];
+  }
+
+  selectPriority(value: string) {
+    this.issueForm.patchValue({ priority: value });
+    this.isPriorityDropdownOpen = false;
+  }
+
+  selectType(value: string) {
+    this.issueForm.patchValue({ type: value });
+    this.isTypeDropdownOpen = false;
   }
 
   onSubmit() {
@@ -194,11 +265,16 @@ export class CreateIssueComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    const clickedInside = this.elementRef.nativeElement
-      .querySelector('.tags-dropdown-wrapper')
-      ?.contains(event.target);
-    if (!clickedInside) {
+    const nativeEl = this.elementRef.nativeElement;
+
+    if (!nativeEl.querySelector('.tags-dropdown-wrapper')?.contains(event.target)) {
       this.isTagDropdownOpen = false;
+    }
+    if (!nativeEl.querySelector('.priority-dropdown-wrapper')?.contains(event.target)) {
+      this.isPriorityDropdownOpen = false;
+    }
+    if (!nativeEl.querySelector('.type-dropdown-wrapper')?.contains(event.target)) {
+      this.isTypeDropdownOpen = false;
     }
   }
 
