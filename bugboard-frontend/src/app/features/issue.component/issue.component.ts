@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, Input} from '@angular/core';
+import { Component, inject, OnInit, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -53,23 +53,26 @@ export class IssueComponent implements OnInit {
     const page = this.currentPage();
     const size = this.pageSize();
 
-    this.issueService.getIssuesByProject(this.projectId,        
+    this.issueService
+      .getIssuesByProject(
+        this.projectId,
         this.statusFilter(),
         this.priorityFilter(),
         this.currentPage(),
         this.pageSize(),
         this.sortField() || 'title',
-        this.sortDirection()).subscribe({
-
-      next: (response) => {
-        this.issuesPage.set(response);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Failed to load issues', error);
-        this.isLoading.set(false);
-      },
-    });
+        this.sortDirection(),
+      )
+      .subscribe({
+        next: (response) => {
+          this.issuesPage.set(response);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load issues', error);
+          this.isLoading.set(false);
+        },
+      });
   }
 
   // UI ACTIONS
@@ -80,15 +83,15 @@ export class IssueComponent implements OnInit {
   }
 
   onStatusChange(status: string): void {
-  this.statusFilter.set(status);
-  this.currentPage.set(0); 
-  this.loadIssues();
-}
+    this.statusFilter.set(status);
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
 
   onPriorityChange(priority: string): void {
-  this.priorityFilter.set(priority);
-  this.currentPage.set(0); 
-  this.loadIssues();
+    this.priorityFilter.set(priority);
+    this.currentPage.set(0);
+    this.loadIssues();
   }
 
   sortData(field: string): void {

@@ -1,13 +1,17 @@
 <div class="container-fluid p-3 p-md-4">
   <!-- Header Section -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
+  >
     <div>
       <h2 class="fw-bold mb-1">Issue Tracker</h2>
       <p class="text-muted mb-0">Manage, filter, and resolve active software anomalies.</p>
     </div>
 
     <!-- Filters and Action Button Container -->
-    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
+    <div
+      class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
+    >
       <!-- Status Filter Dropdown -->
       <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
@@ -25,16 +29,24 @@
             <a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a>
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')">In Progress</a>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
+              >In Progress</a
+            >
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')">Marked For Review</a>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
+              >Marked For Review</a
+            >
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')">Not Fixed</a>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
+              >Not Fixed</a
+            >
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')">Completed</a>
+            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
+              >Completed</a
+            >
           </li>
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
@@ -53,10 +65,14 @@
         </button>
         <ul class="dropdown-menu shadow-sm">
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')">All Priorities</a>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
+              >All Priorities</a
+            >
           </li>
           <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a>
+            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')"
+              >Highest</a
+            >
           </li>
           <li>
             <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a>
@@ -74,7 +90,7 @@
       </div>
 
       <!-- New Issue Button -->
-      <button 
+      <button
         class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
         type="button"
         [routerLink]="['/projects', projectId, 'new']"
@@ -87,10 +103,10 @@
   <!-- Table Card Section -->
   <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" style="min-width: 520px;">
+      <table class="table table-hover align-middle mb-0" style="min-width: 520px">
         <thead class="table-light text-muted">
           <tr>
-            <th class="ps-4 py-3" style="width: 80px;">ID</th>
+            <th class="ps-4 py-3" style="width: 80px">ID</th>
             <th class="py-3 cursor-pointer" (click)="sortData('title')">
               Title
               @if (sortField() === 'title') {
@@ -98,7 +114,7 @@
                   class="bi ms-1"
                   [ngClass]="{
                     'bi-arrow-down': sortDirection() === 'asc',
-                    'bi-arrow-up': sortDirection() === 'desc'
+                    'bi-arrow-up': sortDirection() === 'desc',
                   }"
                 ></i>
               }
@@ -113,7 +129,7 @@
                   class="bi ms-1"
                   [ngClass]="{
                     'bi-arrow-down': sortDirection() === 'asc',
-                    'bi-arrow-up': sortDirection() === 'desc'
+                    'bi-arrow-up': sortDirection() === 'desc',
                   }"
                 ></i>
               }
@@ -123,8 +139,10 @@
         <tbody>
           @for (issue of issues(); track issue.id) {
             <tr>
-              <td class="ps-4 text-secondary fw-medium text-nowrap">#{{ issue.id.substring(0, 4) }}</td>
-              <td class="fw-medium text-break" style="max-width: 250px;">
+              <td class="ps-4 text-secondary fw-medium text-nowrap">
+                #{{ issue.id.substring(0, 4) }}
+              </td>
+              <td class="fw-medium text-break" style="max-width: 250px">
                 <a
                   class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
                   (click)="onTitleClick(issue)"
@@ -146,7 +164,7 @@
                       'bi-chevron-up': issue.priority.toLowerCase() === 'high',
                       'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
                       'bi-chevron-down': issue.priority.toLowerCase() === 'low',
-                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest'
+                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest',
                     }"
                   ></i>
                   {{ issue.priority | titlecase }}
@@ -174,7 +192,7 @@
                   >
                     {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
                   </div>
-                  <span class="text-truncate" style="max-width: 120px;">
+                  <span class="text-truncate" style="max-width: 120px">
                     {{ issue.assigneeUsername || 'Unassigned' }}
                   </span>
                 </div>

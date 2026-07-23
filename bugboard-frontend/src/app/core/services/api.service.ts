@@ -71,7 +71,6 @@ export class ApiService {
 
       const url = `${this.baseUrl}/projects/${projectId}/issues`;
 
-
       return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
         params,
       });
