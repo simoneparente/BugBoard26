@@ -25,11 +25,14 @@ public class AttachmentController {
     private final AttachmentService attachmentService;
     private final AzureStorageService azureStorageService;
 
+    private static final String AZURITE_DOCKER = "http://azurite:10000";
+    private static final String AZURITE_LOCAL = "http://127.0.0.1:10001";
+
     @PostMapping("/generate-upload-url")
     public ResponseEntity<SasTokenResponse> getUploadUrl(@RequestParam String fileName) {
         SasTokenResponse response = azureStorageService.generateUploadSasUrl(fileName);
-        if (response != null && response.getUploadUrl() != null && response.getUploadUrl().contains("http://azurite:10000")) {
-            String externalUrl = response.getUploadUrl().replace("http://azurite:10000", "http://127.0.0.1:10001");
+        if (response != null && response.getUploadUrl() != null && response.getUploadUrl().contains(AZURITE_DOCKER)) {
+            String externalUrl = response.getUploadUrl().replace(AZURITE_DOCKER, AZURITE_LOCAL);
             response = new SasTokenResponse(externalUrl, response.getBlobFileName());
         }
         return ResponseEntity.ok(response);
@@ -81,8 +84,8 @@ public class AttachmentController {
             if (sasUrl == null) {
                 sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
             }
-            if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
-                sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
+            if (sasUrl != null && sasUrl.contains(AZURITE_DOCKER)) {
+                sasUrl = sasUrl.replace(AZURITE_DOCKER, AZURITE_LOCAL);
             }
             if (sasUrl == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -116,8 +119,8 @@ public class AttachmentController {
             if (sasUrl == null) {
                 sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
             }
-            if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
-                sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
+            if (sasUrl != null && sasUrl.contains(AZURITE_DOCKER)) {
+                sasUrl = sasUrl.replace(AZURITE_DOCKER, AZURITE_LOCAL);
             }
             if (sasUrl == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
