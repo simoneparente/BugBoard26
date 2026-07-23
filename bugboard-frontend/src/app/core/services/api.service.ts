@@ -12,6 +12,7 @@ import { ROLES } from '../roles.model';
 import { Page } from '../page.model';
 import { ProjectResponse } from '../project.model';
 import { IssueResponse } from '../issue.model';
+import { AssigneeRecommendation } from '../assignee-recommendation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,7 @@ export class ApiService {
   readonly users = {
     register: (payload: UserRegistrationRequest) =>
       this.http.post<UserResponse>(`${this.baseUrl}/users/register`, payload),
+    getAll: () => this.http.get<UserResponse[]>(`${this.baseUrl}/users`),
   };
 
   readonly invitations = {
@@ -43,6 +45,10 @@ export class ApiService {
         params: { page: page.toString(), size: size.toString() },
       }),
     getById: (id: string) => this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${id}`),
+    getRecommendedAssignees: (id: string) =>
+      this.http.get<AssigneeRecommendation[]>(
+        `${this.baseUrl}/projects/${id}/recommended-assignees`,
+      ),
     create: (name: string, description: string) =>
       this.http.post<ProjectResponse>(`${this.baseUrl}/projects`, { name, description }),
     delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/projects/${id}`),
@@ -53,6 +59,7 @@ export class ApiService {
       projectId: string,
       status: string = 'ALL',
       priority: string = 'ALL',
+      search: string = '',
       page: number = 0,
       size: number = 20,
       sortField: string = 'createdAt',
@@ -68,8 +75,9 @@ export class ApiService {
       if (priority && priority !== 'ALL') {
         params = params.set('priority', priority);
       }
-
-      const url = `${this.baseUrl}/projects/${projectId}/issues`;
+      if (search && search.trim() !== '') {
+        params = params.set('search', search.trim());
+      }
 
       return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
         params,
@@ -77,12 +85,63 @@ export class ApiService {
     },
     create: (projectId: string, payload: any) =>
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
+    getById: (projectId: string, issueId: string) =>
+      this.http.get<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
+
+    assign: (projectId: string, issueId: string, assigneeId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assign`,
+        null,
+        { params: { assigneeId } },
+      ),
+    removeAssignee: (projectId: string, issueId: string) =>
+      this.http.delete<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assignee`,
+      ),
+    setStatus: (projectId: string, issueId: string, status: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/status`,
+        null,
+        { params: { status } },
+      ),
+    startProgress: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/start-progress`,
+        null,
+      ),
+    accept: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/accept`,
+        null,
+      ),
+    previous: (projectId: string, issueId: string) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/previous`,
+        null,
+      ),
+    delete: (projectId: string, issueId: string) =>
+      this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      //TODO: Use a better type for the response
       return this.http.post<any>(`${this.baseUrl}/attachments/issue/${issueId}`, formData);
     },
+  };
+
+  readonly attachments = {
+    generateUploadUrl: (fileName: string) =>
+      this.http.post<{ uploadUrl: string; blobFileName: string }>(
+        `${this.baseUrl}/attachments/generate-upload-url`,
+        null,
+        { params: { fileName } },
+      ),
+    uploadToAzure: (uploadUrl: string, file: File) =>
+      this.http.put(uploadUrl, file, {
+        headers: {
+          'x-ms-blob-type': 'BlockBlob',
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+      }),
   };
 
   readonly reports = {

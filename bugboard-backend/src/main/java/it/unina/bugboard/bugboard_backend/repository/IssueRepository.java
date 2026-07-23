@@ -25,6 +25,17 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     Page<Issue> findByProjectIdAndPriority(UUID projectId, IssuePriority priority, Pageable pageable);
 
     Page<Issue> findByProjectIdAndStatus(UUID projectId, IssueStatus status, Pageable pageable);
+
+    @Query("SELECT i FROM Issue i WHERE i.project.id = :projectId " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND (:priority IS NULL OR i.priority = :priority) " +
+            "AND (:searchPattern IS NULL OR LOWER(i.title) LIKE :searchPattern OR (i.description IS NOT NULL AND LOWER(i.description) LIKE :searchPattern))")
+    Page<Issue> findByProjectIdAndFilters(
+            @Param("projectId") UUID projectId,
+            @Param("status") IssueStatus status,
+            @Param("priority") IssuePriority priority,
+            @Param("searchPattern") String searchPattern,
+            Pageable pageable);
     
     Issue findByIdAndProjectId(UUID issueId, UUID projectId);
 
@@ -54,4 +65,5 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("status") IssueStatus status);
+    List<Issue> findByProjectIdAndStatusNotIn(UUID projectId, List<IssueStatus> excludeStatuses);
 }

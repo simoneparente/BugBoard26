@@ -1,12 +1,15 @@
 package it.unina.bugboard.bugboard_backend.repository;
 
-import it.unina.bugboard.bugboard_backend.entity.Tag;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import it.unina.bugboard.bugboard_backend.entity.Tag;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag, UUID> {
@@ -20,4 +23,12 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
 
     // Retrieve a specific tag by name and project ID
     Optional<Tag> findByNameAndProjectId(String name, UUID projectId);
+
+    /**
+     * Remove all associations between a tag and issues in the join table.
+     * Executed before tag deletion to prevent foreign key constraint violations.
+     */
+    @Modifying
+    @Query(value = "DELETE FROM issue_tags WHERE tag_id = ?1", nativeQuery = true)
+    void removeTagFromAllIssues(UUID tagId);
 }

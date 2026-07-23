@@ -23,7 +23,7 @@ import { ProjectService } from '../../core/services/project.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TagResponse } from '../../core/tag.model';
 import { ProjectResponse } from '../../core/project.model';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of, switchMap, map } from 'rxjs';
 
 @Component({
   selector: 'app-create-issue',
@@ -49,6 +49,7 @@ export class CreateIssueComponent implements OnInit {
   submitted = false;
   showError = false;
   isLoadingTags = true;
+  isSubmitting = false;
 
   isTagDropdownOpen = false;
   isPriorityDropdownOpen = false;
@@ -177,6 +178,10 @@ export class CreateIssueComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.isSubmitting) {
+      return;
+    }
+
     this.submitted = true;
     this.showError = false;
 
@@ -185,33 +190,59 @@ export class CreateIssueComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting = true;
     const projectId = this.projectId;
-    const payload = {
-      ...this.issueForm.value,
-      tags: this.selectedTags,
-    };
 
-    this.issueService.createIssue(projectId, payload).subscribe({
-      next: (response) => {
-        if (this.selectedFiles.length > 0) {
-          const uploadRequests = this.selectedFiles.map((file) =>
-            this.issueService.uploadAttachment(response.id, file),
+    const uploadTasks$ =
+      this.selectedFiles.length === 0
+        ? of([])
+        : forkJoin(
+            this.selectedFiles.map((file) =>
+              this.issueService.generateUploadUrl(file.name).pipe(
+                switchMap((sas) =>
+                  this.issueService.uploadToAzure(sas.uploadUrl, file).pipe(
+                    map(() => ({
+                      originalFileName: file.name,
+                      blobFileName: sas.blobFileName,
+                      fileSize: file.size,
+                      extension: file.name.includes('.')
+                        ? file.name.substring(file.name.lastIndexOf('.'))
+                        : '',
+                    })),
+                  ),
+                ),
+              ),
+            ),
           );
-          forkJoin(uploadRequests).subscribe({
-            next: () => {
-              this.notificationService.showSuccess('Success', 'Issue created with attachments!');
-              this.router.navigate(['/projects', projectId, 'issues', response.id]);
-            },
-            error: () =>
-              this.notificationService.showError('Upload Error', 'Failed to upload attachments.'),
-          });
-        } else {
-          this.notificationService.showSuccess('Success', 'Issue created successfully!');
-          this.router.navigate(['/projects', projectId, 'issues', response.id]);
-        }
+
+    uploadTasks$.subscribe({
+      next: (attachmentMetadataList) => {
+        const payload = {
+          ...this.issueForm.value,
+          tags: this.selectedTags,
+          attachments: attachmentMetadataList,
+        };
+
+        this.issueService.createIssue(projectId, payload).subscribe({
+          next: (response) => {
+            this.notificationService.showSuccess('Success', 'Issue created successfully!');
+            this.router.navigate(['/projects', projectId, 'issues', response.id]);
+          },
+          error: () => {
+            this.showError = true;
+            this.notificationService.showError('Error', 'Failed to create issue.');
+            this.isSubmitting = false;
+          },
+        });
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to upload attachments to Azure:', err);
         this.showError = true;
+        this.notificationService.showError(
+          'Upload Error',
+          'Failed to upload attachments to Azure.',
+        );
+        this.isSubmitting = false;
       },
     });
   }

@@ -9,6 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
     
@@ -16,6 +19,9 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     
     Optional<Project> findByName(String name);
     
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.members WHERE p.id = :id")
+    Optional<Project> findByIdWithMembers(@Param("id") UUID id);
+
     boolean existsByIdAndMembersId(UUID projectId, UUID userId);
     
     Page<Project> findByMembersId(UUID userId, Pageable pageable);

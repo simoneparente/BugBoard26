@@ -12,6 +12,29 @@
     <div
       class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
     >
+      <!-- Keyword Search Input -->
+      <div
+        class="search-input-group flex-grow-1 flex-sm-grow-0"
+        style="min-width: 240px; max-width: 320px"
+      >
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Search issues by keyword..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchInput($event)"
+          (keyup.enter)="onSearchEnter()"
+        />
+        @if (searchQuery()) {
+          <button class="btn-clear" type="button" (click)="clearSearch()" aria-label="Clear search">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        }
+      </div>
+
       <!-- Status Filter Dropdown -->
       <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
@@ -89,8 +112,16 @@
         </ul>
       </div>
 
-      <!-- New Issue Button (hidden for read-only EXTERNAL users) -->
+      <!-- New Issue and View Report Buttons (hidden for read-only EXTERNAL users) -->
       @if (!isReadonly()) {
+        <button
+          class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectId, 'report']"
+        >
+          <i class="bi bi-file-earmark-bar-graph"></i> View Report
+        </button>
+
         <button
           class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
@@ -100,7 +131,9 @@
         </button>
       } @else {
         <!-- Readonly badge shown to stakeholders -->
-        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 d-flex align-items-center gap-1">
+        <span
+          class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 d-flex align-items-center gap-1"
+        >
           <i class="bi bi-eye"></i> View Only
         </span>
       }
@@ -180,12 +213,7 @@
 
               <!-- Status Badge -->
               <td>
-                <span
-                  class="badge rounded-pill"
-                  [ngClass]="
-                    issue.status === 'TO_DO' ? 'bg-light text-dark border' : 'bg-primary text-white'
-                  "
-                >
+                <span [class]="getStatusBadgeClass(issue.status)">
                   {{ getStatusLabel(issue.status) }}
                 </span>
               </td>

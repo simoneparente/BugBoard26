@@ -1,0 +1,259 @@
+.card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.description-content {
+  white-space: pre-wrap;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.attachment-icon-wrapper {
+  width: 48px;
+  height: 48px;
+}
+
+.avatar-circle {
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: 50rem;
+  background-color: var(--tag-color, #0d6efd);
+  border: 1.5px solid var(--tag-color, #0d6efd);
+  color: white;
+  box-shadow: 0 2px 6px var(--tag-color-light, rgba(13, 110, 253, 0.3));
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .tag-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: white;
+  }
+}
+
+// Custom Action Buttons Palette (App Brand Colors)
+.btn-status-in-progress {
+  background-color: #d97706;
+  border-color: #b45309;
+  color: #ffffff;
+  &:hover,
+  &:focus {
+    background-color: #b45309;
+    border-color: #92400e;
+    color: #ffffff;
+  }
+}
+
+.btn-status-marked-for-review {
+  background-color: #005bb0;
+  border-color: #00488c;
+  color: #ffffff;
+  &:hover,
+  &:focus {
+    background-color: #00488c;
+    border-color: #003669;
+    color: #ffffff;
+  }
+}
+
+.btn-status-completed {
+  background-color: #16a34a;
+  border-color: #15803d;
+  color: #ffffff;
+  &:hover,
+  &:focus {
+    background-color: #15803d;
+    border-color: #166534;
+    color: #ffffff;
+  }
+}
+
+.btn-status-not-fixed {
+  background-color: #ba1a1a;
+  border-color: #991515;
+  color: #ffffff;
+  &:hover,
+  &:focus {
+    background-color: #991515;
+    border-color: #7a1010;
+    color: #ffffff;
+  }
+}
+
+.btn-status-closed {
+  background-color: #1e293b;
+  border-color: #0f172a;
+  color: #ffffff;
+  &:hover,
+  &:focus {
+    background-color: #0f172a;
+    border-color: #020617;
+    color: #ffffff;
+  }
+}
+
+// Full-Width Assigned User Chip with Hover-to-Remove Animation
+.assigned-user-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 50rem;
+  background-color: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #1e293b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+
+  .avatar-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+    background-color: #005bb0;
+    color: #ffffff;
+    transition: background-color 0.25s ease;
+  }
+
+  .remove-icon {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .assignee-label-text {
+    transition: color 0.25s ease;
+  }
+
+  &:hover {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+    color: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+
+    .avatar-circle {
+      background-color: #dc2626;
+    }
+
+    .remove-icon {
+      opacity: 1;
+      color: #dc2626;
+      transform: scale(1.25) rotate(90deg);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.non-removable-chip {
+    cursor: default;
+    &:hover {
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+      color: #1e293b;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transform: none;
+
+      .avatar-circle {
+        background-color: #005bb0;
+      }
+    }
+  }
+}
+
+.users-popover-menu {
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background-color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  .popover-user-item {
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 91, 176, 0.08);
+    }
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Modal Backdrop Overlay & Glassmorphism Card
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1050;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  max-width: 480px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.icon-box-danger {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
