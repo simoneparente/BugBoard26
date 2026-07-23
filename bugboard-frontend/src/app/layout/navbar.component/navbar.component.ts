@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
@@ -15,7 +15,10 @@ import { BrandLogoComponent } from '../brand-logo.component/brand-logo.component
 export class NavbarComponent {
   private readonly authService = inject(AuthService);
 
-  public logout() {
+  public readonly currentUser = this.authService.currentUser;
+  public readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
+
+  public logout(): void {
     this.authService.logout();
   }
 }

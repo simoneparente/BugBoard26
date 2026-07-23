@@ -1,0 +1,14 @@
+.breadcrumb {
+  font-size: 0.85rem;
+
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: '›';
+    font-size: 1rem;
+    color: #6c757d;
+  }
+}
+
+.hover-primary:hover {
+  color: var(--bs-primary) !important;
+  text-decoration: underline !important;
+}
