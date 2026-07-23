@@ -117,3 +117,40 @@
    4. THIRD-PARTY CSS LIBRARIES
    ========================================================================== */
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+/* ==========================================================================
+   5. PRIORITY BADGES SYSTEM
+   ========================================================================== */
+.priority-badge,
+.badge {
+  &.priority-lowest {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
+  }
+
+  &.priority-low {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+  }
+
+  &.priority-medium {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+  }
+
+  &.priority-high {
+    background-color: #ffedd5 !important;
+    color: #c2410c !important;
+    border: 1px solid #fed7aa !important;
+  }
+
+  &.priority-highest,
+  &.priority-critical {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5 !important;
+  }
+}

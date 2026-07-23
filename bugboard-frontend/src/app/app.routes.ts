@@ -8,6 +8,7 @@ import { DashboardComponent } from './features/dashboard.component/dashboard.com
 import { RegisterComponent } from './features/register.component/register.component';
 import { ProjectComponent } from './features/project.component/project.component';
 import { ReportComponent } from './features/report.component/report.component';
+import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
 
@@ -50,6 +51,12 @@ export const routes: Routes = [
         title: 'BugBoard26 - Projects',
       },
       {
+        path: 'projects/:projectId/issues',
+        component: IssueComponent,
+        title: 'BugBoard26 - Issue',
+        canActivate: [authGuard],
+      },
+      {
         path: 'projects/create',
         component: CreateProjectComponent,
         title: 'BugBoard26 - Create Project',
@@ -70,9 +77,5 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
     ],
-  },
-  {
-    path: '**',
-    redirectTo: '/dashboard',
   },
 ];
