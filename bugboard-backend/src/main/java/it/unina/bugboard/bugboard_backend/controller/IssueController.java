@@ -96,6 +96,8 @@ public class IssueController {
                         .map(tag -> TagResponse.builder()
                                 .id(tag.getId())
                                 .name(tag.getName())
+                                .color(tag.getColor())
+                                .projectId(tag.getProject().getId())
                                 .build())
                         .toList())
                 .attachments(issue.getAttachments().stream()
