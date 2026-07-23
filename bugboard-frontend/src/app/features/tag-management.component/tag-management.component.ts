@@ -4,12 +4,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TagService } from '../../core/services/tag.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { TagRequest, TagResponse } from '../../core/tag.model';
 
 @Component({
   selector: 'app-tag-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationModalComponent],
   templateUrl: './tag-management.component.html',
   styleUrl: './tag-management.component.scss',
 })
@@ -18,8 +20,9 @@ export class TagManagementComponent implements OnInit {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly tagService = inject(TagService);
   private readonly notificationService = inject(NotificationService);
+  private readonly confirmService = inject(ConfirmationModalService);
 
-  // Route parameter
+  // Route parameter - extract from route params
   private readonly projectId = signal<string | null>(null);
 
   // State
@@ -28,6 +31,18 @@ export class TagManagementComponent implements OnInit {
   public readonly error = signal<string | null>(null);
   public readonly isSubmitting = signal(false);
   public readonly editingTagId = signal<string | null>(null);
+
+  // Preset colors for tag selection
+  public readonly presetColors = signal<string[]>([
+    '#6366f1', // Indigo
+    '#ec4899', // Pink
+    '#10b981', // Emerald
+    '#f59e0b', // Amber
+    '#ef4444', // Red
+    '#3b82f6', // Blue
+    '#8b5cf6', // Violet
+    '#06b6d4', // Cyan
+  ]);
 
   // Form
   public readonly tagForm = this.formBuilder.nonNullable.group({
@@ -175,12 +190,23 @@ export class TagManagementComponent implements OnInit {
   }
 
   /**
-   * Delete a tag with confirmation.
+   * Delete a tag with confirmation modal.
    */
   public onDeleteTag(tag: TagResponse): void {
-    const confirmed = confirm(`Are you sure you want to delete the tag "${tag.name}"?`);
-    if (!confirmed) return;
+    this.confirmService.open({
+      title: 'Delete Tag',
+      message: `Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone.`,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      isDangerous: true,
+      onConfirm: () => this.performDelete(tag),
+    });
+  }
 
+  /**
+   * Perform the actual tag deletion.
+   */
+  private performDelete(tag: TagResponse): void {
     this.tagService.deleteTag(tag.id).subscribe({
       next: () => {
         this.tags.update((tags) => tags.filter((t) => t.id !== tag.id));
@@ -200,6 +226,14 @@ export class TagManagementComponent implements OnInit {
   public isFieldInvalid(fieldName: 'name' | 'color'): boolean {
     const control = this.tagForm.get(fieldName);
     return control ? control.invalid && (control.dirty || control.touched) : false;
+  }
+
+  /**
+   * Select a preset color.
+   */
+  public selectPresetColor(color: string): void {
+    this.tagForm.patchValue({ color });
+    this.tagForm.get('color')?.markAsTouched();
   }
 
   /**
