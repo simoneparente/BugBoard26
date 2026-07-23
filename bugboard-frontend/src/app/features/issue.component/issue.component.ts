@@ -9,6 +9,7 @@ import { ProjectService } from '../../core/services/project.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { AuthService } from '../../core/auth/auth-service';
 
 @Component({
   selector: 'app-issue',
@@ -21,6 +22,10 @@ export class IssueComponent implements OnInit, OnDestroy {
   private readonly projectService = inject(ProjectService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly authService = inject(AuthService);
+
+  /** True when the current user has EXTERNAL (read-only) role. Used in the template to hide write controls. */
+  readonly isReadonly = this.authService.isReadonly;
 
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
@@ -225,19 +230,5 @@ export class IssueComponent implements OnInit, OnDestroy {
       Feature: 'bg-success-subtle text-success border-success',
     };
     return styles[tagName] || 'bg-light text-secondary border';
-  }
-
-  // USER ACTIONS
-  onActionClick(event: Event, issueId: string): void {
-    event.stopPropagation();
-    console.log('Action clicked for:', issueId);
-  }
-
-  editIssue(id: string): void {
-    console.log('Edit issue:', id);
-  }
-
-  deleteIssue(id: string): void {
-    console.log('Delete issue:', id);
   }
 }

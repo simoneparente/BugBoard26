@@ -66,3 +66,111 @@ describe('IssueComponent', () => {
     expect(spy).toHaveBeenCalled();
   });
 });
+
+// Additional tests to increase coverage
+
+describe('IssueComponent additional behavior', () => {
+  let component: IssueComponent;
+  let fixture: ComponentFixture<IssueComponent>;
+  let issueService: IssueService;
+  let projectService: ProjectService;
+  let authService: AuthService;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [IssueComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: { isReadonly: vi.fn(() => false) },
+        },
+        {
+          provide: ProjectService,
+          useValue: { getById: vi.fn(() => of({ name: 'Test Project' })) },
+        },
+        {
+          provide: IssueService,
+          useValue: {
+            getIssuesByProject: vi.fn(() =>
+              of({ content: [], totalPages: 0, totalElements: 0 } as any),
+            ),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(IssueComponent);
+    component = fixture.componentInstance;
+    issueService = TestBed.inject(IssueService);
+    projectService = TestBed.inject(ProjectService);
+    authService = TestBed.inject(AuthService);
+    // Set a projectId for the component
+    component.projectId = 'proj-123';
+    fixture.detectChanges();
+    await fixture.whenStable();
+  });
+
+  it('should load project name on init', () => {
+    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project' }));
+    component.ngOnInit();
+    expect(spy).toHaveBeenCalledWith('proj-123');
+    expect(component.projectName()).toBe('Demo Project');
+  });
+
+  it('sortData should toggle direction on same field', () => {
+    const loadSpy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
+    component.sortField.set('title');
+    component.sortDirection.set('asc');
+    component.sortData('title');
+    expect(component.sortDirection()).toBe('desc');
+    expect(loadSpy).toHaveBeenCalled();
+  });
+
+  it('sortData should change field and reset direction', () => {
+    const loadSpy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
+    component.sortField.set('title');
+    component.sortDirection.set('asc');
+    component.sortData('assignee');
+    expect(component.sortField()).toBe('assignee.username');
+    expect(component.sortDirection()).toBe('asc');
+    expect(loadSpy).toHaveBeenCalled();
+  });
+
+  it('getPriorityStyle returns correct class', () => {
+    expect(component.getPriorityStyle('')).toBe('priority-lowest');
+    expect(component.getPriorityStyle('HIGH')).toBe('priority-high');
+  });
+
+  it('getStatusBadgeClass maps statuses correctly', () => {
+    expect(component.getStatusBadgeClass('NEW')).toBe('status-badge status-to-do');
+    expect(component.getStatusBadgeClass('IN_PROGRESS')).toBe('status-badge status-in-progress');
+    expect(component.getStatusBadgeClass('COMPLETED')).toBe('status-badge status-completed');
+    expect(component.getStatusBadgeClass('UNKNOWN')).toBe('status-badge status-to-do');
+  });
+
+  it('getTagStyle returns style for known and unknown tags', () => {
+    expect(component.getTagStyle('Security')).toBe('bg-danger-subtle text-danger border-danger');
+    expect(component.getTagStyle('NonExistent')).toBe('bg-light text-secondary border');
+  });
+
+  it('onActionClick stops propagation and logs', () => {
+    const event = { stopPropagation: vi.fn() } as unknown as Event;
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    component.onActionClick(event, 'issue-1');
+    expect(event.stopPropagation).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith('Action clicked for:', 'issue-1');
+    logSpy.mockRestore();
+  });
+
+  it('editIssue and deleteIssue log correctly', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    component.editIssue('e1');
+    component.deleteIssue('d1');
+    expect(logSpy).toHaveBeenCalledWith('Edit issue:', 'e1');
+    expect(logSpy).toHaveBeenCalledWith('Delete issue:', 'd1');
+    logSpy.mockRestore();
+  });
+});

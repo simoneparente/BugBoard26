@@ -121,6 +121,29 @@ public class ProjectService {
         projectRepository.deleteById(id);
     }
 
+    @Transactional
+    public Project addMemberToProject(UUID projectId, UUID userId) {
+        Project project = getProjectById(projectId);
+        User userToAdd = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+        if (!project.getMembers().contains(userToAdd)) {
+            project.getMembers().add(userToAdd);
+        }
+
+        return projectRepository.save(project);
+    }
+
+    @Transactional
+    public Project removeMemberFromProject(UUID projectId, UUID userId) {
+        Project project = getProjectById(projectId);
+        User userToRemove = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+        project.getMembers().remove(userToRemove);
+        return projectRepository.save(project);
+    }
+
     @Transactional(readOnly = true)
     public List<AssigneeRecommendationResponse> getRecommendedAssignees(UUID projectId) {
         Project project = projectRepository.findByIdWithMembers(projectId)
