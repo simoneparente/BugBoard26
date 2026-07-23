@@ -234,4 +234,15 @@ class IssueControllerTest {
 
         verify(issueService, times(1)).getIssueByIdAndProjectId(issueId, projectId);
     }
+
+    @Test
+    void deleteIssue_Success_ReturnsStatus204NoContent() throws Exception {
+        doNothing().when(issueService).deleteIssue(issueId);
+
+        mockMvc.perform(delete("/api/projects/{projectId}/issues/{issueId}", projectId, issueId)
+                .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(issueService, times(1)).deleteIssue(issueId);
+    }
 }

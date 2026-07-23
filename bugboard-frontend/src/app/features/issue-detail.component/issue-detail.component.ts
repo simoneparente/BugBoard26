@@ -9,7 +9,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -27,6 +27,7 @@ import { environment } from '../../../environments/environment';
 })
 export class IssueDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly issueService = inject(IssueService);
   private readonly notificationService = inject(NotificationService);
   private readonly breadcrumbService = inject(BreadcrumbService);
@@ -40,6 +41,8 @@ export class IssueDetailComponent implements OnInit {
   public readonly error = signal<string | null>(null);
   public readonly isUpdatingAssignee = signal<boolean>(false);
   public readonly isUpdatingStatus = signal<boolean>(false);
+  public readonly showDeleteModal = signal<boolean>(false);
+  public readonly isDeleting = signal<boolean>(false);
 
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
@@ -234,6 +237,39 @@ export class IssueDetailComponent implements OnInit {
       'Status rolled back',
       'Issue reverted to previous status',
     );
+  }
+
+  public onOpenDeleteModal(): void {
+    this.showDeleteModal.set(true);
+  }
+
+  public onCloseDeleteModal(): void {
+    if (this.isDeleting()) return;
+    this.showDeleteModal.set(false);
+  }
+
+  public onConfirmDelete(): void {
+    this.isDeleting.set(true);
+    this.issueService.deleteIssue(this.projectId, this.issueId).subscribe({
+      next: () => {
+        this.showDeleteModal.set(false);
+        this.isDeleting.set(false);
+        this.notificationService.showSuccess(
+          'Issue Deleted',
+          'The issue has been permanently deleted.',
+        );
+        this.router.navigate(['/projects', this.projectId, 'issues']);
+      },
+      error: (err) => {
+        console.error('Error deleting issue:', err);
+        this.isDeleting.set(false);
+        this.notificationService.showError(
+          'Delete Failed',
+          err.error?.message || 'Failed to delete the issue. Please try again.',
+        );
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private updateStatusCall(obs: any, successTitle: string, successMsg: string): void {

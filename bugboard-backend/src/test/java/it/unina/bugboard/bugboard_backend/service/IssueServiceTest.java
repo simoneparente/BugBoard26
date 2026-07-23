@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -557,5 +558,25 @@ class IssueServiceTest {
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Priority filtered issue", result.getContent().get(0).getTitle());
 		verify(issueRepository, times(1)).findByProjectIdAndPriority(projectId, IssuePriority.HIGHEST, pageable);
+	}
+
+	@Test
+	void deleteIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(true);
+		doNothing().when(issueRepository).deleteById(issueId);
+
+		issueService.deleteIssue(issueId);
+
+		verify(issueRepository, times(1)).deleteById(issueId);
+	}
+
+	@Test
+	void deleteIssue_ThrowsException_WhenNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(false);
+
+		assertThrows(IllegalArgumentException.class, () -> issueService.deleteIssue(issueId));
+		verify(issueRepository, never()).deleteById(any());
 	}
 }

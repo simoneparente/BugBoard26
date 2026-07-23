@@ -67,6 +67,10 @@ export class IssueService {
     return this.apiService.issues.previous(projectId, issueId);
   }
 
+  public deleteIssue(projectId: string, issueId: string): Observable<void> {
+    return this.apiService.issues.delete(projectId, issueId);
+  }
+
   public getAllUsers(): Observable<UserResponse[]> {
     return this.apiService.users.getAll();
   }

@@ -7,6 +7,16 @@
     >
       <i class="bi bi-arrow-left"></i> Back to Project
     </a>
+
+    @if (issue()) {
+      <button
+        type="button"
+        class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
+        (click)="onOpenDeleteModal()"
+      >
+        <i class="bi bi-trash-fill"></i> Delete Issue
+      </button>
+    }
   </div>
 
   <!-- Loading State -->
@@ -417,6 +427,61 @@
               </div>
             }
           </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal() && issue(); as item) {
+    <div class="modal-backdrop-custom d-flex align-items-center justify-content-center">
+      <div
+        class="modal-card bg-white rounded-4 shadow-lg p-4 max-w-md w-100 mx-3"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteModalTitle"
+      >
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div
+            class="icon-box-danger rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center"
+          >
+            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1 text-dark" id="deleteModalTitle">Delete Issue</h5>
+            <p class="text-muted small mb-0">This action cannot be undone.</p>
+          </div>
+        </div>
+        <p class="text-secondary small mb-4">
+          Are you sure you want to permanently delete issue <strong>"{{ item.title }}"</strong>? All
+          associated data and attachments will be deleted.
+        </p>
+        <div class="d-flex justify-content-end gap-2">
+          <button
+            type="button"
+            class="btn btn-light rounded-3 px-4 fw-medium"
+            [disabled]="isDeleting()"
+            (click)="onCloseDeleteModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm"
+            [disabled]="isDeleting()"
+            (click)="onConfirmDelete()"
+          >
+            @if (isDeleting()) {
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Deleting...
+            } @else {
+              <i class="bi bi-trash-fill"></i> Delete Permanently
+            }
+          </button>
         </div>
       </div>
     </div>

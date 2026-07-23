@@ -112,6 +112,8 @@ export class ApiService {
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/previous`,
         null,
       ),
+    delete: (projectId: string, issueId: string) =>
+      this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);

@@ -90,6 +90,12 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIssue(@PathVariable UUID id) {
+        issueService.deleteIssue(id);
+        return ResponseEntity.noContent().build();
+    }
+
     private IssueResponse mapToResponseDTO(Issue issue) {
         return IssueResponse.builder()
                 .id(issue.getId())
