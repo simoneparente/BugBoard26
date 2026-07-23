@@ -4,6 +4,7 @@ import { TagResponse } from './tag.model';
 
 export interface ProjectResponse {
   id: string;
+  key: string;
   name: string;
   description: string;
   createdAt: string; // ISO date string

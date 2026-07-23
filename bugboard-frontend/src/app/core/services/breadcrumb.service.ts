@@ -65,12 +65,12 @@ export class BreadcrumbService {
           icon: 'bi-plus-circle',
         });
       } else if (segments.length >= 2 && segments[1] !== 'create') {
-        const projectId = segments[1];
+        const projectKey = segments[1];
         const currentProjectLabel = this.projectName() ?? 'Issue Tracker';
 
         items.push({
           label: currentProjectLabel,
-          url: `/projects/${projectId}/issues`,
+          url: `/projects/${projectKey}/issues`,
           icon: 'bi-kanban',
         });
 
@@ -86,8 +86,8 @@ export class BreadcrumbService {
                 });
               } else {
                 items.push({
-                  label: `Issue #${segments[3].substring(0, 4)}`,
-                  url: `/projects/${projectId}/issues/${segments[3]}`,
+                  label: `Issue ${projectKey}-${segments[3]}`,
+                  url: `/projects/${projectKey}/issues/${segments[3]}`,
                   icon: 'bi-ticket-detailed',
                 });
               }

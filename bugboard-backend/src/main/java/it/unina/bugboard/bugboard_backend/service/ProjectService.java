@@ -44,8 +44,23 @@ public class ProjectService {
             throw new IllegalArgumentException("Project with the same name already exists.");
         }
 
+        String baseKey = projectrequest.getName().trim().split("\\s+")[0].toUpperCase().replaceAll("[^A-Z]", "");
+        if (baseKey.isEmpty()) {
+            baseKey = "PRJ";
+        } else if (baseKey.length() > 5) {
+            baseKey = baseKey.substring(0, 5);
+        }
+
+        String key = baseKey;
+        int suffix = 1;
+        while (projectRepository.existsByKey(key)) {
+            key = baseKey + suffix;
+            suffix++;
+        }
+
         Project project = Project.builder()
                 .name(projectrequest.getName())
+                .key(key)
                 .description(projectrequest.getDescription())
                 .members(List.of(currentUser)) 
                 .build();
@@ -54,22 +69,23 @@ public class ProjectService {
     }   
 
     @Transactional(readOnly = true)
-    public Project getProjectById(UUID id) {
+    public Project getProjectByKey(String key) {
         User currentUser = getCurrentUser();
         
+        Project project = projectRepository.findByKey(key)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
+
         // ADMIN can see all projects
         if (currentUser.getRole() == Role.ADMIN) {
-            return projectRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
+            return project;
         }
         
         // TECHNICAL and EXTERNAL can only see projects they are members of
-        if (!projectRepository.existsByIdAndMembersId(id, currentUser.getId())) {
+        if (!projectRepository.existsByIdAndMembersId(project.getId(), currentUser.getId())) {
             throw new UnauthorizedException("You don't have access to this project.");
         }
         
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
+        return project;
     }
 
     @Transactional(readOnly = true)
@@ -86,18 +102,22 @@ public class ProjectService {
     }
 
     @Transactional
-    public void deleteProject(UUID id) {
+    public void deleteProject(String key) {
         User currentUser = getCurrentUser();
         if (currentUser.getRole() != Role.ADMIN) {
             throw new UnauthorizedException("Only ADMIN users can delete projects.");
         }
-        projectRepository.deleteById(id);
+        Project project = projectRepository.findByKey(key)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
+        projectRepository.deleteById(project.getId());
     }
 
     @Transactional(readOnly = true)
-    public List<AssigneeRecommendationResponse> getRecommendedAssignees(UUID projectId) {
-        Project project = projectRepository.findByIdWithMembers(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+    public List<AssigneeRecommendationResponse> getRecommendedAssignees(String projectKey) {
+        Project p = projectRepository.findByKey(projectKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
+        Project project = projectRepository.findByIdWithMembers(p.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + p.getId()));
 
         List<User> members = project.getMembers();
         if (members == null || members.isEmpty()) {
@@ -105,7 +125,7 @@ public class ProjectService {
         }
 
         List<Issue> activeIssues = issueRepository.findByProjectIdAndStatusNotIn(
-                projectId, List.of(IssueStatus.COMPLETED, IssueStatus.CLOSED));
+                project.getId(), List.of(IssueStatus.COMPLETED, IssueStatus.CLOSED));
 
         Map<UUID, List<Issue>> issuesByAssignee = activeIssues.stream()
                 .filter(issue -> issue.getAssignee() != null)

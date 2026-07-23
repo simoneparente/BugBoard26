@@ -14,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class IssueResponse {
     private UUID id;
+    private Long sequenceNumber;
     private String title;
     private String description;
     private LocalDateTime createdAt;
@@ -27,5 +28,6 @@ public class IssueResponse {
     private List<AttachmentResponse> attachments;
     
     private UUID projectId;
+    private String projectKey;
     private String projectName;
 }

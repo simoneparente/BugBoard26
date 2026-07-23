@@ -12,6 +12,7 @@ import java.util.UUID;
 @Builder
 public class ProjectResponse {
     private UUID id;
+    private String key;
     private String name;
     private String description;
     private LocalDateTime createdAt;

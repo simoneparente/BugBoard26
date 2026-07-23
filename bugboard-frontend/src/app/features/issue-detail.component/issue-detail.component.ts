@@ -51,16 +51,16 @@ export class IssueDetailComponent implements OnInit {
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
 
-  public projectId: string = '';
-  public issueId: string = '';
+  public projectKey: string = '';
+  public sequenceNumber: string = '';
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.route.paramMap.subscribe((params) => {
-        this.projectId = params.get('projectId') || '';
-        this.issueId = params.get('issueId') || '';
+        this.projectKey = params.get('projectKey') || '';
+        this.sequenceNumber = params.get('sequenceNumber') || '';
 
-        if (this.projectId && this.issueId) {
+        if (this.projectKey && this.sequenceNumber) {
           this.loadData();
         } else {
           this.isLoading.set(false);
@@ -79,8 +79,8 @@ export class IssueDetailComponent implements OnInit {
     this.loadRecommendations();
 
     // Load project members for assignee selection
-    if (this.projectId) {
-      this.projectService.getById(this.projectId).subscribe({
+    if (this.projectKey) {
+      this.projectService.getById(this.projectKey).subscribe({
         next: (project) => {
           this.users.set(project.members || []);
           this.fetchIssue();
@@ -97,8 +97,8 @@ export class IssueDetailComponent implements OnInit {
   }
 
   private loadRecommendations(): void {
-    if (!this.projectId) return;
-    this.projectService.getRecommendedAssignees(this.projectId).subscribe({
+    if (!this.projectKey) return;
+    this.projectService.getRecommendedAssignees(this.projectKey).subscribe({
       next: (recs) => {
         this.recommendations.set(recs || []);
         this.cdr.detectChanges();
@@ -110,7 +110,7 @@ export class IssueDetailComponent implements OnInit {
   }
 
   private fetchIssue(): void {
-    this.issueService.getIssueById(this.projectId, this.issueId).subscribe({
+    this.issueService.getIssueById(this.projectKey, this.sequenceNumber).subscribe({
       next: (data) => {
         this.issue.set(data);
         if (data.projectName) {
@@ -148,7 +148,7 @@ export class IssueDetailComponent implements OnInit {
       return;
     }
     this.isUpdatingAssignee.set(true);
-    this.issueService.removeAssignee(this.projectId, this.issueId).subscribe({
+    this.issueService.removeAssignee(this.projectKey, this.sequenceNumber).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
@@ -196,7 +196,7 @@ export class IssueDetailComponent implements OnInit {
     this.isUserDropdownOpen = false;
     this.userSearchQuery = '';
     this.isUpdatingAssignee.set(true);
-    this.issueService.assignIssue(this.projectId, this.issueId, user.id).subscribe({
+    this.issueService.assignIssue(this.projectKey, this.sequenceNumber, user.id).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
@@ -223,7 +223,7 @@ export class IssueDetailComponent implements OnInit {
     if (!status || status === this.issue()?.status) return;
 
     this.updateStatusCall(
-      this.issueService.setStatus(this.projectId, this.issueId, status),
+      this.issueService.setStatus(this.projectKey, this.sequenceNumber, status),
       'Status Updated',
       `Issue status changed to ${status}`,
     );
@@ -231,7 +231,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onStartProgress(): void {
     this.updateStatusCall(
-      this.issueService.startProgress(this.projectId, this.issueId),
+      this.issueService.startProgress(this.projectKey, this.sequenceNumber),
       'Issue started',
       'Status updated to In Progress',
     );
@@ -239,7 +239,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onAccept(): void {
     this.updateStatusCall(
-      this.issueService.acceptIssue(this.projectId, this.issueId),
+      this.issueService.acceptIssue(this.projectKey, this.sequenceNumber),
       'Marked for Review',
       'Issue has been marked for review',
     );
@@ -259,7 +259,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onRollback(): void {
     this.updateStatusCall(
-      this.issueService.rollbackStatus(this.projectId, this.issueId),
+      this.issueService.rollbackStatus(this.projectKey, this.sequenceNumber),
       'Status rolled back',
       'Issue reverted to previous status',
     );
@@ -276,7 +276,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onConfirmDelete(): void {
     this.isDeleting.set(true);
-    this.issueService.deleteIssue(this.projectId, this.issueId).subscribe({
+    this.issueService.deleteIssue(this.projectKey, this.sequenceNumber).subscribe({
       next: () => {
         this.showDeleteModal.set(false);
         this.isDeleting.set(false);
@@ -284,7 +284,7 @@ export class IssueDetailComponent implements OnInit {
           'Issue Deleted',
           'The issue has been permanently deleted.',
         );
-        this.router.navigate(['/projects', this.projectId, 'issues']);
+        this.router.navigate(['/projects', this.projectKey, 'issues']);
       },
       error: (err) => {
         console.error('Error deleting issue:', err);

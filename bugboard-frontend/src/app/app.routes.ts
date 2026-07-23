@@ -53,7 +53,7 @@ export const routes: Routes = [
         title: 'BugBoard26 - Projects',
       },
       {
-        path: 'projects/:projectId/issues',
+        path: 'projects/:projectKey/issues',
         component: IssueComponent,
         title: 'BugBoard26 - Issue',
         canActivate: [authGuard],
@@ -64,27 +64,27 @@ export const routes: Routes = [
         title: 'BugBoard26 - Create Project',
       },
       {
-        path: 'projects/:projectId',
-        redirectTo: 'projects/:projectId/issues',
+        path: 'projects/:projectKey',
+        redirectTo: 'projects/:projectKey/issues',
         pathMatch: 'full',
       },
       {
-        path: 'projects/:projectId/tags',
+        path: 'projects/:projectKey/tags',
         component: TagManagementComponent,
         title: 'BugBoard26 - Tag Management',
       },
       {
-        path: 'projects/:projectId/report',
+        path: 'projects/:projectKey/report',
         component: ReportComponent,
         title: 'BugBoard26 - Report',
       },
       {
-        path: 'projects/:projectId/issues/create',
+        path: 'projects/:projectKey/issues/create',
         component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
       },
       {
-        path: 'projects/:projectId/issues/:issueId',
+        path: 'projects/:projectKey/issues/:sequenceNumber',
         component: IssueDetailComponent,
         title: 'BugBoard26 - Issue Details',
       },

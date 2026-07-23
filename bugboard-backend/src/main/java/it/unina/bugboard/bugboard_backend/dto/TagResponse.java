@@ -15,6 +15,5 @@ public class TagResponse {
     private UUID id;
     private String name;
     private String color;
-    private UUID projectId;
-
+    private String projectKey;
 }

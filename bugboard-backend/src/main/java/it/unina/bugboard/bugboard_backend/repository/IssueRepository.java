@@ -17,7 +17,12 @@ import java.util.UUID;
 
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, UUID> {
-    
+    @Query("SELECT COALESCE(MAX(i.sequenceNumber), 0) FROM Issue i WHERE i.project.id = :projectId")
+    Long findMaxSequenceNumberByProjectId(@Param("projectId") UUID projectId);
+
+    @Query("SELECT i FROM Issue i WHERE i.project.key = :projectKey AND i.sequenceNumber = :sequenceNumber")
+    Issue findByProjectKeyAndSequenceNumber(@Param("projectKey") String projectKey, @Param("sequenceNumber") Long sequenceNumber);
+
     Page<Issue> findByProjectId(UUID projectId, Pageable pageable);
 
     Page<Issue> findByProjectIdAndStatusAndPriority(UUID projectId, IssueStatus status, IssuePriority priority, Pageable pageable);

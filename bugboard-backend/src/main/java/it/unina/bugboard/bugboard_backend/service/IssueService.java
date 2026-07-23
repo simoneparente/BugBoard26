@@ -31,9 +31,9 @@ public class IssueService {
     private final AttachmentRepository attachmentRepository;
 
     @Transactional
-    public Issue createIssue(UUID projectId, IssueRequest request) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
+    public Issue createIssue(String projectKey, IssueRequest request) {
+        Project project = projectRepository.findByKey(projectKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
 
         List<TagResponse> tagResponses = request.getTags();
         List<Tag> tags = tagResponses == null || tagResponses.isEmpty()
@@ -58,6 +58,9 @@ public class IssueService {
             }
         }
 
+        Long maxSequenceNumber = issueRepository.findMaxSequenceNumberByProjectId(project.getId());
+        Long newSequenceNumber = (maxSequenceNumber == null ? 0 : maxSequenceNumber) + 1;
+
         Issue issue = Issue.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -67,6 +70,7 @@ public class IssueService {
                 .status(request.getStatus() != null ? request.getStatus() : IssueStatus.TO_DO)
                 .tags(tags)
                 .assignee(assignee)
+                .sequenceNumber(newSequenceNumber)
                 .attachments(List.of()) // Issue is created without attachments; they will be added after the issue is
                                         // saved
                 .build();
@@ -188,6 +192,15 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
+    public Issue getIssueByProjectKeyAndSequenceNumber(String projectKey, Long sequenceNumber) {
+        Issue issue = issueRepository.findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        if (issue == null) {
+            throw new ResourceNotFoundException("Issue not found with key " + projectKey + "-" + sequenceNumber);
+        }
+        return issue;
+    }
+
+    @Transactional(readOnly = true)
     public List<Issue> getAllIssues() {
         return issueRepository.findAll();
     }
@@ -201,18 +214,20 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, Pageable pageable) {
-        return getIssuesByProjectId(projectId, status, priority, null, pageable);
+    public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, Pageable pageable) {
+        return getIssuesByProjectKey(projectKey, status, priority, null, pageable);
     }
 
     @Transactional(readOnly = true)
-    public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, String search, Pageable pageable) {
+    public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, String search, Pageable pageable) {
         System.out.println("⚙️ [3. Service] Inizio elaborazione filtri...");
+        Project project = projectRepository.findByKey(projectKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
         IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
         IssuePriority priorityEnum = parseEnum(IssuePriority.class, priority);
         String searchPattern = (search != null && !search.isBlank()) ? "%" + search.trim().toLowerCase() + "%" : null;
 
-        return issueRepository.findByProjectIdAndFilters(projectId, statusEnum, priorityEnum, searchPattern, pageable);
+        return issueRepository.findByProjectIdAndFilters(project.getId(), statusEnum, priorityEnum, searchPattern, pageable);
     }
 
     @Transactional

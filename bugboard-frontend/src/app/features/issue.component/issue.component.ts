@@ -31,7 +31,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
 
-  @Input() projectId!: string;
+  @Input() projectKey!: string;
   projectName = signal<string>('');
 
   // Dati paginati dal backend
@@ -51,12 +51,12 @@ export class IssueComponent implements OnInit, OnDestroy {
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   ngOnInit(): void {
-    if (!this.projectId) {
-      this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    if (!this.projectKey) {
+      this.projectKey = this.route.snapshot.paramMap.get('projectKey') || '';
     }
 
-    if (this.projectId) {
-      this.projectService.getById(this.projectId).subscribe({
+    if (this.projectKey) {
+      this.projectService.getById(this.projectKey).subscribe({
         next: (project) => {
           this.projectName.set(project.name);
           this.breadcrumbService.setProjectName(project.name);
@@ -73,7 +73,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         switchMap((query) => {
           this.isLoading.set(true);
           return this.issueService.getIssuesByProject(
-            this.projectId,
+            this.projectKey,
             this.statusFilter(),
             this.priorityFilter(),
             query,
@@ -107,7 +107,7 @@ export class IssueComponent implements OnInit, OnDestroy {
 
     this.issueService
       .getIssuesByProject(
-        this.projectId,
+        this.projectKey,
         this.statusFilter(),
         this.priorityFilter(),
         this.searchQuery(),
@@ -181,7 +181,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   }
 
   onTitleClick(issue: IssueResponse): void {
-    this.router.navigate(['/projects', this.projectId, 'issues', issue.id]);
+    this.router.navigate(['/projects', this.projectKey, 'issues', issue.sequenceNumber]);
   }
 
   getPriorityStyle(priority: string): string {

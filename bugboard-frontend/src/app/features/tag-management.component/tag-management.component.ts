@@ -26,8 +26,7 @@ export class TagManagementComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly confirmService = inject(ConfirmationModalService);
 
-  // Route parameter - extract from route params
-  private readonly projectId = signal<string | null>(null);
+  private readonly projectKey = signal<string | null>(null);
 
   // State
   public readonly tags = signal<TagResponse[]>([]);
@@ -72,11 +71,11 @@ export class TagManagementComponent implements OnInit {
    */
   private loadProjectId(): void {
     this.activatedRoute.paramMap.subscribe((params) => {
-      const id = params.get('projectId');
-      this.projectId.set(id);
+      const key = params.get('projectKey');
+      this.projectKey.set(key);
 
-      if (id) {
-        this.projectService.getById(id).subscribe({
+      if (key) {
+        this.projectService.getById(key).subscribe({
           next: (project) => this.breadcrumbService.setProjectName(project.name),
           error: (err) => console.error('Failed to load project details for breadcrumb', err),
         });
@@ -88,9 +87,9 @@ export class TagManagementComponent implements OnInit {
    * Load tags for the project.
    */
   private loadTags(): void {
-    const projectId = this.projectId();
-    if (!projectId) {
-      this.error.set('Project ID not found in route');
+    const projectKey = this.projectKey();
+    if (!projectKey) {
+      this.error.set('Project Key not found in route');
       this.loading.set(false);
       return;
     }
@@ -98,7 +97,7 @@ export class TagManagementComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.tagService.getTagsByProjectId(projectId).subscribe({
+    this.tagService.getTagsByProjectKey(projectKey).subscribe({
       next: (data) => {
         this.tags.set(data);
         this.loading.set(false);
@@ -115,7 +114,7 @@ export class TagManagementComponent implements OnInit {
    * Submit the form to create or update a tag.
    */
   public onSubmit(): void {
-    if (this.tagForm.invalid || !this.projectId()) {
+    if (this.tagForm.invalid || !this.projectKey()) {
       this.tagForm.markAllAsTouched();
       return;
     }
@@ -125,7 +124,7 @@ export class TagManagementComponent implements OnInit {
     const request: TagRequest = {
       name: this.tagForm.value.name!,
       color: this.tagForm.value.color!,
-      projectId: this.projectId()!,
+      projectKey: this.projectKey()!,
     };
 
     if (this.isEditMode()) {

@@ -39,10 +39,12 @@ public class ReportService {
      * The report is also persisted as MonthlyProjectReport and UserMonthlyProjectReport.
      */
     @Transactional
-    public MonthlyProjectReportResponse generateReport(UUID projectId) {
-        Project project = projectRepository.findById(projectId)
+    public MonthlyProjectReportResponse generateReport(String projectKey) {
+        Project project = projectRepository.findByKey(projectKey)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("Project with id %s not found", projectId)));
+                        String.format("Project with key %s not found", projectKey)));
+
+        UUID projectId = project.getId();
 
         // Calculate the current month range
         LocalDate now = LocalDate.now();

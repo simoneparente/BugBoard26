@@ -18,6 +18,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     boolean existsByName(String name);
     
     Optional<Project> findByName(String name);
+
+    Optional<Project> findByKey(String key);
+
+    boolean existsByKey(String key);
     
     @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.members WHERE p.id = :id")
     Optional<Project> findByIdWithMembers(@Param("id") UUID id);
