@@ -13,11 +13,7 @@ describe('IssueComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [IssueComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideRouter([]),
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(IssueComponent);
