@@ -145,7 +145,7 @@ export class CreateIssueComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load tags for project:', projectId, err);
+        this.notificationService.showError('Error', 'Failed to load tags for the project.');
         this.isLoadingTags = false;
         this.cdr.detectChanges();
       },
