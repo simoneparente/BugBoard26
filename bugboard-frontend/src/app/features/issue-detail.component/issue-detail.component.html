@@ -206,18 +206,23 @@
             @if (item.assigneeUsername && item.assigneeUsername !== 'Unassigned') {
               <div
                 class="assigned-user-chip"
-                [class.non-removable-chip]="isReadonly() || item.status === 'COMPLETED' || item.status === 'CLOSED'"
+                [class.non-removable-chip]="
+                  isReadonly() || item.status === 'COMPLETED' || item.status === 'CLOSED'
+                "
                 (click)="
-                  (!isReadonly() && item.status !== 'COMPLETED' && item.status !== 'CLOSED') && onRemoveAssignee()
+                  !isReadonly() &&
+                    item.status !== 'COMPLETED' &&
+                    item.status !== 'CLOSED' &&
+                    onRemoveAssignee()
                 "
                 [title]="
                   isReadonly()
                     ? 'Read‑only users cannot modify the assignee'
-                    : (item.status === 'COMPLETED'
-                        ? 'Cannot remove assignee from a completed issue'
-                        : item.status === 'CLOSED'
-                          ? 'Cannot change assignee on closed issue'
-                          : 'Click to remove assignee')
+                    : item.status === 'COMPLETED'
+                      ? 'Cannot remove assignee from a completed issue'
+                      : item.status === 'CLOSED'
+                        ? 'Cannot change assignee on closed issue'
+                        : 'Click to remove assignee'
                 "
               >
                 <div class="d-flex align-items-center gap-2">
@@ -267,12 +272,16 @@
                                 {{ rec.user.username.substring(0, 2) | uppercase }}
                               </div>
                               <div>
-                                <div class="fw-semibold text-dark small">{{ rec.user.username }}</div>
+                                <div class="fw-semibold text-dark small">
+                                  {{ rec.user.username }}
+                                </div>
                                 <div class="text-muted extra-small" style="font-size: 0.7rem">
                                   Carico: <strong>{{ rec.workloadScore }}</strong> ({{
                                     rec.activeIssueCount
                                   }}
-                                  {{ rec.activeIssueCount === 1 ? 'issue attiva' : 'issue attive' }})
+                                  {{
+                                    rec.activeIssueCount === 1 ? 'issue attiva' : 'issue attive'
+                                  }})
                                 </div>
                               </div>
                             </div>
@@ -382,13 +391,21 @@
 
             <!-- Workflow Buttons -->
             <p class="text-muted small mb-2">Available Actions:</p>
-            <div class="d-grid gap-2" [class.opacity-50]="isReadonly()" [class.pe-none]="isReadonly()">
+            <div
+              class="d-grid gap-2"
+              [class.opacity-50]="isReadonly()"
+              [class.pe-none]="isReadonly()"
+            >
               <!-- TO_DO -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
               @if (item.status === 'TO_DO' || item.status === 'NEW' || item.status === 'OPEN') {
                 <button
                   class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]=
-                    "isUpdatingStatus() || isReadonly() || !item.assigneeUsername || item.assigneeUsername === 'Unassigned'"
+                  [disabled]="
+                    isUpdatingStatus() ||
+                    isReadonly() ||
+                    !item.assigneeUsername ||
+                    item.assigneeUsername === 'Unassigned'
+                  "
                   (click)="onStartProgress()"
                 >
                   <i class="bi bi-play-circle-fill fs-6"></i> Start Progress
