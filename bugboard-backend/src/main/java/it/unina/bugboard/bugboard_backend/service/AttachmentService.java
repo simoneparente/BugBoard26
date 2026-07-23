@@ -121,6 +121,22 @@ public class AttachmentService {
         return mapToResponse(attachment);
     }
 
+    public org.springframework.core.io.Resource loadFileAsResource(UUID attachmentId) {
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Attachment with id %s not found", attachmentId)));
+        try {
+            Path filePath = Paths.get(attachment.getFilePath()).normalize();
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new ResourceNotFoundException("File not found on disk: " + attachment.getFileName());
+            }
+        } catch (java.net.MalformedURLException ex) {
+            throw new ResourceNotFoundException("File path error for " + attachment.getFileName());
+        }
+    }
+
     private AttachmentResponse mapToResponse(Attachment attachment) {
         return AttachmentResponse.builder()
                 .id(attachment.getId())

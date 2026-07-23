@@ -94,11 +94,6 @@
   animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow: hidden;
 
-  .popover-header {
-    background-color: #f8fafc;
-    color: #64748b;
-  }
-
   .popover-list {
     max-height: 220px;
     overflow-y: auto;
@@ -146,5 +141,20 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Floating Popover Menus */
+.custom-popover-menu {
+  background-color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  .popover-menu-item {
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 91, 176, 0.08);
+    }
   }
 }
