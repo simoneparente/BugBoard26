@@ -30,7 +30,7 @@ export class ProjectSettingsComponent implements OnInit {
 
   private loadProject(): void {
     const projectId = this.activatedRoute.snapshot.paramMap.get('projectId');
-    
+
     if (!projectId) {
       this.router.navigate(['/projects']);
       return;

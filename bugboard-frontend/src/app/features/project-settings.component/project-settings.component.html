@@ -33,17 +33,21 @@
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-3">
           <div class="card-body">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+            <div
+              class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3"
+            >
               <h5 class="card-title fw-bold mb-0">
                 <i class="bi bi-gear me-2"></i>General Settings
               </h5>
               @if (project()?.id) {
-                <button 
+                <button
                   (click)="deleteProject(project()!.id)"
                   class="btn btn-sm btn-outline-danger rounded-2 flex-shrink-0"
                   title="Delete project"
                 >
-                  <i class="bi bi-trash me-1"></i><span class="d-none d-sm-inline">Delete Project</span><span class="d-sm-none">Delete</span>
+                  <i class="bi bi-trash me-1"></i
+                  ><span class="d-none d-sm-inline">Delete Project</span
+                  ><span class="d-sm-none">Delete</span>
                 </button>
               }
             </div>
@@ -58,7 +62,6 @@
               <h6 class="text-muted small fw-bold text-uppercase mb-2">Description</h6>
               <p class="mb-0">{{ project()?.description || 'No description provided' }}</p>
             </div>
-
           </div>
         </div>
       </div>
@@ -66,9 +69,7 @@
       <!-- Sidebar (left) - Members Management -->
       <div class="col-lg-4">
         @if (project()?.id) {
-          <app-project-members-list 
-            [projectId]="project()!.id"
-          ></app-project-members-list>
+          <app-project-members-list [projectId]="project()!.id"></app-project-members-list>
         }
       </div>
     </div>

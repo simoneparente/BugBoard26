@@ -13,12 +13,7 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 @Component({
   selector: 'app-issue',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    PaginationComponent,
-  ],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
   templateUrl: './issue.component.html',
 })
 export class IssueComponent implements OnInit, OnDestroy {
@@ -240,10 +235,6 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   editIssue(id: string): void {
     console.log('Edit issue:', id);
-  }
-
-  goToSettings(): void {
-    this.router.navigate(['/projects', this.projectId(), 'settings']);
   }
 
   deleteIssue(id: string): void {
