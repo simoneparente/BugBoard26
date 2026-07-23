@@ -1,5 +1,13 @@
 package it.unina.bugboard.bugboard_backend.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import it.unina.bugboard.bugboard_backend.dto.TagRequest;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
@@ -7,18 +15,12 @@ import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.Tag;
 import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.exception.TagDuplicateException;
 import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.repository.TagRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +64,7 @@ public class TagService {
 
         // 3. Avoid duplicates
         if (tagRepository.existsByNameAndProjectId(dto.getName(), dto.getProjectId())) {
-            throw new IllegalArgumentException(String.format("Tag '%s' already exists in this project", dto.getName()));
+            throw new TagDuplicateException(String.format("Tag '%s' already exists in this project", dto.getName()));
         }
 
         // 4. Build the entity
@@ -79,26 +81,27 @@ public class TagService {
 
     /**
      * Update an existing tag. Only ADMIN or project members can update tags.
+     * Authorization check is performed against the tag's actual project, not the DTO's project ID.
      */
     @Transactional
     public TagResponse updateTag(UUID tagId, TagRequest dto) {
-        // 1. Get current user and validate authorization
-        User currentUser = getCurrentUser();
-        validateUserIsMemberOrAdmin(currentUser, dto.getProjectId());
-
-        // 2. Retrieve the tag
+        // 1. Retrieve the tag first
         Tag existingTag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", tagId)));
 
-        // 3. Verify that the tag belongs to the project
+        // 2. Verify that the tag belongs to the requested project (prevents tag hijacking)
         if (!existingTag.getProject().getId().equals(dto.getProjectId())) {
             throw new IllegalArgumentException("Tag does not belong to the specified project");
         }
 
+        // 3. Get current user and validate authorization against the tag's actual project
+        User currentUser = getCurrentUser();
+        validateUserIsMemberOrAdmin(currentUser, existingTag.getProject().getId());
+
         // 4. Check for name duplicate (excluding current tag)
         if (!existingTag.getName().equals(dto.getName()) &&
                 tagRepository.existsByNameAndProjectId(dto.getName(), dto.getProjectId())) {
-            throw new IllegalArgumentException(String.format("Tag '%s' already exists in this project", dto.getName()));
+            throw new TagDuplicateException(String.format("Tag '%s' already exists in this project", dto.getName()));
         }
 
         // 5. Update the tag
@@ -112,6 +115,7 @@ public class TagService {
 
     /**
      * Delete a tag. Only ADMIN or project members can delete tags.
+     * Clears all issue associations before deletion to prevent foreign key constraint violations.
      */
     @Transactional
     public void deleteTag(UUID tagId) {
@@ -125,7 +129,10 @@ public class TagService {
         // 3. Validate authorization for this project
         validateUserIsMemberOrAdmin(currentUser, tag.getProject().getId());
 
-        // 4. Delete the tag
+        // 4. Remove all issue associations from the join table before deletion
+        tagRepository.removeTagFromAllIssues(tagId);
+
+        // 5. Delete the tag
         tagRepository.deleteById(tagId);
     }
 
