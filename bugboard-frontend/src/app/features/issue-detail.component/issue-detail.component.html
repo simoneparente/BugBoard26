@@ -389,96 +389,93 @@
               </span>
             </div>
 
-            <!-- Workflow Buttons -->
-            <p class="text-muted small mb-2">Available Actions:</p>
-            <div
-              class="d-grid gap-2"
-              [class.opacity-50]="isReadonly()"
-              [class.pe-none]="isReadonly()"
-            >
-              <!-- TO_DO -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
-              @if (item.status === 'TO_DO' || item.status === 'NEW' || item.status === 'OPEN') {
-                <button
-                  class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="
-                    isUpdatingStatus() ||
-                    isReadonly() ||
-                    !item.assigneeUsername ||
-                    item.assigneeUsername === 'Unassigned'
-                  "
-                  (click)="onStartProgress()"
-                >
-                  <i class="bi bi-play-circle-fill fs-6"></i> Start Progress
-                </button>
-                @if (!item.assigneeUsername || item.assigneeUsername === 'Unassigned') {
-                  <div class="text-danger small text-center mt-1">
-                    <i class="bi bi-info-circle me-1"></i> Assign a user above to start progress
-                  </div>
+            <!-- Workflow Buttons (hidden for read-only EXTERNAL users) -->
+            @if (!isReadonly()) {
+              <p class="text-muted small mb-2">Available Actions:</p>
+              <div class="d-grid gap-2">
+                <!-- TO_DO -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
+                @if (item.status === 'TO_DO' || item.status === 'NEW' || item.status === 'OPEN') {
+                  <button
+                    class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="
+                      isUpdatingStatus() ||
+                      !item.assigneeUsername ||
+                      item.assigneeUsername === 'Unassigned'
+                    "
+                    (click)="onStartProgress()"
+                  >
+                    <i class="bi bi-play-circle-fill fs-6"></i> Start Progress
+                  </button>
+                  @if (!item.assigneeUsername || item.assigneeUsername === 'Unassigned') {
+                    <div class="text-danger small text-center mt-1">
+                      <i class="bi bi-info-circle me-1"></i> Assign a user above to start progress
+                    </div>
+                  }
                 }
-              }
 
-              <!-- IN_PROGRESS -> MARKED_FOR_REVIEW (Target: Blue MARKED_FOR_REVIEW) -->
-              @if (item.status === 'IN_PROGRESS') {
-                <button
-                  class="btn btn-status-marked-for-review d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onAccept()"
-                >
-                  <i class="bi bi-send-fill fs-6"></i> Submit for Review
-                </button>
-              }
+                <!-- IN_PROGRESS -> MARKED_FOR_REVIEW (Target: Blue MARKED_FOR_REVIEW) -->
+                @if (item.status === 'IN_PROGRESS') {
+                  <button
+                    class="btn btn-status-marked-for-review d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onAccept()"
+                  >
+                    <i class="bi bi-send-fill fs-6"></i> Submit for Review
+                  </button>
+                }
 
-              <!-- MARKED_FOR_REVIEW -> COMPLETED (Target: Green COMPLETED) or NOT_FIXED (Target: Red NOT_FIXED) -->
-              @if (item.status === 'MARKED_FOR_REVIEW') {
-                <button
-                  class="btn btn-status-completed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onApprove()"
-                >
-                  <i class="bi bi-check-circle-fill fs-6"></i> Approve & Complete
-                </button>
-                <button
-                  class="btn btn-status-not-fixed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onRejectNotFixed()"
-                >
-                  <i class="bi bi-x-circle-fill fs-6"></i> Reject (Not Fixed)
-                </button>
-              }
+                <!-- MARKED_FOR_REVIEW -> COMPLETED (Target: Green COMPLETED) or NOT_FIXED (Target: Red NOT_FIXED) -->
+                @if (item.status === 'MARKED_FOR_REVIEW') {
+                  <button
+                    class="btn btn-status-completed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onApprove()"
+                  >
+                    <i class="bi bi-check-circle-fill fs-6"></i> Approve & Complete
+                  </button>
+                  <button
+                    class="btn btn-status-not-fixed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onRejectNotFixed()"
+                  >
+                    <i class="bi bi-x-circle-fill fs-6"></i> Reject (Not Fixed)
+                  </button>
+                }
 
-              <!-- NOT_FIXED -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
-              @if (item.status === 'NOT_FIXED') {
-                <button
-                  class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onStartProgress()"
-                >
-                  <i class="bi bi-arrow-repeat fs-6"></i> Re-open / Start Progress
-                </button>
-              }
+                <!-- NOT_FIXED -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
+                @if (item.status === 'NOT_FIXED') {
+                  <button
+                    class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onStartProgress()"
+                  >
+                    <i class="bi bi-arrow-repeat fs-6"></i> Re-open / Start Progress
+                  </button>
+                }
 
-              <!-- CLOSE ISSUE (Available for all active statuses except CLOSED and COMPLETED) -->
-              @if (item.status !== 'CLOSED' && item.status !== 'COMPLETED') {
-                <button
-                  class="btn btn-status-closed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-medium mt-1 shadow-sm"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onCloseIssue()"
-                >
-                  <i class="bi bi-x-square-fill"></i> Close Issue
-                </button>
-              }
+                <!-- CLOSE ISSUE (Available for all active statuses except CLOSED and COMPLETED) -->
+                @if (item.status !== 'CLOSED' && item.status !== 'COMPLETED') {
+                  <button
+                    class="btn btn-status-closed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-medium mt-1 shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onCloseIssue()"
+                  >
+                    <i class="bi bi-x-square-fill"></i> Close Issue
+                  </button>
+                }
 
-              <!-- ROLLBACK -->
-              @if (item.status !== 'TO_DO') {
-                <button
-                  class="btn btn-sm btn-link text-secondary text-decoration-none d-flex align-items-center justify-content-center gap-1 mt-1"
-                  [disabled]="isUpdatingStatus() || isReadonly()"
-                  (click)="onRollback()"
-                >
-                  <i class="bi bi-arrow-counterclockwise"></i> Rollback to previous state
-                </button>
-              }
-            </div>
+                <!-- ROLLBACK -->
+                @if (item.status !== 'TO_DO') {
+                  <button
+                    class="btn btn-sm btn-link text-secondary text-decoration-none d-flex align-items-center justify-content-center gap-1 mt-1"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onRollback()"
+                  >
+                    <i class="bi bi-arrow-counterclockwise"></i> Rollback to previous state
+                  </button>
+                }
+              </div>
+            }
 
             @if (isUpdatingStatus()) {
               <div class="mt-2 text-center text-muted small">
