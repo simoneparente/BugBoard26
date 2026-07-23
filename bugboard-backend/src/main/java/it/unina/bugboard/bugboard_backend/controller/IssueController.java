@@ -8,6 +8,7 @@ import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,15 +43,10 @@ public class IssueController {
     public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
             @RequestParam(required = false, defaultValue = "ALL") String status,
             @RequestParam(required = false, defaultValue = "ALL") String priority, Pageable pageable) {
-        System.out.println("\n==============================================");
-        System.out.println("📩 [2. Controller] Richiesta ricevuta per Project ID: " + projectId);
 
         Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, pageable)
                 .map(this::mapToResponseDTO);
         
-        System.out.println(
-                "📤 [4. Controller] Restituisco risposta con elementi.");
-        System.out.println("==============================================\n");
         return ResponseEntity.ok(issues);
     }
 
@@ -61,7 +57,7 @@ public class IssueController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<IssueResponse> setStatus(@PathVariable UUID id, @RequestParam it.unina.bugboard.bugboard_backend.entity.IssueStatus status) {
+    public ResponseEntity<IssueResponse> setStatus(@PathVariable UUID id, @RequestParam IssueStatus status) {
         Issue issue = issueService.setStatus(id, status);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
