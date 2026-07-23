@@ -83,7 +83,7 @@ export class ProjectComponent implements OnInit {
     });
   }
 
-  public deleteProject(projectId: string, event?: Event): void {
+  public deleteProject(projectKey: string, event?: Event): void {
     // Prevent click propagation to parent routerLink
     if (event) {
       event.stopPropagation();
@@ -96,15 +96,15 @@ export class ProjectComponent implements OnInit {
       confirmButtonText: 'Delete Project',
       cancelButtonText: 'Keep Project',
       isDangerous: true,
-      onConfirm: () => this.performDelete(projectId),
+      onConfirm: () => this.performDelete(projectKey),
     });
   }
 
-  private performDelete(projectId: string): void {
+  private performDelete(projectKey: string): void {
     // Optimistic update: remove from UI immediately
     const currentProjects = this.projects();
     if (currentProjects) {
-      const updatedContent = currentProjects.content.filter((p) => p.id !== projectId);
+      const updatedContent = currentProjects.content.filter((p) => p.key !== projectKey);
       this.projects.set({
         ...currentProjects,
         content: updatedContent,
@@ -112,7 +112,7 @@ export class ProjectComponent implements OnInit {
       });
     }
 
-    this.projectService.delete(projectId).subscribe({
+    this.projectService.delete(projectKey).subscribe({
       next: () => {
         this.notificationService.showSuccess(
           'Project Deleted',
