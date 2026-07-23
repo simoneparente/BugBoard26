@@ -22,7 +22,7 @@
         <button
           class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
-          [routerLink]="['/projects', projectId, 'tags']"
+          [routerLink]="['/projects', projectId(), 'tags']"
         >
           <i class="bi bi-tags"></i> Manage Tags
         </button>
@@ -31,7 +31,7 @@
         <button
           class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
-          [routerLink]="['/projects', projectId, 'report']"
+          [routerLink]="['/projects', projectId(), 'report']"
         >
           <i class="bi bi-file-earmark-bar-graph"></i> View Report
         </button>
@@ -40,7 +40,7 @@
         <button
           class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
-          [routerLink]="['/projects', projectId, 'issues', 'create']"
+          [routerLink]="['/projects', projectId(), 'issues', 'create']"
         >
           <i class="bi bi-plus-lg"></i> New Issue
         </button>
@@ -197,7 +197,7 @@
               <td class="fw-medium text-break" style="max-width: 250px">
                 <a
                   class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
-                  [routerLink]="['/projects', projectId, 'issues', issue.id]"
+                  [routerLink]="['/projects', projectId(), 'issues', issue.id]"
                 >
                   {{ issue.title }}
                 </a>
