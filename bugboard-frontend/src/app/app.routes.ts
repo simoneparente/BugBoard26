@@ -8,6 +8,7 @@ import { DashboardComponent } from './features/dashboard.component/dashboard.com
 import { RegisterComponent } from './features/register.component/register.component';
 import { ProjectComponent } from './features/project.component/project.component';
 import { ReportComponent } from './features/report.component/report.component';
+import { TagManagementComponent } from './features/tag-management.component/tag-management.component';
 import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
@@ -61,6 +62,16 @@ export const routes: Routes = [
         path: 'projects/create',
         component: CreateProjectComponent,
         title: 'BugBoard26 - Create Project',
+      },
+      {
+        path: 'projects/:projectId/tags',
+        component: TagManagementComponent,
+        title: 'BugBoard26 - Tag Management',
+      },
+      {
+        path: 'projects/:projectId/tags',
+        component: TagManagementComponent,
+        title: 'BugBoard26 - Tag Management',
       },
       {
         path: 'projects/:projectId/report',

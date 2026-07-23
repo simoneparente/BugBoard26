@@ -4,3 +4,9 @@ export interface TagResponse {
   color: string;
   projectId: string;
 }
+
+export interface TagRequest {
+  name: string;
+  color: string;
+  projectId: string;
+}

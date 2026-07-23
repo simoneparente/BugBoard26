@@ -111,7 +111,7 @@ public class IssueController {
                                 .id(tag.getId())
                                 .name(tag.getName())
                                 .color(tag.getColor())
-                                .projectId(tag.getProject() != null ? tag.getProject().getId() : null)
+                                .projectId(tag.getProject().getId())
                                 .build())
                         .toList())
                 .attachments(issue.getAttachments().stream()
