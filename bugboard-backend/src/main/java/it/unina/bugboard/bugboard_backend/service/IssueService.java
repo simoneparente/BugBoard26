@@ -53,6 +53,9 @@ public class IssueService {
             assignee = userRepository.findByUsername(request.getAssigneeUsername())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Assignee not found with username: " + request.getAssigneeUsername()));
+            if (assignee.getRole() == Role.EXTERNAL) {
+                throw new OperationNotAllowedException("Cannot assign an issue to an EXTERNAL user.");
+            }
         }
 
         Issue issue = Issue.builder()
@@ -95,6 +98,10 @@ public class IssueService {
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        if (user.getRole() == Role.EXTERNAL) {
+            throw new OperationNotAllowedException("Cannot assign an issue to an EXTERNAL user.");
+        }
 
         issue.setAssignee(user);
         issueRepository.save(issue);
