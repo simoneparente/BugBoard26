@@ -140,6 +140,147 @@ class AttachmentControllerTest {
 
         mockMvc.perform(get("/api/attachments/{id}/view", attachmentId))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Disposition", "inline; filename=\"" + TEST_FILE_NAME + "\""));
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"" + TEST_FILE_NAME + "\""))
+                .andExpect(header().string("Content-Type", "text/plain"));
+    }
+
+    @Test
+    void viewAttachment_DetectsVariousMimeTypes() throws Exception {
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource("content".getBytes());
+
+        String[] filenames = {"image.png", "photo.jpg", "photo.jpeg", "anim.gif", "vector.svg", "doc.pdf", "unknown.bin"};
+        String[] expectedMime = {"image/png", "image/jpeg", "image/jpeg", "image/gif", "image/svg+xml", "application/pdf", "application/octet-stream"};
+
+        for (int i = 0; i < filenames.length; i++) {
+            UUID id = UUID.randomUUID();
+            AttachmentResponse response = AttachmentResponse.builder().id(id).fileName(filenames[i]).filePath("uploads/" + filenames[i]).build();
+            when(attachmentService.getAttachmentById(id)).thenReturn(response);
+            when(attachmentService.loadFileAsResource(id)).thenReturn(resource);
+
+            mockMvc.perform(get("/api/attachments/{id}/view", id))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Content-Type", expectedMime[i]));
+        }
+    }
+
+    @Test
+    void viewAttachment_HandlesNullFileName() throws Exception {
+        org.springframework.core.io.Resource resource = new org.springframework.core.io.ByteArrayResource("content".getBytes());
+        UUID id = UUID.randomUUID();
+        AttachmentResponse response = AttachmentResponse.builder().id(id).fileName(null).filePath("uploads/nullfile").build();
+        when(attachmentService.getAttachmentById(id)).thenReturn(response);
+        when(attachmentService.loadFileAsResource(id)).thenReturn(resource);
+
+        mockMvc.perform(get("/api/attachments/{id}/view", id))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/octet-stream"));
+    }
+
+    @Test
+    void getUploadUrl_HandlesNullResponse() throws Exception {
+        when(azureStorageService.generateUploadSasUrl("test.txt")).thenReturn(null);
+
+        mockMvc.perform(post("/api/attachments/generate-upload-url")
+                        .param("fileName", "test.txt"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getUploadUrl_HandlesNullUploadUrl() throws Exception {
+        SasTokenResponse response = new SasTokenResponse(null, "test.txt");
+        when(azureStorageService.generateUploadSasUrl("test.txt")).thenReturn(response);
+
+        mockMvc.perform(post("/api/attachments/generate-upload-url")
+                        .param("fileName", "test.txt"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.blobFileName").value("test.txt"));
+    }
+
+    @Test
+    void downloadAttachment_HandlesNullSasUrl_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn(null);
+
+        mockMvc.perform(get("/api/attachments/{id}/download", attachmentId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void viewAttachment_HandlesNullSasUrl_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn(null);
+
+        mockMvc.perform(get("/api/attachments/{id}/view", attachmentId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getUploadUrl_MapsDockerInternalAzuriteUrlToHostPort() throws Exception {
+        SasTokenResponse response = new SasTokenResponse("http://azurite:10000/attachments/test.txt?sas", "test.txt");
+        when(azureStorageService.generateUploadSasUrl("test.txt")).thenReturn(response);
+
+        mockMvc.perform(post("/api/attachments/generate-upload-url")
+                        .param("fileName", "test.txt"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uploadUrl").value("http://127.0.0.1:10001/attachments/test.txt?sas"))
+                .andExpect(jsonPath("$.blobFileName").value("test.txt"));
+    }
+
+    @Test
+    void downloadAttachment_RedirectsToAzureSasUrl_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn("http://azurite:10000/attachments/test.txt?sas");
+
+        mockMvc.perform(get("/api/attachments/{id}/download", attachmentId))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "http://127.0.0.1:10001/attachments/test.txt?sas"));
+    }
+
+    @Test
+    void viewAttachment_RedirectsToAzureSasUrl_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn("https://bugboard26.blob.core.windows.net/attachments/test.txt?sas");
+
+        mockMvc.perform(get("/api/attachments/{id}/view", attachmentId))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://bugboard26.blob.core.windows.net/attachments/test.txt?sas"));
+    }
+
+    @Test
+    void getUploadUrl_LeavesRealAzureUrlIntact() throws Exception {
+        SasTokenResponse response = new SasTokenResponse("https://bugboard26.blob.core.windows.net/attachments/test.txt?sas", "test.txt");
+        when(azureStorageService.generateUploadSasUrl("test.txt")).thenReturn(response);
+
+        mockMvc.perform(post("/api/attachments/generate-upload-url")
+                        .param("fileName", "test.txt"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uploadUrl").value("https://bugboard26.blob.core.windows.net/attachments/test.txt?sas"))
+                .andExpect(jsonPath("$.blobFileName").value("test.txt"));
+    }
+
+    @Test
+    void viewAttachment_RedirectsToAzuriteHostPort_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn("http://azurite:10000/attachments/test.txt?sas");
+
+        mockMvc.perform(get("/api/attachments/{id}/view", attachmentId))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "http://127.0.0.1:10001/attachments/test.txt?sas"));
+    }
+
+    @Test
+    void downloadAttachment_LeavesRealAzureUrlIntact_WhenLocalFileMissing() throws Exception {
+        when(attachmentService.getAttachmentById(attachmentId)).thenReturn(dummyResponse);
+        when(attachmentService.loadFileAsResource(attachmentId)).thenThrow(new it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException("File not found on disk"));
+        when(azureStorageService.generateDownloadSasUrl(dummyResponse.filePath())).thenReturn("https://bugboard26.blob.core.windows.net/attachments/test.txt?sas");
+
+        mockMvc.perform(get("/api/attachments/{id}/download", attachmentId))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://bugboard26.blob.core.windows.net/attachments/test.txt?sas"));
     }
 }

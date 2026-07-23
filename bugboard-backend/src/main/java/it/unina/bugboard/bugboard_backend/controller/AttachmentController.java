@@ -73,6 +73,9 @@ public class AttachmentController {
             if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
                 sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
             }
+            if (sasUrl == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
             return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
         }
     }
@@ -106,6 +109,9 @@ public class AttachmentController {
             String sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
             if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
                 sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
+            }
+            if (sasUrl == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
         }
