@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { IssueService } from '../../core/services/issue.service';
+import { ProjectService } from '../../core/services/project.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -18,13 +19,13 @@ import { AuthService } from '../../core/auth/auth-service';
 })
 export class IssueComponent implements OnInit, OnDestroy {
   private readonly issueService = inject(IssueService);
+  private readonly projectService = inject(ProjectService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly authService = inject(AuthService);
 
   /** True when the current user has EXTERNAL (read-only) role. Used in the template to hide write controls. */
   readonly isReadonly = this.authService.isReadonly;
-
 
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
@@ -34,6 +35,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   pageSize = signal<number>(10);
 
   @Input() projectId!: string;
+  projectName = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
@@ -54,6 +56,13 @@ export class IssueComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.projectId) {
       this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    }
+
+    if (this.projectId) {
+      this.projectService.getById(this.projectId).subscribe({
+        next: (project: any) => this.projectName.set(project.name),
+        error: (err: any) => console.error('Failed to load project details', err),
+      });
     }
 
     this.searchSubscription = this.searchSubject
