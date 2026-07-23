@@ -295,6 +295,52 @@ class ProjectServiceTest {
             assertEquals("user1", recommendations.get(1).getUser().getUsername());
             assertEquals(4, recommendations.get(1).getWorkloadScore());
         }
+
+        @Test
+        void getRecommendedAssignees_EmptyOrNullMembers_ReturnsEmptyList() {
+            dummyProject.setMembers(List.of());
+            when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
+
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectId);
+
+            assertNotNull(recommendations);
+            assertEquals(0, recommendations.size());
+
+            dummyProject.setMembers(null);
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> nullMembersRecs = projectService.getRecommendedAssignees(projectId);
+            assertNotNull(nullMembersRecs);
+            assertEquals(0, nullMembersRecs.size());
+        }
+
+        @Test
+        void getRecommendedAssignees_IssueWithNullPriorityAndNullAssignee() {
+            User user1 = User.builder().id(UUID.randomUUID()).username("user1").role(Role.TECHNICAL).build();
+            dummyProject.setMembers(List.of(user1));
+            when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
+
+            it.unina.bugboard.bugboard_backend.entity.Issue nullPriorityIssue = it.unina.bugboard.bugboard_backend.entity.Issue.builder()
+                    .assignee(user1)
+                    .priority(null)
+                    .status(it.unina.bugboard.bugboard_backend.entity.IssueStatus.IN_PROGRESS)
+                    .build();
+
+            it.unina.bugboard.bugboard_backend.entity.Issue unassignedIssue = it.unina.bugboard.bugboard_backend.entity.Issue.builder()
+                    .assignee(null)
+                    .priority(it.unina.bugboard.bugboard_backend.entity.IssuePriority.HIGH)
+                    .status(it.unina.bugboard.bugboard_backend.entity.IssueStatus.IN_PROGRESS)
+                    .build();
+
+            when(issueRepository.findByProjectIdAndStatusNotIn(eq(projectId), any()))
+                    .thenReturn(List.of(nullPriorityIssue, unassignedIssue));
+
+            when(userMapper.toResponse(user1)).thenReturn(it.unina.bugboard.bugboard_backend.dto.UserResponse.builder().id(user1.getId()).username("user1").build());
+
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectId);
+
+            assertNotNull(recommendations);
+            assertEquals(1, recommendations.size());
+            assertEquals(1, recommendations.get(0).getWorkloadScore());
+        }
     }
 
     @Nested
