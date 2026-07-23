@@ -116,23 +116,8 @@ export class IssueComponent implements OnInit {
   }
 
   getPriorityStyle(priority: string): string {
-    if (!priority) return 'bg-light text-secondary border';
-
-    const p = priority.toLowerCase();
-    switch (p) {
-      case 'highest':
-        return 'bg-danger text-white border-danger';
-      case 'high':
-        return 'bg-danger-subtle text-danger border-danger';
-      case 'medium':
-        return 'bg-warning-subtle text-warning border-warning';
-      case 'low':
-        return 'bg-success-subtle text-success border-success';
-      case 'lowest':
-        return 'bg-info-subtle text-info border-info';
-      default:
-        return 'bg-light text-secondary border';
-    }
+    if (!priority) return 'priority-lowest';
+    return `priority-${priority.toLowerCase()}`;
   }
 
   getStatusLabel(status: string): string {

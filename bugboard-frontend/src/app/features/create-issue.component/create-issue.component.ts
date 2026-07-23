@@ -62,11 +62,11 @@ export class CreateIssueComponent implements OnInit {
   selectedTags: TagResponse[] = [];
 
   priorities = [
-    { value: 'LOWEST', label: 'Lowest', class: 'priority-lowest' },
-    { value: 'LOW', label: 'Low', class: 'priority-low' },
-    { value: 'MEDIUM', label: 'Medium', class: 'priority-medium' },
-    { value: 'HIGH', label: 'High', class: 'priority-high' },
-    { value: 'HIGHEST', label: 'Highest', class: 'priority-highest' },
+    { value: 'LOWEST', label: 'Lowest', class: 'priority-lowest', icon: 'bi-chevron-double-down' },
+    { value: 'LOW', label: 'Low', class: 'priority-low', icon: 'bi-chevron-down' },
+    { value: 'MEDIUM', label: 'Medium', class: 'priority-medium', icon: 'bi-dash-lg' },
+    { value: 'HIGH', label: 'High', class: 'priority-high', icon: 'bi-chevron-up' },
+    { value: 'HIGHEST', label: 'Highest', class: 'priority-highest', icon: 'bi-chevron-double-up' },
   ];
 
   types = [

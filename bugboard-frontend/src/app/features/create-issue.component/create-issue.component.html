@@ -132,9 +132,10 @@
                 (click)="isPriorityDropdownOpen = !isPriorityDropdownOpen"
               >
                 <span
-                  class="badge rounded-pill px-3 py-1.5 fw-bold"
+                  class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
                   [ngClass]="currentPriorityObj.class"
                 >
+                  <i class="bi" [ngClass]="currentPriorityObj.icon"></i>
                   {{ currentPriorityObj.label }}
                 </span>
                 <i class="bi bi-chevron-down text-muted small ms-2"></i>
@@ -149,7 +150,11 @@
                       class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
                       (click)="selectPriority(p.value)"
                     >
-                      <span class="badge rounded-pill px-3 py-1.5 fw-bold" [ngClass]="p.class">
+                      <span
+                        class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
+                        [ngClass]="p.class"
+                      >
+                        <i class="bi" [ngClass]="p.icon"></i>
                         {{ p.label }}
                       </span>
                       @if (issueForm.get('priority')?.value === p.value) {
