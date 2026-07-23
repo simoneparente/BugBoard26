@@ -53,6 +53,7 @@ export class ApiService {
       projectId: string,
       status: string = 'ALL',
       priority: string = 'ALL',
+      search: string = '',
       page: number = 0,
       size: number = 20,
       sortField: string = 'createdAt',
@@ -68,8 +69,9 @@ export class ApiService {
       if (priority && priority !== 'ALL') {
         params = params.set('priority', priority);
       }
-
-      const url = `${this.baseUrl}/projects/${projectId}/issues`;
+      if (search && search.trim() !== '') {
+        params = params.set('search', search.trim());
+      }
 
       return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
         params,

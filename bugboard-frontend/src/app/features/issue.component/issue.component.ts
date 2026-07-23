@@ -1,7 +1,9 @@
-import { Component, inject, OnInit, signal, computed, Input } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
@@ -13,10 +15,13 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
   imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
   templateUrl: './issue.component.html',
 })
-export class IssueComponent implements OnInit {
+export class IssueComponent implements OnInit, OnDestroy {
   private readonly issueService = inject(IssueService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  private readonly searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   // Paginazione
   currentPage = signal<number>(0);
@@ -35,6 +40,7 @@ export class IssueComponent implements OnInit {
   // Filtri e ordinamento
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
+  searchQuery = signal<string>('');
   isLoading = signal<boolean>(false);
   sortField = signal<string>('title');
   sortDirection = signal<'asc' | 'desc'>('asc');
@@ -44,9 +50,42 @@ export class IssueComponent implements OnInit {
       this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
     }
 
+    this.searchSubscription = this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          this.isLoading.set(true);
+          return this.issueService.getIssuesByProject(
+            this.projectId,
+            this.statusFilter(),
+            this.priorityFilter(),
+            query,
+            this.currentPage(),
+            this.pageSize(),
+            this.sortField() || 'title',
+            this.sortDirection(),
+          );
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.issuesPage.set(response);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load issues', error);
+          this.isLoading.set(false);
+        },
+      });
+
     if (this.projectId) {
       this.loadIssues();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
   }
 
   loadIssues(): void {
@@ -59,6 +98,7 @@ export class IssueComponent implements OnInit {
         this.projectId,
         this.statusFilter(),
         this.priorityFilter(),
+        this.searchQuery(),
         this.currentPage(),
         this.pageSize(),
         this.sortField() || 'title',
@@ -77,6 +117,23 @@ export class IssueComponent implements OnInit {
   }
 
   // UI ACTIONS
+
+  onSearchInput(query: string): void {
+    this.searchQuery.set(query);
+    this.currentPage.set(0);
+    this.searchSubject.next(query);
+  }
+
+  onSearchEnter(): void {
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
 
   onPageChange(newPage: number): void {
     this.currentPage.set(newPage);

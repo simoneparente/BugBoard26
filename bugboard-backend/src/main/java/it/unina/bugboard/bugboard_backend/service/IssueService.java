@@ -178,19 +178,17 @@ public class IssueService {
 
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, Pageable pageable) {
+        return getIssuesByProjectId(projectId, status, priority, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, String search, Pageable pageable) {
         System.out.println("⚙️ [3. Service] Inizio elaborazione filtri...");
         IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
         IssuePriority priorityEnum = parseEnum(IssuePriority.class, priority);
+        String searchPattern = (search != null && !search.isBlank()) ? "%" + search.trim().toLowerCase() + "%" : null;
 
-        if (statusEnum != null && priorityEnum != null) {
-            return issueRepository.findByProjectIdAndStatusAndPriority(projectId, statusEnum, priorityEnum, pageable);
-        } else if (statusEnum != null) {
-            return issueRepository.findByProjectIdAndStatus(projectId, statusEnum, pageable);
-        } else if (priorityEnum != null) {
-            return issueRepository.findByProjectIdAndPriority(projectId, priorityEnum, pageable);
-        } else {
-            return issueRepository.findByProjectId(projectId, pageable);
-        }
+        return issueRepository.findByProjectIdAndFilters(projectId, statusEnum, priorityEnum, searchPattern, pageable);
     }
 
     @Transactional

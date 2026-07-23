@@ -41,16 +41,13 @@ public class IssueController {
     @GetMapping
     public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
             @RequestParam(required = false, defaultValue = "ALL") String status,
-            @RequestParam(required = false, defaultValue = "ALL") String priority, Pageable pageable) {
-        System.out.println("\n==============================================");
-        System.out.println("📩 [2. Controller] Richiesta ricevuta per Project ID: " + projectId);
+            @RequestParam(required = false, defaultValue = "ALL") String priority,
+            @RequestParam(required = false) String search, Pageable pageable) {
+       
 
-        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, pageable)
+        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, search, pageable)
                 .map(this::mapToResponseDTO);
         
-        System.out.println(
-                "📤 [4. Controller] Restituisco risposta con elementi.");
-        System.out.println("==============================================\n");
         return ResponseEntity.ok(issues);
     }
 
