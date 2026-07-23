@@ -49,6 +49,7 @@ export class CreateIssueComponent implements OnInit {
   submitted = false;
   showError = false;
   isLoadingTags = true;
+  isSubmitting = false;
 
   isTagDropdownOpen = false;
   isPriorityDropdownOpen = false;
@@ -177,6 +178,10 @@ export class CreateIssueComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.isSubmitting) {
+      return;
+    }
+
     this.submitted = true;
     this.showError = false;
 
@@ -185,6 +190,7 @@ export class CreateIssueComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting = true;
     const projectId = this.projectId;
     const payload = {
       ...this.issueForm.value,
@@ -202,8 +208,10 @@ export class CreateIssueComponent implements OnInit {
               this.notificationService.showSuccess('Success', 'Issue created with attachments!');
               this.router.navigate(['/projects', projectId, 'issues', response.id]);
             },
-            error: () =>
-              this.notificationService.showError('Upload Error', 'Failed to upload attachments.'),
+            error: () => {
+              this.notificationService.showError('Upload Error', 'Failed to upload attachments.');
+              this.isSubmitting = false;
+            },
           });
         } else {
           this.notificationService.showSuccess('Success', 'Issue created successfully!');
@@ -212,6 +220,7 @@ export class CreateIssueComponent implements OnInit {
       },
       error: () => {
         this.showError = true;
+        this.isSubmitting = false;
       },
     });
   }

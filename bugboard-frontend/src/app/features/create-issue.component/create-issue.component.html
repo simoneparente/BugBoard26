@@ -331,7 +331,18 @@
       >
         Cancel
       </button>
-      <button type="submit" class="btn btn-primary fw-bold px-5 shadow">Create Issue</button>
+      <button type="submit" class="btn btn-primary fw-bold px-5 shadow" [disabled]="isSubmitting">
+        @if (isSubmitting) {
+          <span
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Creating...
+        } @else {
+          Create Issue
+        }
+      </button>
     </div>
   </form>
 </div>
