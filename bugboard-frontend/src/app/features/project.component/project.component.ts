@@ -4,14 +4,16 @@ import { Page } from '../../core/page.model';
 import { ProjectResponse } from '../../core/project.model';
 import { AuthService } from '../../core/auth/auth-service';
 import { ProjectService } from '../../core/services/project.service';
+import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { RouterModule } from '@angular/router';
-import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-project',
   standalone: true,
-  imports: [CommonModule, RouterModule, PaginationComponent],
+  imports: [CommonModule, RouterModule, PaginationComponent, ConfirmationModalComponent],
   templateUrl: './project.component.html',
   styleUrl: './project.component.scss',
 })
@@ -19,6 +21,7 @@ export class ProjectComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
+  private readonly confirmService = inject(ConfirmationModalService);
   private readonly pageSize: number = 9;
 
   // Pagination state
@@ -80,10 +83,35 @@ export class ProjectComponent implements OnInit {
     });
   }
 
-  public deleteProject(projectId: string): void {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
+  public deleteProject(projectId: string, event?: Event): void {
+    // Prevent click propagation to parent routerLink
+    if (event) {
+      event.stopPropagation();
     }
+
+    this.confirmService.open({
+      title: 'Delete Project',
+      message:
+        'Are you sure you want to delete this project? This action cannot be undone. All associated issues and tags will be lost.',
+      confirmButtonText: 'Delete Project',
+      cancelButtonText: 'Keep Project',
+      isDangerous: true,
+      onConfirm: () => this.performDelete(projectId),
+    });
+  }
+
+  private performDelete(projectId: string): void {
+    // Optimistic update: remove from UI immediately
+    const currentProjects = this.projects();
+    if (currentProjects) {
+      const updatedContent = currentProjects.content.filter((p) => p.id !== projectId);
+      this.projects.set({
+        ...currentProjects,
+        content: updatedContent,
+        totalElements: currentProjects.totalElements - 1,
+      });
+    }
+
     this.projectService.delete(projectId).subscribe({
       next: () => {
         this.notificationService.showSuccess(

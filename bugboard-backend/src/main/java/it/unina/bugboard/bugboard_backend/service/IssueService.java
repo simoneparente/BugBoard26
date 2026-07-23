@@ -17,6 +17,7 @@ import java.util.Objects;
 
 import java.util.List;
 import java.util.UUID;
+
 @Service
 @AllArgsConstructor
 public class IssueService {
@@ -34,28 +35,28 @@ public class IssueService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found."));
 
-                
-
         List<TagResponse> tagResponses = request.getTags();
         List<Tag> tags = tagResponses == null || tagResponses.isEmpty()
-            ? List.of()
-            : tagResponses.stream()
-                .filter(Objects::nonNull)
-                .map(tagResponse -> Tag.builder()
-                    .id(tagResponse.getId())
-                    .name(tagResponse.getName())
-                    .color(tagResponse.getColor())
-                    .project(project)
-                    .build()
-                )
-                .toList();
+                ? List.of()
+                : tagResponses.stream()
+                        .filter(Objects::nonNull)
+                        .map(tagResponse -> Tag.builder()
+                                .id(tagResponse.getId())
+                                .name(tagResponse.getName())
+                                .color(tagResponse.getColor())
+                                .project(project)
+                                .build())
+                        .toList();
 
         User assignee = null;
         if (request.getAssigneeUsername() != null) {
             assignee = userRepository.findByUsername(request.getAssigneeUsername())
-                    .orElseThrow(() -> new ResourceNotFoundException("Assignee not found with username: " + request.getAssigneeUsername()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Assignee not found with username: " + request.getAssigneeUsername()));
+            if (assignee.getRole() == Role.EXTERNAL) {
+                throw new OperationNotAllowedException("Cannot assign an issue to an EXTERNAL user.");
+            }
         }
-
 
         Issue issue = Issue.builder()
                 .title(request.getTitle())
@@ -66,9 +67,10 @@ public class IssueService {
                 .status(request.getStatus() != null ? request.getStatus() : IssueStatus.TO_DO)
                 .tags(tags)
                 .assignee(assignee)
-                .attachments(List.of()) //Issue is created without attachments; they will be added after the issue is saved
+                .attachments(List.of()) // Issue is created without attachments; they will be added after the issue is
+                                        // saved
                 .build();
-            
+
         Issue savedIssue = issueRepository.save(issue);
 
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
@@ -91,8 +93,15 @@ public class IssueService {
     public Issue assignIssueToUser(UUID issueId, UUID userId) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
+        if (issue.getStatus() == IssueStatus.CLOSED) {
+            throw new OperationNotAllowedException("Cannot assign a user to a CLOSED issue.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        if (user.getRole() == Role.EXTERNAL) {
+            throw new OperationNotAllowedException("Cannot assign an issue to an EXTERNAL user.");
+        }
 
         issue.setAssignee(user);
         issueRepository.save(issue);
@@ -103,14 +112,19 @@ public class IssueService {
     public Issue setStatus(UUID issueId, IssueStatus newStatus) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
-        
-        if(!isIssueAssigned(issue) && newStatus == IssueStatus.IN_PROGRESS) {
+
+        if (!isIssueAssigned(issue) && newStatus == IssueStatus.IN_PROGRESS) {
             throw new OperationNotAllowedException("Cannot set status to IN_PROGRESS for an unassigned issue.");
+        }
+        if (issue.getStatus() == IssueStatus.COMPLETED && newStatus == IssueStatus.CLOSED) {
+            throw new OperationNotAllowedException("Cannot close a COMPLETED issue.");
+        }
+        if (newStatus == IssueStatus.TO_DO || newStatus == IssueStatus.CLOSED) {
+            issue.setAssignee(null);
         }
         issue.setStatus(newStatus);
         return issueRepository.save(issue);
     }
-
 
     @Transactional
     public Issue startIssueProgress(UUID issueId) {
@@ -140,19 +154,27 @@ public class IssueService {
             case MARKED_FOR_REVIEW -> IssueStatus.IN_PROGRESS;
             case NOT_FIXED -> IssueStatus.IN_PROGRESS;
             case COMPLETED -> IssueStatus.MARKED_FOR_REVIEW;
-            case CLOSED -> IssueStatus.COMPLETED;
+            case CLOSED -> IssueStatus.TO_DO;
             default -> throw new OperationNotAllowedException("Cannot rollback from status: " + issue.getStatus());
         };
+        if (previous == IssueStatus.TO_DO) {
+            issue.setAssignee(null);
+        }
         issue.setStatus(previous);
         return issueRepository.save(issue);
     }
 
     @Transactional
-    public Issue removeIssueAssignee(UUID issueId){
+    public Issue removeIssueAssignee(UUID issueId) {
         Issue issue = issueRepository.findById(issueId)
-                        .orElseThrow(()-> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
+                .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
+
+        if (issue.getStatus() == IssueStatus.COMPLETED) {
+            throw new OperationNotAllowedException("Cannot remove assignee from a COMPLETED issue.");
+        }
 
         issue.setAssignee(null);
+        issue.setStatus(IssueStatus.TO_DO);
         return issueRepository.save(issue);
     }
 
@@ -179,8 +201,18 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Issue> getIssuesByProjectId(UUID projectId, Pageable pageable) {
-        return issueRepository.findByProjectId(projectId, pageable);
+    public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, Pageable pageable) {
+        return getIssuesByProjectId(projectId, status, priority, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Issue> getIssuesByProjectId(UUID projectId, String status, String priority, String search, Pageable pageable) {
+        System.out.println("⚙️ [3. Service] Inizio elaborazione filtri...");
+        IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
+        IssuePriority priorityEnum = parseEnum(IssuePriority.class, priority);
+        String searchPattern = (search != null && !search.isBlank()) ? "%" + search.trim().toLowerCase() + "%" : null;
+
+        return issueRepository.findByProjectIdAndFilters(projectId, statusEnum, priorityEnum, searchPattern, pageable);
     }
 
     @Transactional
@@ -208,5 +240,16 @@ public class IssueService {
     private boolean isIssueAssigned(Issue issue) {
         return issue.getAssignee() != null;
     }
+
+    private <T extends Enum<T>> T parseEnum(Class<T> enumType, String value) {
+    if (value == null || value.isBlank() || value.equalsIgnoreCase("ALL")) {
+        return null;
+    }
+    try {
+        return Enum.valueOf(enumType, value.toUpperCase());
+    } catch (IllegalArgumentException e) {
+        return null;
+    }
+}
 
 }

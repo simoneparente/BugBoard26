@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { IssueService } from '../../core/services/issue.service';
+import { ProjectService } from '../../core/services/project.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -18,14 +21,21 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
   ],
   templateUrl: './issue.component.html',
 })
-export class IssueComponent implements OnInit {
+export class IssueComponent implements OnInit, OnDestroy {
   private readonly issueService = inject(IssueService);
+  private readonly projectService = inject(ProjectService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  private readonly searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   // Paginazione
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
+
+  @Input() projectId!: string;
+  projectName = signal<string>('');
   readonly projectId = signal<string>('');
 
   // Dati paginati dal backend
@@ -39,39 +49,107 @@ export class IssueComponent implements OnInit {
   // Filtri e ordinamento
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
+  searchQuery = signal<string>('');
   isLoading = signal<boolean>(false);
-  sortField = signal<string>('');
+  sortField = signal<string>('title');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   ngOnInit(): void {
-    const projectId = this.route.snapshot.paramMap.get('projectId');
-    if (projectId) {
-      this.projectId.set(projectId);
+    if (!this.projectId) {
+      this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    }
+
+    if (this.projectId) {
+      this.projectService.getById(this.projectId).subscribe({
+        next: (project) => this.projectName.set(project.name),
+        error: (err) => console.error('Failed to load project details', err),
+      });
+    }
+
+    this.searchSubscription = this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          this.isLoading.set(true);
+          return this.issueService.getIssuesByProject(
+            this.projectId,
+            this.statusFilter(),
+            this.priorityFilter(),
+            query,
+            this.currentPage(),
+            this.pageSize(),
+            this.sortField() || 'title',
+            this.sortDirection(),
+          );
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.issuesPage.set(response);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load issues', error);
+          this.isLoading.set(false);
+        },
+      });
+
+    if (this.projectId) {
       this.loadIssues();
     }
   }
 
-  loadIssues(): void {
-    const projectId = this.projectId();
-    if (!projectId) return;
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
+  }
 
+  loadIssues(): void {
     this.isLoading.set(true);
     const page = this.currentPage();
     const size = this.pageSize();
 
-    this.issueService.getIssuesByProject(projectId, page, size).subscribe({
-      next: (response) => {
-        this.issuesPage.set(response);
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Failed to load issues', error);
-        this.isLoading.set(false);
-      },
-    });
+    this.issueService
+      .getIssuesByProject(
+        this.projectId,
+        this.statusFilter(),
+        this.priorityFilter(),
+        this.searchQuery(),
+        this.currentPage(),
+        this.pageSize(),
+        this.sortField() || 'title',
+        this.sortDirection(),
+      )
+      .subscribe({
+        next: (response) => {
+          this.issuesPage.set(response);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load issues', error);
+          this.isLoading.set(false);
+        },
+      });
   }
 
   // UI ACTIONS
+
+  onSearchInput(query: string): void {
+    this.searchQuery.set(query);
+    this.currentPage.set(0);
+    this.searchSubject.next(query);
+  }
+
+  onSearchEnter(): void {
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
 
   onPageChange(newPage: number): void {
     this.currentPage.set(newPage);
@@ -91,12 +169,14 @@ export class IssueComponent implements OnInit {
   }
 
   sortData(field: string): void {
-    if (field !== 'id') return;
+    if (field !== 'title' && field !== 'assignee') return;
 
-    if (this.sortField() === 'id') {
+    const targetField = field === 'assignee' ? 'assignee.username' : 'title';
+
+    if (this.sortField() === targetField) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortField.set('id');
+      this.sortField.set(targetField);
       this.sortDirection.set('asc');
     }
 
@@ -104,28 +184,40 @@ export class IssueComponent implements OnInit {
     this.loadIssues();
   }
 
-  getPriorityStyle(priority: string): string {
-    if (!priority) return 'bg-light text-secondary border';
+  onTitleClick(issue: IssueResponse): void {
+    this.router.navigate(['/projects', this.projectId, 'issues', issue.id]);
+  }
 
-    const p = priority.toLowerCase();
-    switch (p) {
-      case 'highest':
-        return 'bg-danger text-white border-danger';
-      case 'high':
-        return 'bg-danger-subtle text-danger border-danger';
-      case 'medium':
-        return 'bg-warning-subtle text-warning border-warning';
-      case 'low':
-        return 'bg-success-subtle text-success border-success';
-      case 'lowest':
-        return 'bg-info-subtle text-info border-info';
-      default:
-        return 'bg-light text-secondary border';
-    }
+  getPriorityStyle(priority: string): string {
+    if (!priority) return 'priority-lowest';
+    return `priority-${priority.toLowerCase()}`;
   }
 
   getStatusLabel(status: string): string {
     return status ? status.replace(/_/g, ' ').toUpperCase() : '';
+  }
+
+  getStatusBadgeClass(status?: string): string {
+    switch (status?.toUpperCase()) {
+      case 'TO_DO':
+      case 'NEW':
+      case 'OPEN':
+        return 'status-badge status-to-do';
+      case 'IN_PROGRESS':
+        return 'status-badge status-in-progress';
+      case 'MARKED_FOR_REVIEW':
+        return 'status-badge status-marked-for-review';
+      case 'NOT_FIXED':
+        return 'status-badge status-not-fixed';
+      case 'COMPLETED':
+      case 'RESOLVED':
+      case 'ACCEPTED':
+        return 'status-badge status-completed';
+      case 'CLOSED':
+        return 'status-badge status-closed';
+      default:
+        return 'status-badge status-to-do';
+    }
   }
 
   getTagStyle(tagName: string): string {

@@ -1,12 +1,22 @@
-<div class="container-fluid py-4 px-4">
+<div class="container-fluid p-3 p-md-4">
   <!-- Header Section -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
+  >
     <div>
-      <h2 class="fw-bold mb-1">Issue Tracker</h2>
-      <p class="text-muted mb-0">Manage, filter, and resolve active software anomalies.</p>
+      <h2 class="fw-bold mb-1">
+        @if (projectName()) {
+          {{ projectName() }} <span class="text-muted fw-normal fs-4">Issues Tracker</span>
+        } @else {
+          Project <span class="text-muted fw-normal fs-4">Issues Tracker</span>
+        }
+      </h2>
     </div>
 
-    <div class="d-flex gap-2">
+    <!-- Action Buttons -->
+    <div
+      class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
+    >
       <!-- Settings Button -->
       <button 
         class="btn btn-outline-secondary d-flex align-items-center gap-2 rounded-3"
@@ -17,119 +27,185 @@
         <span class="d-none d-sm-inline">Settings</span>
       </button>
 
-      <!-- Dropdown Filtro Stato -->
-      <div class="dropdown">
-        <button
-          class="btn btn-outline-secondary dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
-        </button>
-        <ul class="dropdown-menu shadow-sm">
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
-              >In Progress</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
-              >Marked For Review</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
-              >Not Fixed</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
-              >Completed</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
-          </li>
-        </ul>
-      </div>
+      <!-- Manage Tags Button -->
+      <button
+        class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+        type="button"
+        [routerLink]="['/projects', projectId, 'tags']"
+      >
+        <i class="bi bi-tags"></i> Manage Tags
+      </button>
 
-      <!-- Dropdown Filtro Priorità -->
-      <div class="dropdown">
-        <button
-          class="btn btn-outline-secondary dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
-        </button>
-        <ul class="dropdown-menu shadow-sm">
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
-              >All Priorities</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')"
-              >Highest</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
-          </li>
-          <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
-          </li>
-        </ul>
-      </div>
+      <!-- View Report Button -->
+      <button
+        class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+        type="button"
+        [routerLink]="['/projects', projectId, 'report']"
+      >
+        <i class="bi bi-file-earmark-bar-graph"></i> View Report
+      </button>
 
-      <button class="btn btn-primary d-flex align-items-center gap-2">
+      <!-- New Issue Button -->
+      <button
+        class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+        type="button"
+        [routerLink]="['/projects', projectId, 'issues', 'create']"
+      >
         <i class="bi bi-plus-lg"></i> New Issue
       </button>
     </div>
   </div>
 
-  <!-- Table Card -->
-  <div class="card border-0 shadow-sm rounded-3">
+  <!-- Filters Row -->
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-4 p-3 bg-light border rounded-3">
+    <!-- Keyword Search Input -->
+    <div class="search-input-group flex-grow-1" style="min-width: 240px; max-width: 320px">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="bi bi-search text-muted"></i>
+      </span>
+      <input
+        type="text"
+        class="form-control border-start-0 ps-0"
+        placeholder="Search issues by keyword..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        (keyup.enter)="onSearchEnter()"
+      />
+      @if (searchQuery()) {
+        <button
+          class="btn-clear text-muted"
+          type="button"
+          (click)="clearSearch()"
+          aria-label="Clear search"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Status Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        type="button"
+        data-bs-toggle="dropdown"
+      >
+        {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
+      </button>
+      <ul class="dropdown-menu shadow-sm">
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
+            >In Progress</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
+            >Marked For Review</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
+            >Not Fixed</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
+            >Completed</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Priority Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        type="button"
+        data-bs-toggle="dropdown"
+      >
+        {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
+      </button>
+      <ul class="dropdown-menu shadow-sm">
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
+            >All Priorities</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Table Card Section -->
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table class="table table-hover align-middle mb-0" style="min-width: 520px">
         <thead class="table-light text-muted">
           <tr>
-            <th class="ps-4 py-3 cursor-pointer" (click)="sortData('id')">
-              ID
-              <i
-                class="bi"
-                [ngClass]="{
-                  'bi-arrow-down': sortDirection() === 'asc',
-                  'bi-arrow-up': sortDirection() === 'desc',
-                }"
-              ></i>
+            <th class="ps-4 py-3" style="width: 80px">ID</th>
+            <th class="py-3 cursor-pointer" (click)="sortData('title')">
+              Title
+              @if (sortField() === 'title') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc',
+                  }"
+                ></i>
+              }
             </th>
-            <th class="py-3">Title</th>
             <th class="py-3">Priority</th>
             <th class="py-3">Status</th>
-            <th class="py-3">Assignee</th>
-            <th class="py-3">Labels</th>
-            <th class="text-end pe-4 py-3">Actions</th>
+            <!-- Hidden on mobile, visible from tablet screens up -->
+            <th class="py-3 d-none d-md-table-cell cursor-pointer" (click)="sortData('assignee')">
+              Assignee
+              @if (sortField() === 'assignee.username' || sortField() === 'assignee') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc',
+                  }"
+                ></i>
+              }
+            </th>
           </tr>
         </thead>
         <tbody>
           @for (issue of issues(); track issue.id) {
             <tr>
-              <td class="ps-4 text-primary fw-medium">#{{ issue.id.substring(0, 4) }}</td>
-              <td class="fw-medium">{{ issue.title }}</td>
+              <td class="ps-4 text-secondary fw-medium text-nowrap">
+                #{{ issue.id.substring(0, 4) }}
+              </td>
+              <td class="fw-medium text-break" style="max-width: 250px">
+                <a
+                  class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
+                  [routerLink]="['/projects', projectId, 'issues', issue.id]"
+                >
+                  {{ issue.title }}
+                </a>
+              </td>
 
               <!-- Priority Badge -->
-              <td>
+              <td class="text-nowrap">
                 <span
                   class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
                   [ngClass]="getPriorityStyle(issue.priority)"
@@ -150,72 +226,30 @@
 
               <!-- Status Badge -->
               <td>
-                <span
-                  class="badge rounded-pill"
-                  [ngClass]="
-                    issue.status === 'TO_DO' ? 'bg-light text-dark border' : 'bg-primary text-white'
-                  "
-                >
+                <span [class]="getStatusBadgeClass(issue.status)">
                   {{ getStatusLabel(issue.status) }}
                 </span>
               </td>
 
-              <!-- Assignee / User Avatar -->
-              <td>
+              <!-- Assignee / User Avatar (Hidden on Mobile) -->
+              <td class="d-none d-md-table-cell">
                 <div class="d-flex align-items-center gap-2">
                   <div
-                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
                     style="width: 30px; height: 30px; font-size: 12px"
                   >
                     {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
                   </div>
-                  {{ issue.assigneeUsername || 'Unassigned' }}
-                </div>
-              </td>
-
-              <!-- Tags / Labels -->
-              <td>
-                <div class="d-flex gap-1 flex-wrap">
-                  @for (tag of issue.tags; track tag.id) {
-                    <span class="badge border rounded-pill" [ngClass]="getTagStyle(tag.name)">
-                      {{ tag.name }}
-                    </span>
-                  }
-                </div>
-              </td>
-
-              <!-- Action Menu -->
-              <td class="text-end pe-4">
-                <div class="dropdown">
-                  <button
-                    class="btn btn-link text-secondary p-0"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i class="bi bi-three-dots-vertical fs-5"></i>
-                  </button>
-
-                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li>
-                      <button class="dropdown-item" (click)="editIssue(issue.id)">Edit</button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item text-danger" (click)="deleteIssue(issue.id)">
-                        Delete
-                      </button>
-                    </li>
-                    <li>
-                      <hr class="dropdown-divider" />
-                    </li>
-                    <li><button class="dropdown-item">View Details</button></li>
-                  </ul>
+                  <span class="text-truncate" style="max-width: 120px">
+                    {{ issue.assigneeUsername || 'Unassigned' }}
+                  </span>
                 </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="text-center py-4 text-muted">
-                Nessuna issue trovata con i filtri selezionati.
+              <td colspan="5" class="text-center py-4 text-muted">
+                No issues found with the selected filters.
               </td>
             </tr>
           }
@@ -223,6 +257,8 @@
       </table>
     </div>
   </div>
+
+  <!-- Pagination Component -->
   <app-pagination
     [currentPage]="currentPage()"
     [totalPages]="totalPages()"

@@ -1,5 +1,19 @@
 package it.unina.bugboard.bugboard_backend.service;
 
+import it.unina.bugboard.bugboard_backend.entity.Project;
+import it.unina.bugboard.bugboard_backend.entity.Role;
+import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
+import it.unina.bugboard.bugboard_backend.repository.UserRepository;
+import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
+import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
+import it.unina.bugboard.bugboard_backend.entity.Issue;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
+import it.unina.bugboard.bugboard_backend.mapper.UserMapper;
+import it.unina.bugboard.bugboard_backend.repository.IssueRepository;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -12,15 +26,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import java.util.Comparator;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.entity.Role;
-import it.unina.bugboard.bugboard_backend.entity.User;
 import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
+import java.util.Map;
 import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
-import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
-import it.unina.bugboard.bugboard_backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +39,8 @@ public class ProjectService {
     
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final IssueRepository issueRepository;
+    private final UserMapper userMapper;
 
     private static final String PROJECT_NOT_FOUND_MESSAGE = "Project not found.";
 
@@ -110,6 +123,43 @@ public class ProjectService {
         User currentUser = getCurrentUser();
         validateUserIsAdmin(currentUser);
         projectRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssigneeRecommendationResponse> getRecommendedAssignees(UUID projectId) {
+        Project project = projectRepository.findByIdWithMembers(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+
+        List<User> members = project.getMembers();
+        if (members == null || members.isEmpty()) {
+            return List.of();
+        }
+
+        List<Issue> activeIssues = issueRepository.findByProjectIdAndStatusNotIn(
+                projectId, List.of(IssueStatus.COMPLETED, IssueStatus.CLOSED));
+
+        Map<UUID, List<Issue>> issuesByAssignee = activeIssues.stream()
+                .filter(issue -> issue.getAssignee() != null)
+                .collect(Collectors.groupingBy(issue -> issue.getAssignee().getId()));
+
+        return members.stream()
+                .filter(user -> user.getRole() != Role.ADMIN && user.getRole() != Role.EXTERNAL)
+                .map(user -> {
+                    List<Issue> userIssues = issuesByAssignee.getOrDefault(user.getId(), List.of());
+                    int workloadScore = userIssues.stream()
+                            .mapToInt(issue -> issue.getPriority() != null ? issue.getPriority().getWeight() : 1)
+                            .sum();
+                    return AssigneeRecommendationResponse.builder()
+                            .user(userMapper.toResponse(user))
+                            .workloadScore(workloadScore)
+                            .activeIssueCount(userIssues.size())
+                            .build();
+                })
+                .sorted(Comparator.comparingInt(AssigneeRecommendationResponse::getWorkloadScore)
+                        .thenComparingInt(AssigneeRecommendationResponse::getActiveIssueCount)
+                        .thenComparing(res -> res.getUser() != null && res.getUser().getUsername() != null ? res.getUser().getUsername() : ""))
+                .limit(3)
+                .toList();
     }
 
     /**

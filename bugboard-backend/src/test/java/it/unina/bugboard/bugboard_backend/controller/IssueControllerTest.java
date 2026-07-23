@@ -10,10 +10,16 @@ import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import it.unina.bugboard.bugboard_backend.security.JwtService;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
+import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
@@ -26,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(IssueController.class)
@@ -42,6 +48,7 @@ class IssueControllerTest {
     @MockitoBean private JwtService jwtService;
     @MockitoBean private UserRepository userRepository;
     private UUID projectId;
+    private UUID issueId;
     private Project project;
     private IssueRequest validRequest;
     private Issue dummyIssue;
@@ -74,6 +81,8 @@ class IssueControllerTest {
                 .tags(List.of())
                 .attachments(List.of())
                 .build();
+
+        issueId = dummyIssue.getId();
     }
 
     // ==========================================
@@ -160,5 +169,104 @@ class IssueControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(issueService, times(1)).createIssue(eq(projectId), any(IssueRequest.class));
+    }
+
+    @Test
+    void setStatus_Success_ReturnsStatus200() throws Exception {
+        UUID issueId = dummyIssue.getId();
+        dummyIssue.setStatus(IssueStatus.IN_PROGRESS);
+        when(issueService.setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS))).thenReturn(dummyIssue);
+
+        mockMvc.perform(put("/api/projects/{projectId}/issues/{id}/status", projectId, issueId)
+                .with(csrf())
+                .param("status", "IN_PROGRESS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(issueService, times(1)).setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS));
+    }
+
+    @Test
+    void getIssuesByProjectId_Success_ReturnsStatus200AndPagedJson() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+        Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
+
+        when(issueService.getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class)))
+                .thenReturn(pagedResult);
+
+        mockMvc.perform(get("/api/projects/{projectId}/issues", projectId)
+                .param("status", "ALL")
+                .param("priority", "ALL")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "title,asc")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content[0].id").value(dummyIssue.getId().toString()))
+                .andExpect(jsonPath("$.content[0].title").value("NullPointerException in Login"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+
+        verify(issueService, times(1)).getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    void getIssuesByProjectId_WithSearchParam_Success() throws Exception {
+        Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
+
+        when(issueService.getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class)))
+                .thenReturn(pagedResult);
+
+        mockMvc.perform(get("/api/projects/{projectId}/issues", projectId)
+                .param("status", "ALL")
+                .param("priority", "ALL")
+                .param("search", "login")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "title,asc")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content[0].id").value(dummyIssue.getId().toString()))
+                .andExpect(jsonPath("$.content[0].title").value("NullPointerException in Login"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+
+        verify(issueService, times(1)).getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class));
+    }
+
+    @Test
+    void getIssueByIdAndProjectId_Success_ReturnsStatus200AndIssue() throws Exception {
+        when(issueService.getIssueByIdAndProjectId(issueId, projectId)).thenReturn(dummyIssue);
+
+        mockMvc.perform(get("/api/projects/{projectId}/issues/{issueId}", projectId, issueId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(issueId.toString()))
+                .andExpect(jsonPath("$.title").value("NullPointerException in Login"));
+
+        verify(issueService, times(1)).getIssueByIdAndProjectId(issueId, projectId);
+    }
+
+    @Test
+    void getIssueByIdAndProjectId_NotFound_ReturnsStatus404() throws Exception {
+        when(issueService.getIssueByIdAndProjectId(issueId, projectId))
+                .thenThrow(new ResourceNotFoundException("Issue not found with ID: " + issueId + " in project " + projectId));
+
+        mockMvc.perform(get("/api/projects/{projectId}/issues/{issueId}", projectId, issueId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(issueService, times(1)).getIssueByIdAndProjectId(issueId, projectId);
+    }
+
+    @Test
+    void deleteIssue_Success_ReturnsStatus204NoContent() throws Exception {
+        doNothing().when(issueService).deleteIssue(issueId);
+
+        mockMvc.perform(delete("/api/projects/{projectId}/issues/{issueId}", projectId, issueId)
+                .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(issueService, times(1)).deleteIssue(issueId);
     }
 }

@@ -1,4 +1,4 @@
-<div class="container py-4">
+<div class="container py-5">
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
       <h2 class="h2 text-dark mb-1">Create New Issue</h2>
@@ -6,7 +6,6 @@
         Track a new bug or improvement in the BugBoard26 repository.
       </p>
     </div>
-    <button class="btn text-primary fw-medium" (click)="discardDraft()">Discard Draft</button>
   </div>
 
   <!-- Global Error Alert -->
@@ -90,7 +89,7 @@
                 />
                 <i class="bi bi-cloud-upload display-4 text-primary opacity-50 mb-3"></i>
                 <p class="fw-medium mb-1">Click or drag images to upload</p>
-                <p class="small text-muted mb-0">PNG, JPG, or GIF up to 10MB</p>
+                <p class="small text-muted mb-0">PNG, JPG, or GIF up to 5MB</p>
               </div>
               @if (selectedFiles.length > 0) {
                 <ul class="list-group mt-3">
@@ -121,34 +120,202 @@
               <i class="bi bi-tag-fill text-primary me-2"></i> Classification
             </h5>
 
-            <div class="mb-4">
-              <label
-                for="priority"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Priority</label
+            <!-- Custom Priority Dropdown -->
+            <div class="mb-4 priority-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Priority
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isPriorityDropdownOpen = !isPriorityDropdownOpen"
               >
-              <select id="priority" class="form-select bg-light" formControlName="priority">
-                <option value="LOWEST">Lowest</option>
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="HIGHEST" class="text-danger fw-bold">Critical</option>
-              </select>
+                <span
+                  class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
+                  [ngClass]="currentPriorityObj.class"
+                >
+                  <i class="bi" [ngClass]="currentPriorityObj.icon"></i>
+                  {{ currentPriorityObj.label }}
+                </span>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isPriorityDropdownOpen) {
+                <div
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (p of priorities; track p.value) {
+                    <div
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectPriority(p.value)"
+                    >
+                      <span
+                        class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
+                        [ngClass]="p.class"
+                      >
+                        <i class="bi" [ngClass]="p.icon"></i>
+                        {{ p.label }}
+                      </span>
+                      @if (issueForm.get('priority')?.value === p.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
-            <div class="mb-4">
-              <label
-                for="type"
-                class="form-label small fw-bold text-muted text-uppercase tracking-wider"
-                >Type</label
+            <!-- Custom Type Dropdown -->
+            <div class="mb-4 type-dropdown-wrapper position-relative">
+              <label class="form-label small fw-bold text-muted text-uppercase tracking-wider mb-2">
+                Type
+              </label>
+
+              <button
+                type="button"
+                class="form-select bg-light d-flex align-items-center justify-content-between cursor-pointer border-0 shadow-2xs rounded-3 text-start"
+                (click)="isTypeDropdownOpen = !isTypeDropdownOpen"
               >
-              <select id="type" class="form-select bg-light" formControlName="type">
-                <option value="BUG">Bug</option>
-                <option value="FEATURE">Feature</option>
-                <option value="QUESTION">Question</option>
-                <option value="DOCUMENTATION">Documentation</option>
-                <option value="OTHER">Other</option>
-              </select>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi" [ngClass]="currentTypeObj.icon"></i>
+                  <span class="fw-semibold text-dark small">{{ currentTypeObj.label }}</span>
+                </div>
+                <i class="bi bi-chevron-down text-muted small ms-2"></i>
+              </button>
+
+              @if (isTypeDropdownOpen) {
+                <div
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                >
+                  @for (t of types; track t.value) {
+                    <div
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      (click)="selectType(t.value)"
+                    >
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi fs-6" [ngClass]="t.icon"></i>
+                        <span class="fw-medium text-dark small">{{ t.label }}</span>
+                      </div>
+                      @if (issueForm.get('type')?.value === t.value) {
+                        <i class="bi bi-check-lg text-primary fw-bold"></i>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Tags Section -->
+            <div class="mb-4 tags-dropdown-wrapper position-relative">
+              <label
+                class="form-label small fw-bold text-muted text-uppercase tracking-wider d-flex justify-content-between align-items-center mb-2"
+              >
+                <span>Tags</span>
+                @if (selectedTags.length > 0) {
+                  <span class="badge bg-light text-secondary rounded-pill"
+                    >{{ selectedTags.length }} Selected</span
+                  >
+                }
+              </label>
+
+              <!-- Loading State -->
+              @if (isLoadingTags) {
+                <div class="text-muted small p-2 bg-light rounded text-center">
+                  <span
+                    class="spinner-border spinner-border-sm text-primary me-2"
+                    role="status"
+                  ></span>
+                  Loading tags...
+                </div>
+              } @else {
+                <!-- Selected Tags Chips Bar -->
+                @if (selectedTags.length > 0) {
+                  <div class="selected-tags-container mb-2">
+                    <div class="d-flex flex-wrap gap-2">
+                      @for (tag of selectedTags; track tag.id) {
+                        <button
+                          type="button"
+                          class="selected-tag-chip"
+                          [style.--tag-color]="tag.color"
+                          [style.--tag-color-light]="tag.color + '20'"
+                          (click)="removeTag(tag)"
+                          title="Click to remove tag"
+                        >
+                          <span class="tag-dot"></span>
+                          <span class="tag-name">{{ tag.name }}</span>
+                          <i class="bi bi-x-lg remove-icon ms-1"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Search Input for Tags -->
+                @if (availableTags && availableTags.length > 0) {
+                  <div class="position-relative">
+                    <i
+                      class="bi bi-tag position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                    ></i>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm ps-5 bg-light rounded-pill border-0 shadow-none"
+                      placeholder="Search or add tags..."
+                      [(ngModel)]="tagSearchQuery"
+                      [ngModelOptions]="{ standalone: true }"
+                      (focus)="isTagDropdownOpen = true"
+                      (click)="isTagDropdownOpen = true"
+                    />
+                    @if (tagSearchQuery) {
+                      <button
+                        type="button"
+                        class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
+                        (click)="tagSearchQuery = ''"
+                      >
+                        <i class="bi bi-x-circle-fill"></i>
+                      </button>
+                    }
+                  </div>
+                }
+
+                <!-- Floating Tags Popover Dropdown -->
+                @if (isTagDropdownOpen && availableTags && availableTags.length > 0) {
+                  <div class="tags-popover-menu shadow-lg border rounded-3 bg-white mt-1">
+                    <div class="popover-list p-2">
+                      @for (tag of filteredAvailableTags; track tag.id) {
+                        <div
+                          class="popover-tag-item d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
+                          [style.--tag-color]="tag.color"
+                          [style.--tag-color-light]="tag.color + '20'"
+                          (click)="selectTag(tag)"
+                        >
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="tag-dot"></span>
+                            <span class="fw-medium text-dark small">{{ tag.name }}</span>
+                          </div>
+                          <i class="bi bi-plus-lg text-secondary opacity-75"></i>
+                        </div>
+                      }
+
+                      @if (filteredAvailableTags.length === 0) {
+                        <div class="text-muted small fst-italic p-3 text-center">
+                          @if (tagSearchQuery) {
+                            <span>No tags matching "{{ tagSearchQuery }}"</span>
+                          } @else if (selectedTags.length === availableTags.length) {
+                            <span>All tags selected!</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (!availableTags || availableTags.length === 0) {
+                  <div class="text-muted small fst-italic p-2 bg-light rounded text-center">
+                    No tags available for this project.
+                  </div>
+                }
+              }
             </div>
           </div>
         </div>
@@ -164,7 +331,18 @@
       >
         Cancel
       </button>
-      <button type="submit" class="btn btn-primary fw-bold px-5 shadow">Create Issue</button>
+      <button type="submit" class="btn btn-primary fw-bold px-5 shadow" [disabled]="isSubmitting">
+        @if (isSubmitting) {
+          <span
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Creating...
+        } @else {
+          Create Issue
+        }
+      </button>
     </div>
   </form>
 </div>

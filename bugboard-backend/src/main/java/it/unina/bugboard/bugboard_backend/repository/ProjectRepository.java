@@ -20,6 +20,9 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     
     Optional<Project> findByName(String name);
     
+    @Query("SELECT DISTINCT p FROM Project p LEFT JOIN FETCH p.members WHERE p.id = :id")
+    Optional<Project> findByIdWithMembers(@Param("id") UUID id);
+
     boolean existsByIdAndMembersId(UUID projectId, UUID userId);
     
     Page<Project> findByMembersId(UUID userId, Pageable pageable);

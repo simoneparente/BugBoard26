@@ -1,8 +1,8 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -47,6 +47,12 @@ public class ProjectController {
         Page<ProjectResponse> projects = projectService.getProjects(pageable)
                 .map(projectMapper::toResponse);
         return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/{id}/recommended-assignees")
+    public ResponseEntity<List<AssigneeRecommendationResponse>> getRecommendedAssignees(@PathVariable UUID id) {
+        List<AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(id);
+        return ResponseEntity.ok(recommendations);
     }
 
     @DeleteMapping("/{id}")

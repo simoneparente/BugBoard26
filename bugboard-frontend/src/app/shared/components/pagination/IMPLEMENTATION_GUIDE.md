@@ -1,6 +1,6 @@
 # Frontend Pagination Implementation Guide
 
-This document outlines the standard pagination pattern for the application. The system relies on Angular Signals, Standalone Components, and Bootstrap 5, mapping directly to Spring Data's `Page<T>` structure. 
+This document outlines the standard pagination pattern for the application. The system relies on Angular Signals, Standalone Components, and Bootstrap 5, mapping directly to Spring Data's `Page<T>` structure.
 
 This guide serves as the reference for implementing pagination across all list views (Projects, Issues, Users, Tags, etc.).
 
@@ -21,7 +21,6 @@ export interface Page<T> {
   size: number;
   number: number;
 }
-
 ```
 
 ## 2. The Pagination Component
@@ -34,13 +33,13 @@ The `PaginationComponent` is a presentation-only (dumb) component. It handles UI
 
 **Inputs (Signals):**
 
-* `currentPage`: `number` (0-indexed)
-* `totalPages`: `number`
-* `totalElements`: `number`
+- `currentPage`: `number` (0-indexed)
+- `totalPages`: `number`
+- `totalElements`: `number`
 
 **Outputs:**
 
-* `pageChange`: emits the new `number` (0-indexed) when a user navigates.
+- `pageChange`: emits the new `number` (0-indexed) when a user navigates.
 
 ---
 
@@ -58,8 +57,8 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 
 @Component({
   standalone: true,
-  imports: [PaginationComponent, /* other imports */],
-  templateUrl: './project.component.html'
+  imports: [PaginationComponent /* other imports */],
+  templateUrl: './project.component.html',
 })
 export class ProjectComponent {
   private projectService = inject(ProjectService);
@@ -81,11 +80,10 @@ export class ProjectComponent {
   }
 
   private loadData(): void {
-    this.projectService.getProjects(this.currentPage(), this.pageSize())
-      .subscribe({
-        next: (page) => this.projectsPage.set(page),
-        error: (err) => console.error('Failed to fetch projects', err)
-      });
+    this.projectService.getProjects(this.currentPage(), this.pageSize()).subscribe({
+      next: (page) => this.projectsPage.set(page),
+      error: (err) => console.error('Failed to fetch projects', err),
+    });
   }
 
   public onPageChange(newPage: number): void {
@@ -93,7 +91,6 @@ export class ProjectComponent {
     this.loadData();
   }
 }
-
 ```
 
 ### Template (HTML)
@@ -104,24 +101,21 @@ Place the `<app-pagination>` component below your list or grid. Use control flow
 <!-- Data Grid -->
 <div class="row g-4 mb-4">
   @for (project of projectList(); track project.id) {
-    <!-- Card implementation -->
+  <!-- Card implementation -->
   }
 </div>
 
 <!-- Pagination Footer -->
 @if (projectsPage() && projectList().length > 0) {
-  <app-pagination
-    [currentPage]="currentPage()"
-    [totalPages]="totalPages()"
-    [totalElements]="totalElements()"
-    (pageChange)="onPageChange($event)"
-  />
+<app-pagination
+  [currentPage]="currentPage()"
+  [totalPages]="totalPages()"
+  [totalElements]="totalElements()"
+  (pageChange)="onPageChange($event)"
+/>
 } @else if (projectList().length === 0) {
-  <div class="text-center text-muted py-5">
-    No items found.
-  </div>
+<div class="text-center text-muted py-5">No items found.</div>
 }
-
 ```
 
 ---

@@ -8,6 +8,7 @@ import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,8 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId, @Valid @RequestBody IssueRequest request) {
+    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId,
+            @Valid @RequestBody IssueRequest request) {
         Issue issue = issueService.createIssue(projectId, request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
@@ -37,14 +39,17 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-
     @GetMapping
-    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId, Pageable pageable) {
-        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, pageable)
+    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(required = false, defaultValue = "ALL") String priority,
+            @RequestParam(required = false) String search, Pageable pageable) {
+
+        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, search, pageable)
                 .map(this::mapToResponseDTO);
+        
         return ResponseEntity.ok(issues);
     }
-
 
     @PutMapping("/{id}/assign")
     public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
@@ -52,6 +57,11 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<IssueResponse> setStatus(@PathVariable UUID id, @RequestParam IssueStatus status) {
+        Issue issue = issueService.setStatus(id, status);
+        return ResponseEntity.ok(mapToResponseDTO(issue));
+    }
 
     @PutMapping("/{id}/start-progress")
     public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
@@ -59,13 +69,11 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-
     @PutMapping("/{id}/accept")
     public ResponseEntity<IssueResponse> acceptIssue(@PathVariable UUID id) {
         Issue issue = issueService.acceptIssue(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
-
 
     @PutMapping("/{id}/previous")
     public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable UUID id) {
@@ -77,6 +85,12 @@ public class IssueController {
     public ResponseEntity<IssueResponse> removeAssignee(@PathVariable UUID id) {
         Issue updatedIssue = issueService.removeIssueAssignee(id);
         return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIssue(@PathVariable UUID id) {
+        issueService.deleteIssue(id);
+        return ResponseEntity.noContent().build();
     }
 
     private IssueResponse mapToResponseDTO(Issue issue) {
@@ -96,6 +110,8 @@ public class IssueController {
                         .map(tag -> TagResponse.builder()
                                 .id(tag.getId())
                                 .name(tag.getName())
+                                .color(tag.getColor())
+                                .projectId(tag.getProject().getId())
                                 .build())
                         .toList())
                 .attachments(issue.getAttachments().stream()
@@ -112,4 +128,3 @@ public class IssueController {
     }
 
 }
-

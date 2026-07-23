@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { Page } from '../page.model';
 import { ProjectResponse } from '../project.model';
 import { UserResponse } from '../auth/auth.models';
+import { AssigneeRecommendation } from '../assignee-recommendation.model';
 import { ApiService } from './api.service';
 
 @Injectable({
@@ -17,6 +18,10 @@ export class ProjectService {
 
   public getById(id: string): Observable<ProjectResponse> {
     return this.api.projects.getById(id);
+  }
+
+  public getRecommendedAssignees(projectId: string): Observable<AssigneeRecommendation[]> {
+    return this.api.projects.getRecommendedAssignees(projectId);
   }
 
   public create(name: string, description: string): Observable<ProjectResponse> {

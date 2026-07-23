@@ -23,6 +23,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Collections;
@@ -35,6 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -286,6 +293,120 @@ class IssueServiceTest {
 		verify(attachmentRepository, never()).save(any(Attachment.class));
 	}
 
+	@Test
+	void setStatus_ClearsAssigneeWhenSetToToDo() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.setStatus(issue.getId(), IssueStatus.TO_DO);
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void setStatus_ClearsAssigneeWhenSetToClosed() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.setStatus(issue.getId(), IssueStatus.CLOSED);
+
+		assertEquals(IssueStatus.CLOSED, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void setStatus_ThrowsWhenSettingInProgressOnUnassignedIssue() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.TO_DO).assignee(null).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.setStatus(issue.getId(), IssueStatus.IN_PROGRESS));
+	}
+
+	@Test
+	void setStatus_ThrowsWhenClosingCompletedIssue() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.COMPLETED).assignee(createUser("johndoe")).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.setStatus(issue.getId(), IssueStatus.CLOSED));
+	}
+
+	@Test
+	void assignIssueToUser_ThrowsWhenIssueIsClosed() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.CLOSED).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.assignIssueToUser(issue.getId(), user.getId()));
+	}
+
+	@Test
+	void assignIssueToUser_SuccessWhenIssueIsActive() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.TO_DO).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+		Issue result = issueService.assignIssueToUser(issue.getId(), user.getId());
+
+		assertEquals(user, result.getAssignee());
+	}
+
+	@Test
+	void removeIssueAssignee_ResetsStatusToToDoAndClearsAssignee() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.removeIssueAssignee(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void removeIssueAssignee_ThrowsWhenIssueIsCompleted() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.COMPLETED).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.removeIssueAssignee(issue.getId()));
+	}
+
+	@Test
+	void rollbackIssueState_RollsBackClosedToToDoAndClearsAssignee() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.CLOSED).assignee(null).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.rollbackIssueState(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void rollbackIssueState_RollsBackInProgressToToDoAndClearsAssignee() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.rollbackIssueState(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
 	private IssueRequest createRequest(IssueStatus status, List<TagResponse> tags, String assigneeUsername) {
 		IssueRequest request = new IssueRequest();
 		request.setTitle("Issue title");
@@ -306,4 +427,180 @@ class IssueServiceTest {
                 .build();
         return user;
     }
+
+	@Test
+	void getIssuesByProjectId_ReturnsPagedIssues_WhenStatusAndPriorityAreAll() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("Issue title")
+				.description("Issue description")
+				.status(IssueStatus.TO_DO)
+				.priority(IssuePriority.MEDIUM)
+				.type(IssueType.BUG)
+				.project(project)
+				.build();
+
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(issueRepository.findByProjectIdAndFilters(projectId, null, null, null, pageable)).thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "ALL", pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals(issue, result.getContent().get(0));
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, null, null, pageable);
+	}
+
+	@Test
+	void getIssuesByProjectId_ReturnsPagedIssues_WhenStatusAndPriorityAreSpecified() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("Issue title")
+				.description("Issue description")
+				.status(IssueStatus.TO_DO)
+				.priority(IssuePriority.HIGH)
+				.type(IssueType.BUG)
+				.project(project)
+				.build();
+
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(issueRepository.findByProjectIdAndFilters(projectId, IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable))
+				.thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "TO_DO", "HIGH", pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals("Issue title", result.getContent().get(0).getTitle());
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable);
+	}
+
+	@Test
+	void getIssueByIdAndProjectId_ReturnsIssue_WhenFound() {
+		UUID issueId = UUID.randomUUID();
+		Issue issue = Issue.builder()
+				.id(issueId)
+				.title("Test Issue")
+				.project(project)
+				.build();
+
+		when(issueRepository.findByIdAndProjectId(issueId, projectId)).thenReturn(issue);
+
+		Issue result = issueService.getIssueByIdAndProjectId(issueId, projectId);
+
+		assertNotNull(result);
+		assertEquals(issueId, result.getId());
+		assertEquals("Test Issue", result.getTitle());
+		verify(issueRepository, times(1)).findByIdAndProjectId(issueId, projectId);
+	}
+
+	@Test
+	void getIssueByIdAndProjectId_ThrowsResourceNotFoundException_WhenNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findByIdAndProjectId(issueId, projectId)).thenReturn(null);
+
+		ResourceNotFoundException exception = assertThrows(
+				ResourceNotFoundException.class,
+				() -> issueService.getIssueByIdAndProjectId(issueId, projectId)
+		);
+
+		assertEquals("Issue not found with ID: " + issueId + " in project " + projectId, exception.getMessage());
+		verify(issueRepository, times(1)).findByIdAndProjectId(issueId, projectId);
+	}
+
+	@Test
+	void getIssuesByProjectId_ReturnsPagedIssues_WhenOnlyStatusIsSpecified() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("Status filtered issue")
+				.status(IssueStatus.IN_PROGRESS)
+				.priority(IssuePriority.MEDIUM)
+				.project(project)
+				.build();
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(issueRepository.findByProjectIdAndFilters(projectId, IssueStatus.IN_PROGRESS, null, null, pageable))
+				.thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "IN_PROGRESS", "ALL", pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals("Status filtered issue", result.getContent().get(0).getTitle());
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, IssueStatus.IN_PROGRESS, null, null, pageable);
+	}
+
+	@Test
+	void getIssuesByProjectId_ReturnsPagedIssues_WhenOnlyPriorityIsSpecified() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("Priority filtered issue")
+				.status(IssueStatus.TO_DO)
+				.priority(IssuePriority.HIGHEST)
+				.project(project)
+				.build();
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(issueRepository.findByProjectIdAndFilters(projectId, null, IssuePriority.HIGHEST, null, pageable))
+				.thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "HIGHEST", pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals("Priority filtered issue", result.getContent().get(0).getTitle());
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, IssuePriority.HIGHEST, null, pageable);
+	}
+
+	@Test
+	void getIssuesByProjectId_ReturnsPagedIssues_WhenSearchKeywordIsSpecified() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("NullPointerException in Login")
+				.description("User cannot login due to NPE")
+				.status(IssueStatus.TO_DO)
+				.priority(IssuePriority.HIGH)
+				.project(project)
+				.build();
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(issueRepository.findByProjectIdAndFilters(projectId, null, null, "%login%", pageable))
+				.thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "ALL", "Login", pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals("NullPointerException in Login", result.getContent().get(0).getTitle());
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, null, "%login%", pageable);
+	}
+
+	@Test
+	void deleteIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(true);
+		doNothing().when(issueRepository).deleteById(issueId);
+
+		issueService.deleteIssue(issueId);
+
+		verify(issueRepository, times(1)).deleteById(issueId);
+	}
+
+	@Test
+	void deleteIssue_ThrowsException_WhenNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(false);
+
+		assertThrows(IllegalArgumentException.class, () -> issueService.deleteIssue(issueId));
+		verify(issueRepository, never()).deleteById(any());
+	}
 }

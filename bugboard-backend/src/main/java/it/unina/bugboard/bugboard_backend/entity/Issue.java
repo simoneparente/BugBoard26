@@ -68,6 +68,9 @@ public class Issue {
     protected void onCreate() {
         createdAt = LocalDateTime.now(ZoneId.of("UTC"));
         updatedAt = LocalDateTime.now(ZoneId.of("UTC"));
+        if (priority == null) {
+            priority = IssuePriority.MEDIUM;
+        }
     }
 
     @PreUpdate
