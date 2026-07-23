@@ -4,116 +4,30 @@
     class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
   >
     <div>
-      <h2 class="fw-bold mb-1">Issue Tracker</h2>
-      <p class="text-muted mb-0">Manage, filter, and resolve active software anomalies.</p>
+      <h2 class="fw-bold mb-1">
+        @if (projectName()) {
+          {{ projectName() }} <span class="text-muted fw-normal fs-4">Issues Tracker</span>
+        } @else {
+          Project <span class="text-muted fw-normal fs-4">Issues Tracker</span>
+        }
+      </h2>
     </div>
 
-    <!-- Filters and Action Button Container -->
+    <!-- Action Buttons -->
     <div
-      class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
+      class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
     >
-      <!-- Keyword Search Input -->
-      <div
-        class="search-input-group flex-grow-1 flex-sm-grow-0"
-        style="min-width: 240px; max-width: 320px"
-      >
-        <span class="input-group-text">
-          <i class="bi bi-search"></i>
-        </span>
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Search issues by keyword..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchInput($event)"
-          (keyup.enter)="onSearchEnter()"
-        />
-        @if (searchQuery()) {
-          <button class="btn-clear" type="button" (click)="clearSearch()" aria-label="Clear search">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        }
-      </div>
-
-      <!-- Status Filter Dropdown -->
-      <div class="dropdown flex-grow-1 flex-sm-grow-0">
-        <button
-          class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
-        </button>
-        <ul class="dropdown-menu shadow-sm">
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
-              >In Progress</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
-              >Marked For Review</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
-              >Not Fixed</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
-              >Completed</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Priority Filter Dropdown -->
-      <div class="dropdown flex-grow-1 flex-sm-grow-0">
-        <button
-          class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
-        </button>
-        <ul class="dropdown-menu shadow-sm">
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
-              >All Priorities</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')"
-              >Highest</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a>
-          </li>
-          <li>
-            <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
-          </li>
-        </ul>
-      </div>
-
-      <!-- New Issue and View Report Buttons (hidden for read-only EXTERNAL users) -->
       @if (!isReadonly()) {
+        <!-- Manage Tags Button -->
+        <button
+          class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectId, 'tags']"
+        >
+          <i class="bi bi-tags"></i> Manage Tags
+        </button>
+
+        <!-- View Report Button -->
         <button
           class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
@@ -122,6 +36,7 @@
           <i class="bi bi-file-earmark-bar-graph"></i> View Report
         </button>
 
+        <!-- New Issue Button -->
         <button
           class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
           type="button"
@@ -137,6 +52,103 @@
           <i class="bi bi-eye"></i> View Only
         </span>
       }
+    </div>
+  </div>
+
+  <!-- Filters Row -->
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-4 p-3 bg-light border rounded-3">
+    <!-- Keyword Search Input -->
+    <div class="search-input-group flex-grow-1" style="min-width: 240px; max-width: 320px">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="bi bi-search text-muted"></i>
+      </span>
+      <input
+        type="text"
+        class="form-control border-start-0 ps-0"
+        placeholder="Search issues by keyword..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        (keyup.enter)="onSearchEnter()"
+      />
+      @if (searchQuery()) {
+        <button
+          class="btn-clear text-muted"
+          type="button"
+          (click)="clearSearch()"
+          aria-label="Clear search"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Status Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        type="button"
+        data-bs-toggle="dropdown"
+      >
+        {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
+      </button>
+      <ul class="dropdown-menu shadow-sm">
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
+            >In Progress</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
+            >Marked For Review</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
+            >Not Fixed</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
+            >Completed</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Priority Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        type="button"
+        data-bs-toggle="dropdown"
+      >
+        {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
+      </button>
+      <ul class="dropdown-menu shadow-sm">
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
+            >All Priorities</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
+        </li>
+        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
+        <li>
+          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
+        </li>
+      </ul>
     </div>
   </div>
 
