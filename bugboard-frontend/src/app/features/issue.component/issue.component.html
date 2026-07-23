@@ -6,9 +6,9 @@
       <p class="text-muted mb-0">Manage, filter, and resolve active software anomalies.</p>
     </div>
 
-    <!-- Contenitore Filtri e Pulsante "New Issue" -->
+    <!-- Filters and Action Button Container -->
     <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
-      <!-- Dropdown Filtro Stato -->
+      <!-- Status Filter Dropdown -->
       <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
           class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
@@ -42,7 +42,7 @@
         </ul>
       </div>
 
-      <!-- Dropdown Filtro Priorità -->
+      <!-- Priority Filter Dropdown -->
       <div class="dropdown flex-grow-1 flex-sm-grow-0">
         <button
           class="btn btn-outline-secondary dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
@@ -73,7 +73,7 @@
         </ul>
       </div>
 
-      <!-- Pulsante New Issue -->
+      <!-- New Issue Button -->
       <button 
         class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
         type="button"
@@ -84,37 +84,54 @@
     </div>
   </div>
 
-  <!-- Table Card -->
+  <!-- Table Card Section -->
   <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0" style="min-width: 520px;">
         <thead class="table-light text-muted">
           <tr>
-            <th class="ps-4 py-3 cursor-pointer" style="width: 80px;" (click)="sortData('id')">
-              ID
-              <i
-                class="bi"
-                [ngClass]="{
-                  'bi-arrow-down': sortDirection() === 'asc',
-                  'bi-arrow-up': sortDirection() === 'desc'
-                }"
-              ></i>
+            <th class="ps-4 py-3" style="width: 80px;">ID</th>
+            <th class="py-3 cursor-pointer" (click)="sortData('title')">
+              Title
+              @if (sortField() === 'title') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc'
+                  }"
+                ></i>
+              }
             </th>
-            <th class="py-3">Title</th>
             <th class="py-3">Priority</th>
             <th class="py-3">Status</th>
-            <!-- Nascosto su smartphone, visibile da tablet in poi -->
-            <th class="py-3 d-none d-md-table-cell">Assignee</th>
-            <!-- Nascosto su smartphone e tablet, visibile solo da PC -->
-            <th class="py-3 d-none d-lg-table-cell">Labels</th>
-            <th class="text-end pe-4 py-3">Actions</th>
+            <!-- Hidden on mobile, visible from tablet screens up -->
+            <th class="py-3 d-none d-md-table-cell cursor-pointer" (click)="sortData('assignee')">
+              Assignee
+              @if (sortField() === 'assignee.username' || sortField() === 'assignee') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc'
+                  }"
+                ></i>
+              }
+            </th>
           </tr>
         </thead>
         <tbody>
           @for (issue of issues(); track issue.id) {
             <tr>
-              <td class="ps-4 text-primary fw-medium text-nowrap">#{{ issue.id.substring(0, 4) }}</td>
-              <td class="fw-medium text-break" style="max-width: 200px;">{{ issue.title }}</td>
+              <td class="ps-4 text-secondary fw-medium text-nowrap">#{{ issue.id.substring(0, 4) }}</td>
+              <td class="fw-medium text-break" style="max-width: 250px;">
+                <a
+                  class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
+                  (click)="onTitleClick(issue)"
+                >
+                  {{ issue.title }}
+                </a>
+              </td>
 
               <!-- Priority Badge -->
               <td class="text-nowrap">
@@ -148,7 +165,7 @@
                 </span>
               </td>
 
-              <!-- Assignee / User Avatar (Nascosto su Mobile) -->
+              <!-- Assignee / User Avatar (Hidden on Mobile) -->
               <td class="d-none d-md-table-cell">
                 <div class="d-flex align-items-center gap-2">
                   <div
@@ -162,50 +179,11 @@
                   </span>
                 </div>
               </td>
-
-              <!-- Tags / Labels (Nascosto su Tablet e Mobile) -->
-              <td class="d-none d-lg-table-cell">
-                <div class="d-flex gap-1 flex-wrap">
-                  @for (tag of issue.tags; track tag.id) {
-                    <span class="badge border rounded-pill" [ngClass]="getTagStyle(tag.name)">
-                      {{ tag.name }}
-                    </span>
-                  }
-                </div>
-              </td>
-
-              <!-- Action Menu -->
-              <td class="text-end pe-4">
-                <div class="dropdown">
-                  <button
-                    class="btn btn-link text-secondary p-0"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i class="bi bi-three-dots-vertical fs-5"></i>
-                  </button>
-
-                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                    <li>
-                      <button class="dropdown-item" (click)="editIssue(issue.id)">Edit</button>
-                    </li>
-                    <li>
-                      <button class="dropdown-item text-danger" (click)="deleteIssue(issue.id)">
-                        Delete
-                      </button>
-                    </li>
-                    <li>
-                      <hr class="dropdown-divider" />
-                    </li>
-                    <li><button class="dropdown-item">View Details</button></li>
-                  </ul>
-                </div>
-              </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="text-center py-4 text-muted">
-                Nessuna issue trovata con i filtri selezionati.
+              <td colspan="5" class="text-center py-4 text-muted">
+                No issues found with the selected filters.
               </td>
             </tr>
           }
@@ -214,6 +192,7 @@
     </div>
   </div>
 
+  <!-- Pagination Component -->
   <app-pagination
     [currentPage]="currentPage()"
     [totalPages]="totalPages()"

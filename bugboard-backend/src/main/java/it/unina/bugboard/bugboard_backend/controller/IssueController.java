@@ -26,7 +26,8 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId, @Valid @RequestBody IssueRequest request) {
+    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId,
+            @Valid @RequestBody IssueRequest request) {
         Issue issue = issueService.createIssue(projectId, request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
@@ -37,14 +38,21 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-
     @GetMapping
-    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId, Pageable pageable) {
-        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, pageable)
+    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(required = false, defaultValue = "ALL") String priority, Pageable pageable) {
+        System.out.println("\n==============================================");
+        System.out.println("📩 [2. Controller] Richiesta ricevuta per Project ID: " + projectId);
+
+        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, pageable)
                 .map(this::mapToResponseDTO);
+        
+        System.out.println(
+                "📤 [4. Controller] Restituisco risposta con elementi.");
+        System.out.println("==============================================\n");
         return ResponseEntity.ok(issues);
     }
-
 
     @PutMapping("/{id}/assign")
     public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
@@ -52,20 +60,17 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-
     @PutMapping("/{id}/start-progress")
     public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
         Issue issue = issueService.startIssueProgress(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
-
     @PutMapping("/{id}/accept")
     public ResponseEntity<IssueResponse> acceptIssue(@PathVariable UUID id) {
         Issue issue = issueService.acceptIssue(id);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
-
 
     @PutMapping("/{id}/previous")
     public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable UUID id) {
@@ -112,4 +117,3 @@ public class IssueController {
     }
 
 }
-

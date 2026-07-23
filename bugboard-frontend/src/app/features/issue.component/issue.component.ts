@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, Input} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -20,7 +20,8 @@ export class IssueComponent implements OnInit {
   // Paginazione
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
-  readonly projectId = signal<string>('');
+
+  @Input() projectId!: string;
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
@@ -34,26 +35,32 @@ export class IssueComponent implements OnInit {
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
   isLoading = signal<boolean>(false);
-  sortField = signal<string>('');
+  sortField = signal<string>('title');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   ngOnInit(): void {
-    const projectId = this.route.snapshot.paramMap.get('projectId');
-    if (projectId) {
-      this.projectId.set(projectId);
+    if (!this.projectId) {
+      this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    }
+
+    if (this.projectId) {
       this.loadIssues();
     }
   }
 
   loadIssues(): void {
-    const projectId = this.projectId();
-    if (!projectId) return;
-
     this.isLoading.set(true);
     const page = this.currentPage();
     const size = this.pageSize();
 
-    this.issueService.getIssuesByProject(projectId, page, size).subscribe({
+    this.issueService.getIssuesByProject(this.projectId,        
+        this.statusFilter(),
+        this.priorityFilter(),
+        this.currentPage(),
+        this.pageSize(),
+        this.sortField() || 'title',
+        this.sortDirection()).subscribe({
+
       next: (response) => {
         this.issuesPage.set(response);
         this.isLoading.set(false);
@@ -73,29 +80,35 @@ export class IssueComponent implements OnInit {
   }
 
   onStatusChange(status: string): void {
-    this.statusFilter.set(status);
-    this.currentPage.set(0);
-    this.loadIssues();
-  }
+  this.statusFilter.set(status);
+  this.currentPage.set(0); 
+  this.loadIssues();
+}
 
   onPriorityChange(priority: string): void {
-    this.priorityFilter.set(priority);
-    this.currentPage.set(0);
-    this.loadIssues();
+  this.priorityFilter.set(priority);
+  this.currentPage.set(0); 
+  this.loadIssues();
   }
 
   sortData(field: string): void {
-    if (field !== 'id') return;
+    if (field !== 'title' && field !== 'assignee') return;
 
-    if (this.sortField() === 'id') {
+    const targetField = field === 'assignee' ? 'assignee.username' : 'title';
+
+    if (this.sortField() === targetField) {
       this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortField.set('id');
+      this.sortField.set(targetField);
       this.sortDirection.set('asc');
     }
 
     this.currentPage.set(0);
     this.loadIssues();
+  }
+
+  onTitleClick(issue: IssueResponse): void {
+    console.log('Title clicked for issue:', issue);
   }
 
   getPriorityStyle(priority: string): string {

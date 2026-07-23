@@ -12,10 +12,14 @@ export class IssueService {
 
   public getIssuesByProject(
     projectId: string,
+    status: string = 'ALL',
+    priority: string = 'ALL',
     page: number = 0,
     size: number = 20,
+    sortField: string = 'id',
+    sortDirection: string = 'desc'
   ): Observable<Page<IssueResponse>> {
-    return this.apiService.issues.getByProject(projectId, page, size);
+    return this.apiService.issues.getByProject(projectId, status, priority, page, size, sortField, sortDirection);
   }
 
   public createIssue(projectId: string, issue: IssueRequest): Observable<IssueResponse> {

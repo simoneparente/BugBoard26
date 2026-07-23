@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import {
   AuthRequest,
@@ -49,10 +49,33 @@ export class ApiService {
   };
 
   readonly issues = {
-    getByProject: (projectId: string, page: number, size: number) =>
-      this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
-        params: { page: page.toString(), size: size.toString() },
-      }),
+    getByProject: (
+      projectId: string,
+      status: string = 'ALL',
+      priority: string = 'ALL',
+      page: number = 0,
+      size: number = 20,
+      sortField: string = 'createdAt',
+      sortDirection: string = 'desc',
+    ) => {
+      let params = new HttpParams()
+        .set('page', page.toString())
+        .set('size', size.toString())
+        .set('sort', `${sortField},${sortDirection}`);
+      if (status && status !== 'ALL') {
+        params = params.set('status', status);
+      }
+      if (priority && priority !== 'ALL') {
+        params = params.set('priority', priority);
+      }
+
+      const url = `${this.baseUrl}/projects/${projectId}/issues`;
+
+
+      return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
+        params,
+      });
+    },
     create: (projectId: string, payload: any) =>
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
     uploadAttachment: (issueId: string, file: File) => {
