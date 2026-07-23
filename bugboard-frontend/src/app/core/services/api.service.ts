@@ -130,7 +130,7 @@ export class ApiService {
       this.http.put(uploadUrl, file, {
         headers: {
           'x-ms-blob-type': 'BlockBlob',
-          'Content-Type': 'application/octet-stream',
+          'Content-Type': file.type || 'application/octet-stream',
         },
       }),
   };

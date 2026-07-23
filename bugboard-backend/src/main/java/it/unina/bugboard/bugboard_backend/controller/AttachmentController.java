@@ -3,14 +3,17 @@ package it.unina.bugboard.bugboard_backend.controller;
 import it.unina.bugboard.bugboard_backend.dto.AttachmentResponse;
 import it.unina.bugboard.bugboard_backend.dto.SasTokenResponse;
 import it.unina.bugboard.bugboard_backend.service.AttachmentService;
+import it.unina.bugboard.bugboard_backend.service.AzureStorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import it.unina.bugboard.bugboard_backend.service.AzureStorageService;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,17 +69,25 @@ public class AttachmentController {
             org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.fileName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.fileName() + "\"")
                     .body(resource);
         } catch (Exception e) {
-            String sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            String mimeType = getMimeType(metadata.fileName());
+            String sasUrl = azureStorageService.generateDownloadSasUrl(
+                    metadata.filePath(),
+                    "attachment; filename=\"" + metadata.fileName() + "\"",
+                    mimeType
+            );
+            if (sasUrl == null) {
+                sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            }
             if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
                 sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
             }
             if (sasUrl == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(sasUrl)).build();
         }
     }
 
@@ -89,31 +100,29 @@ public class AttachmentController {
         AttachmentResponse metadata = attachmentService.getAttachmentById(id);
         try {
             org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
-
-            String mimeType = "application/octet-stream";
-            if (metadata.fileName() != null) {
-                String lower = metadata.fileName().toLowerCase();
-                if (lower.endsWith(".png")) mimeType = "image/png";
-                else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
-                else if (lower.endsWith(".gif")) mimeType = "image/gif";
-                else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
-                else if (lower.endsWith(".pdf")) mimeType = "application/pdf";
-                else if (lower.endsWith(".txt")) mimeType = "text/plain";
-            }
+            String mimeType = getMimeType(metadata.fileName());
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(mimeType))
-                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + metadata.fileName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + metadata.fileName() + "\"")
                     .body(resource);
         } catch (Exception e) {
-            String sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            String mimeType = getMimeType(metadata.fileName());
+            String sasUrl = azureStorageService.generateDownloadSasUrl(
+                    metadata.filePath(),
+                    "inline; filename=\"" + metadata.fileName() + "\"",
+                    mimeType
+            );
+            if (sasUrl == null) {
+                sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            }
             if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
                 sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
             }
             if (sasUrl == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(sasUrl)).build();
         }
     }
 
@@ -125,5 +134,12 @@ public class AttachmentController {
     public ResponseEntity<List<AttachmentResponse>> getAttachmentsByIssueId(@PathVariable UUID issueId) {
         List<AttachmentResponse> response = attachmentService.getAttachmentsByIssueId(issueId);
         return ResponseEntity.ok(response);
+    }
+
+    private String getMimeType(String fileName) {
+        if (fileName == null) return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        return MediaTypeFactory.getMediaType(fileName)
+                .map(MediaType::toString)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM_VALUE);
     }
 }

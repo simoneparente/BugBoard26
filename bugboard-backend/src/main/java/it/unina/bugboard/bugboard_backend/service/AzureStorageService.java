@@ -34,6 +34,21 @@ public class AzureStorageService {
                 .connectionString(connectionString)
                 .buildClient();
 
+        try {
+            com.azure.storage.blob.models.BlobCorsRule corsRule = new com.azure.storage.blob.models.BlobCorsRule()
+                    .setAllowedOrigins("*")
+                    .setAllowedMethods("GET,PUT,POST,DELETE,HEAD,OPTIONS")
+                    .setAllowedHeaders("*")
+                    .setExposedHeaders("*")
+                    .setMaxAgeInSeconds(3600);
+
+            com.azure.storage.blob.models.BlobServiceProperties properties = new com.azure.storage.blob.models.BlobServiceProperties()
+                    .setCors(java.util.List.of(corsRule));
+            blobServiceClient.setProperties(properties);
+        } catch (Exception e) {
+            System.err.println("Could not set Azurite CORS rules: " + e.getMessage());
+        }
+
         BlobContainerClient client = blobServiceClient.getBlobContainerClient(containerName);
 
         if (!client.exists()) {
@@ -73,19 +88,33 @@ public class AzureStorageService {
         return new SasTokenResponse(uploadUrl, uniqueFileName);
     }
     
-     /**
+    /**
      * Generate a SAS URL to allow the frontend to DOWNLOAD or view a file (Permission: READ).
      */
     public String generateDownloadSasUrl(String blobFileName) {
+        return generateDownloadSasUrl(blobFileName, null, null);
+    }
+
+    /**
+     * Generate a SAS URL with custom Content-Disposition and Content-Type.
+     */
+    public String generateDownloadSasUrl(String blobFileName, String contentDisposition, String contentType) {
         BlobClient blobClient = getContainerClient().getBlobClient(blobFileName);
 
         BlobSasPermission sasPermission = new BlobSasPermission().setReadPermission(true);
         OffsetDateTime expiryTime = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(15);
 
         BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, sasPermission);
+        if (contentDisposition != null) {
+            sasSignatureValues.setContentDisposition(contentDisposition);
+        }
+        if (contentType != null) {
+            sasSignatureValues.setContentType(contentType);
+        }
 
         return blobClient.getBlobUrl() + "?" + blobClient.generateSas(sasSignatureValues);
     }
+
 
     private String generateUniqueFileName(String originalFilename) {
         String extension = "";
