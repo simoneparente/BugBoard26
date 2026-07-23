@@ -12,9 +12,11 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
+import { ProjectService } from '../../core/services/project.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { IssueResponse } from '../../core/issue.model';
 import { UserResponse } from '../../core/auth/auth.models';
+import { AssigneeRecommendation } from '../../core/assignee-recommendation.model';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { environment } from '../../../environments/environment';
 
@@ -29,6 +31,7 @@ export class IssueDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly issueService = inject(IssueService);
+  private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -37,6 +40,7 @@ export class IssueDetailComponent implements OnInit {
 
   public readonly issue = signal<IssueResponse | null>(null);
   public readonly users = signal<UserResponse[]>([]);
+  public readonly recommendations = signal<AssigneeRecommendation[]>([]);
   public readonly isLoading = signal<boolean>(true);
   public readonly error = signal<string | null>(null);
   public readonly isUpdatingAssignee = signal<boolean>(false);
@@ -72,6 +76,8 @@ export class IssueDetailComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
+    this.loadRecommendations();
+
     // Load users list first or concurrently
     this.issueService.getAllUsers().subscribe({
       next: (usersList) => {
@@ -82,6 +88,19 @@ export class IssueDetailComponent implements OnInit {
         console.error('Failed to load users:', err);
         // Continue loading issue even if user list fails
         this.fetchIssue();
+      },
+    });
+  }
+
+  private loadRecommendations(): void {
+    if (!this.projectId) return;
+    this.projectService.getRecommendedAssignees(this.projectId).subscribe({
+      next: (recs) => {
+        this.recommendations.set(recs || []);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load recommended assignees:', err);
       },
     });
   }
@@ -129,6 +148,7 @@ export class IssueDetailComponent implements OnInit {
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
+        this.loadRecommendations();
         this.notificationService.showSuccess(
           'Assignee Removed',
           'The issue has been reset to TO_DO status with no assignee.',
@@ -175,6 +195,7 @@ export class IssueDetailComponent implements OnInit {
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
+        this.loadRecommendations();
         this.notificationService.showSuccess(
           'Assignee Updated',
           `Issue assigned to ${user.username}.`,

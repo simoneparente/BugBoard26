@@ -12,6 +12,7 @@ import { ROLES } from '../roles.model';
 import { Page } from '../page.model';
 import { ProjectResponse } from '../project.model';
 import { IssueResponse } from '../issue.model';
+import { AssigneeRecommendation } from '../assignee-recommendation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -44,6 +45,10 @@ export class ApiService {
         params: { page: page.toString(), size: size.toString() },
       }),
     getById: (id: string) => this.http.get<ProjectResponse>(`${this.baseUrl}/projects/${id}`),
+    getRecommendedAssignees: (id: string) =>
+      this.http.get<AssigneeRecommendation[]>(
+        `${this.baseUrl}/projects/${id}/recommended-assignees`,
+      ),
     create: (name: string, description: string) =>
       this.http.post<ProjectResponse>(`${this.baseUrl}/projects`, { name, description }),
     delete: (id: string) => this.http.delete<void>(`${this.baseUrl}/projects/${id}`),
