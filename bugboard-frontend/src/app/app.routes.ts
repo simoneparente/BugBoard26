@@ -62,7 +62,7 @@ export const routes: Routes = [
         title: 'BugBoard26 - Create Project',
       },
       {
-        path: 'reports/:projectId',
+        path: 'projects/:projectId/report',
         component: ReportComponent,
         title: 'BugBoard26 - Report',
       },
