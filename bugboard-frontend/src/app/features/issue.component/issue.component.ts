@@ -64,9 +64,9 @@ export class IssueComponent implements OnInit, OnDestroy {
             this.currentPage(),
             this.pageSize(),
             this.sortField() || 'title',
-            this.sortDirection()
+            this.sortDirection(),
           );
-        })
+        }),
       )
       .subscribe({
         next: (response) => {
@@ -102,7 +102,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         this.currentPage(),
         this.pageSize(),
         this.sortField() || 'title',
-        this.sortDirection()
+        this.sortDirection(),
       )
       .subscribe({
         next: (response) => {
