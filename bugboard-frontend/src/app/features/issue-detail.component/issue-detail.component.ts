@@ -175,9 +175,10 @@ export class IssueDetailComponent implements OnInit {
     const q = (this.userSearchQuery || '').trim().toLowerCase();
     return (this.users() || []).filter(
       (u) =>
-        q === '' ||
-        u.username.toLowerCase().includes(q) ||
-        (u.role && u.role.toLowerCase().includes(q)),
+        u.role !== 'EXTERNAL' &&
+        (q === '' ||
+          u.username.toLowerCase().includes(q) ||
+          (u.role && u.role.toLowerCase().includes(q))),
     );
   }
 

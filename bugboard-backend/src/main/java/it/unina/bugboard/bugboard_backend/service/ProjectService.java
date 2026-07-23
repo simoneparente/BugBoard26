@@ -112,6 +112,7 @@ public class ProjectService {
                 .collect(Collectors.groupingBy(issue -> issue.getAssignee().getId()));
 
         return members.stream()
+                .filter(user -> user.getRole() != Role.ADMIN && user.getRole() != Role.EXTERNAL)
                 .map(user -> {
                     List<Issue> userIssues = issuesByAssignee.getOrDefault(user.getId(), List.of());
                     int workloadScore = userIssues.stream()
