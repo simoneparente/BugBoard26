@@ -42,9 +42,10 @@ public class IssueController {
     @GetMapping
     public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
             @RequestParam(required = false, defaultValue = "ALL") String status,
-            @RequestParam(required = false, defaultValue = "ALL") String priority, Pageable pageable) {
+            @RequestParam(required = false, defaultValue = "ALL") String priority,
+            @RequestParam(required = false) String search, Pageable pageable) {
 
-        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, pageable)
+        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, search, pageable)
                 .map(this::mapToResponseDTO);
         
         return ResponseEntity.ok(issues);
