@@ -22,7 +22,6 @@ import { TagService } from '../../core/services/tag.service';
 import { ProjectService } from '../../core/services/project.service';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { TagResponse } from '../../core/tag.model';
-import { UserResponse } from '../../core/auth/auth.models';
 import { ProjectResponse } from '../../core/project.model';
 import { forkJoin } from 'rxjs';
 
@@ -52,20 +51,15 @@ export class CreateIssueComponent implements OnInit {
   isLoadingTags = true;
 
   isTagDropdownOpen = false;
-  isUserDropdownOpen = false;
   isPriorityDropdownOpen = false;
   isTypeDropdownOpen = false;
 
   tagSearchQuery: string = '';
-  userSearchQuery: string = '';
 
   selectedFiles: File[] = [];
   projectId: string = '';
   availableTags: TagResponse[] = [];
   selectedTags: TagResponse[] = [];
-
-  availableUsers: UserResponse[] = [];
-  selectedAssignee: UserResponse | null = null;
 
   priorities = [
     { value: 'LOWEST', label: 'Lowest', class: 'priority-lowest' },
@@ -76,26 +70,23 @@ export class CreateIssueComponent implements OnInit {
   ];
 
   types = [
-    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill text-danger', class: 'type-bug' },
+    { value: 'BUG', label: 'Bug', icon: 'bi-bug-fill text-danger' },
     {
       value: 'FEATURE',
       label: 'Feature',
       icon: 'bi-star-fill text-primary',
-      class: 'type-feature',
     },
     {
       value: 'QUESTION',
       label: 'Question',
       icon: 'bi-question-circle-fill text-warning',
-      class: 'type-question',
     },
     {
       value: 'DOCUMENTATION',
       label: 'Documentation',
       icon: 'bi-file-earmark-text-fill text-info',
-      class: 'type-documentation',
     },
-    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill text-secondary', class: 'type-other' },
+    { value: 'OTHER', label: 'Other', icon: 'bi-tag-fill text-secondary' },
   ];
 
   constructor() {
@@ -185,26 +176,6 @@ export class CreateIssueComponent implements OnInit {
     this.isTypeDropdownOpen = false;
   }
 
-  selectAssignee(user: UserResponse) {
-    this.selectedAssignee = user;
-    this.isUserDropdownOpen = false;
-    this.userSearchQuery = '';
-  }
-
-  removeAssignee() {
-    this.selectedAssignee = null;
-  }
-
-  get filteredUsers(): UserResponse[] {
-    const q = (this.userSearchQuery || '').trim().toLowerCase();
-    return (this.availableUsers || []).filter(
-      (u) =>
-        q === '' ||
-        u.username.toLowerCase().includes(q) ||
-        (u.role && u.role.toLowerCase().includes(q)),
-    );
-  }
-
   onSubmit() {
     this.submitted = true;
     this.showError = false;
@@ -218,7 +189,6 @@ export class CreateIssueComponent implements OnInit {
     const payload = {
       ...this.issueForm.value,
       tags: this.selectedTags,
-      assigneeUsername: this.selectedAssignee ? this.selectedAssignee.username : null,
     };
 
     this.issueService.createIssue(projectId, payload).subscribe({
@@ -276,9 +246,6 @@ export class CreateIssueComponent implements OnInit {
 
     if (!nativeEl.querySelector('.tags-dropdown-wrapper')?.contains(event.target)) {
       this.isTagDropdownOpen = false;
-    }
-    if (!nativeEl.querySelector('.users-dropdown-wrapper')?.contains(event.target)) {
-      this.isUserDropdownOpen = false;
     }
     if (!nativeEl.querySelector('.priority-dropdown-wrapper')?.contains(event.target)) {
       this.isPriorityDropdownOpen = false;

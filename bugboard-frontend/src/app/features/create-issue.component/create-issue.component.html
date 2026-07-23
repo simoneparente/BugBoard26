@@ -142,11 +142,11 @@
 
               @if (isPriorityDropdownOpen) {
                 <div
-                  class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
                 >
                   @for (p of priorities; track p.value) {
                     <div
-                      class="popover-user-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
                       (click)="selectPriority(p.value)"
                     >
                       <span class="badge rounded-pill px-3 py-1.5 fw-bold" [ngClass]="p.class">
@@ -181,11 +181,11 @@
 
               @if (isTypeDropdownOpen) {
                 <div
-                  class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
+                  class="custom-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3 p-2"
                 >
                   @for (t of types; track t.value) {
                     <div
-                      class="popover-user-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
+                      class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
                       (click)="selectType(t.value)"
                     >
                       <div class="d-flex align-items-center gap-2">

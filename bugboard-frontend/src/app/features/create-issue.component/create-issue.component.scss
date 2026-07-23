@@ -94,11 +94,6 @@
   animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overflow: hidden;
 
-  .popover-header {
-    background-color: #f8fafc;
-    color: #64748b;
-  }
-
   .popover-list {
     max-height: 220px;
     overflow-y: auto;
@@ -149,69 +144,13 @@
   }
 }
 
-/* Full-Width Assigned User Chip with tag-removal hover animation */
-.assigned-user-chip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.5rem 0.85rem;
-  background-color: #eff6ff;
-  border: 1.5px solid #bfdbfe;
-  border-radius: 0.75rem;
-  color: #1e40af;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.1);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-
-  .avatar-circle {
-    width: 28px;
-    height: 28px;
-    background-color: #3b82f6;
-    color: #ffffff;
-    font-size: 0.75rem;
-  }
-
-  .remove-icon {
-    font-size: 0.85rem;
-    color: #3b82f6;
-    opacity: 0.8;
-    transition:
-      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-      color 0.25s ease,
-      opacity 0.25s ease;
-  }
-
-  &:hover {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
-    color: #b91c1c;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.18);
-    transform: translateY(-1px);
-
-    .avatar-circle {
-      background-color: #ef4444;
-    }
-
-    .remove-icon {
-      color: #dc2626;
-      opacity: 1;
-      transform: scale(1.25) rotate(90deg);
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
 /* Floating Popover Menus */
-.users-popover-menu {
+.custom-popover-menu {
   background-color: #ffffff;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   animation: fadeInDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
-  .popover-user-item {
+  .popover-menu-item {
     transition: background-color 0.15s ease;
     cursor: pointer;
     &:hover {
