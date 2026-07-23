@@ -4,6 +4,7 @@ import { catchError, tap, Observable, of } from 'rxjs';
 import { AuthRequest, AuthResponse, UserRegistrationRequest, UserResponse } from './auth.models';
 import { NotificationService } from '../services/notification.service';
 import { ApiService } from '../services/api.service';
+import { ROLES } from '../roles.model';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +19,9 @@ export class AuthService {
   public readonly currentUser = this.currentUserSignal.asReadonly();
   public readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
   public readonly userRole = computed(() => this.currentUserSignal()?.role ?? null);
+
+  /** True when the logged-in user is a read-only stakeholder (EXTERNAL role). */
+  public readonly isReadonly = computed(() => this.userRole() === ROLES.EXTERNAL);
 
   /**
    * Authenticates the user and updates the signal.

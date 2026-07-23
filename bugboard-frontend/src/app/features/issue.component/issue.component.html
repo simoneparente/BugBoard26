@@ -89,14 +89,21 @@
         </ul>
       </div>
 
-      <!-- New Issue Button -->
-      <button
-        class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
-        type="button"
-        [routerLink]="['/projects', projectId, 'issues', 'create']"
-      >
-        <i class="bi bi-plus-lg"></i> New Issue
-      </button>
+      <!-- New Issue Button (hidden for read-only EXTERNAL users) -->
+      @if (!isReadonly()) {
+        <button
+          class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectId, 'issues', 'create']"
+        >
+          <i class="bi bi-plus-lg"></i> New Issue
+        </button>
+      } @else {
+        <!-- Readonly badge shown to stakeholders -->
+        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 d-flex align-items-center gap-1">
+          <i class="bi bi-eye"></i> View Only
+        </span>
+      }
     </div>
   </div>
 

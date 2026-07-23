@@ -11,6 +11,7 @@ import { ReportComponent } from './features/report.component/report.component';
 import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
+import { notExternalGuard } from './core/auth/role.guard';
 
 const authGuard = () => {
   const authService = inject(AuthService);
@@ -60,16 +61,19 @@ export const routes: Routes = [
         path: 'projects/create',
         component: CreateProjectComponent,
         title: 'BugBoard26 - Create Project',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'reports/:projectId',
         component: ReportComponent,
         title: 'BugBoard26 - Report',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectId/issues/create',
         component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
+        canActivate: [notExternalGuard],
       },
       {
         path: '',

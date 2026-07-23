@@ -6,6 +6,7 @@ import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { AuthService } from '../../core/auth/auth-service';
 
 @Component({
   selector: 'app-issue',
@@ -17,6 +18,11 @@ export class IssueComponent implements OnInit {
   private readonly issueService = inject(IssueService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly authService = inject(AuthService);
+
+  /** True when the current user has EXTERNAL (read-only) role. Used in the template to hide write controls. */
+  readonly isReadonly = this.authService.isReadonly;
+
 
   // Paginazione
   currentPage = signal<number>(0);

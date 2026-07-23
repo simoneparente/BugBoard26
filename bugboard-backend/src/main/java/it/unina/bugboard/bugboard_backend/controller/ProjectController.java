@@ -6,7 +6,6 @@ import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,7 +22,7 @@ public class ProjectController {
     private final ProjectService projectService;
     private final ProjectMapper projectMapper;
 
-    @PostMapping 
+    @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
         Project project = projectService.createProject(projectRequest);
         return new ResponseEntity<>(projectMapper.toResponse(project), HttpStatus.CREATED);
@@ -46,5 +45,21 @@ public class ProjectController {
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<ProjectResponse> addMember(
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId) {
+        Project project = projectService.addMemberToProject(projectId, userId);
+        return ResponseEntity.ok(projectMapper.toResponse(project));
+    }
+
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<ProjectResponse> removeMember(
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId) {
+        Project project = projectService.removeMemberFromProject(projectId, userId);
+        return ResponseEntity.ok(projectMapper.toResponse(project));
     }
 }
