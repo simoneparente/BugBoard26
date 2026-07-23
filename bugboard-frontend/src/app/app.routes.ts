@@ -1,4 +1,4 @@
-import { Routes, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { CreateIssueComponent } from './features/create-issue.component/create-issue.component';
 import { AuthService } from './core/auth/auth-service';
@@ -12,7 +12,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
 import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
-const authGuard = () => {
+const authGuard = (_route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -20,7 +20,7 @@ const authGuard = () => {
     return true;
   }
 
-  router.navigate(['/login']);
+  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
   return false;
 };
 

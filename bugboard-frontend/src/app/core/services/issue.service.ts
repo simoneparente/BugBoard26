@@ -52,8 +52,6 @@ export class IssueService {
   }
 
   public uploadAttachment(issueId: string, file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
     return this.apiService.issues.uploadAttachment(issueId, file);
   }
 }

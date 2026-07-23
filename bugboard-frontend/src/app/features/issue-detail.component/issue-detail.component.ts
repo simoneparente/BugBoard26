@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   signal,
-  computed,
   inject,
   PLATFORM_ID,
   ChangeDetectorRef,
@@ -10,14 +9,13 @@ import {
   HostListener,
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { IssueResponse } from '../../core/issue.model';
 import { UserResponse } from '../../core/auth/auth.models';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
-import { AuthService } from '../../core/auth/auth-service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -29,11 +27,9 @@ import { environment } from '../../../environments/environment';
 })
 export class IssueDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly issueService = inject(IssueService);
   private readonly notificationService = inject(NotificationService);
   private readonly breadcrumbService = inject(BreadcrumbService);
-  private readonly authService = inject(AuthService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly elementRef = inject(ElementRef);
@@ -44,18 +40,12 @@ export class IssueDetailComponent implements OnInit {
   public readonly error = signal<string | null>(null);
   public readonly isUpdatingAssignee = signal<boolean>(false);
   public readonly isUpdatingStatus = signal<boolean>(false);
-  public readonly isUploadingFile = signal<boolean>(false);
 
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
 
-  public readonly isAdmin = computed(() => {
-    return this.authService.userRole() === 'ADMIN';
-  });
-
   public projectId: string = '';
   public issueId: string = '';
-  public selectedAssigneeId: string = '';
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -100,7 +90,6 @@ export class IssueDetailComponent implements OnInit {
         if (data.projectName) {
           this.breadcrumbService.setProjectName(data.projectName);
         }
-        this.syncSelectedAssignee(data);
         this.isLoading.set(false);
         this.cdr.detectChanges();
       },
@@ -115,15 +104,6 @@ export class IssueDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
     });
-  }
-
-  private syncSelectedAssignee(currentIssue: IssueResponse): void {
-    if (!currentIssue.assigneeUsername || currentIssue.assigneeUsername === 'Unassigned') {
-      this.selectedAssigneeId = '';
-    } else {
-      const match = this.users().find((u) => u.username === currentIssue.assigneeUsername);
-      this.selectedAssigneeId = match ? match.id : '';
-    }
   }
 
   public onRemoveAssignee(): void {
@@ -145,7 +125,6 @@ export class IssueDetailComponent implements OnInit {
     this.issueService.removeAssignee(this.projectId, this.issueId).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
-        this.syncSelectedAssignee(updatedIssue);
         this.isUpdatingAssignee.set(false);
         this.notificationService.showSuccess(
           'Assignee Removed',
@@ -160,7 +139,6 @@ export class IssueDetailComponent implements OnInit {
           'Update Failed',
           err.error?.message || 'Failed to unassign the issue. Please try again.',
         );
-        this.syncSelectedAssignee(this.issue()!);
         this.cdr.detectChanges();
       },
     });
@@ -193,7 +171,6 @@ export class IssueDetailComponent implements OnInit {
     this.issueService.assignIssue(this.projectId, this.issueId, user.id).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
-        this.syncSelectedAssignee(updatedIssue);
         this.isUpdatingAssignee.set(false);
         this.notificationService.showSuccess(
           'Assignee Updated',
@@ -208,98 +185,9 @@ export class IssueDetailComponent implements OnInit {
           'Update Failed',
           err.error?.message || 'Failed to assign user to issue.',
         );
-        this.syncSelectedAssignee(this.issue()!);
         this.cdr.detectChanges();
       },
     });
-  }
-
-  public onAssigneeChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newUserId = target.value;
-
-    this.isUpdatingAssignee.set(true);
-
-    if (!newUserId) {
-      // Remove assignee
-      this.issueService.removeAssignee(this.projectId, this.issueId).subscribe({
-        next: (updatedIssue) => {
-          this.issue.set(updatedIssue);
-          this.syncSelectedAssignee(updatedIssue);
-          this.isUpdatingAssignee.set(false);
-          this.notificationService.showSuccess('Assignee Removed', 'The issue is now unassigned.');
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error removing assignee:', err);
-          this.isUpdatingAssignee.set(false);
-          this.notificationService.showError(
-            'Update Failed',
-            'Failed to unassign the issue. Please try again.',
-          );
-          this.syncSelectedAssignee(this.issue()!);
-          this.cdr.detectChanges();
-        },
-      });
-    } else {
-      // Assign issue to user
-      this.issueService.assignIssue(this.projectId, this.issueId, newUserId).subscribe({
-        next: (updatedIssue) => {
-          this.issue.set(updatedIssue);
-          this.syncSelectedAssignee(updatedIssue);
-          this.isUpdatingAssignee.set(false);
-          const assignedUser = this.users().find((u) => u.id === newUserId);
-          this.notificationService.showSuccess(
-            'Assignee Updated',
-            `Issue assigned to ${assignedUser ? assignedUser.username : 'selected user'}.`,
-          );
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error assigning issue:', err);
-          this.isUpdatingAssignee.set(false);
-          this.notificationService.showError(
-            'Update Failed',
-            'Failed to assign user to issue. Please try again.',
-          );
-          this.syncSelectedAssignee(this.issue()!);
-          this.cdr.detectChanges();
-        },
-      });
-    }
-  }
-
-  public onUploadFileSelected(event: any): void {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      this.isUploadingFile.set(true);
-      this.issueService.uploadAttachment(this.issueId, file).subscribe({
-        next: () => {
-          this.isUploadingFile.set(false);
-          this.notificationService.showSuccess(
-            'Attachment Uploaded',
-            'File uploaded successfully!',
-          );
-          this.fetchIssue();
-        },
-        error: (err) => {
-          console.error('Error uploading attachment:', err);
-          this.isUploadingFile.set(false);
-          this.notificationService.showError('Upload Error', 'Failed to upload attachment.');
-          this.cdr.detectChanges();
-        },
-      });
-    }
-  }
-
-  public onStatusSelectChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newStatus = target.value;
-
-    if (!newStatus || newStatus === this.issue()?.status) return;
-
-    this.onSetStatus(newStatus);
   }
 
   public onSetStatus(status: string): void {
