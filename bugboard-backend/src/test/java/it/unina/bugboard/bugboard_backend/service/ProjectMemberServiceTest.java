@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -92,10 +93,11 @@ class ProjectMemberServiceTest {
                 .id(projectId)
                 .name("Test Project")
                 .description("Test")
-                .members(List.of(adminUser, technicalUser1))
+                .members(new ArrayList<>(List.of(adminUser, technicalUser1)))
                 .build();
+    }
 
-        // Setup SecurityContext
+    private void setupSecurityContext() {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.isAuthenticated()).thenReturn(true);
@@ -105,8 +107,10 @@ class ProjectMemberServiceTest {
     @Test
     void testGetProjectMembers_Success() {
         Pageable pageable = PageRequest.of(0, 10);
+        Page<User> memberPage = new PageImpl<>(List.of(adminUser, technicalUser1), pageable, 2);
+        
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));
-        when(userRepository.findById(adminId)).thenReturn(Optional.of(adminUser));
+        when(projectRepository.findMembersByProjectId(projectId, pageable)).thenReturn(memberPage);
 
         Page<User> result = projectService.getProjectMembers(projectId, pageable);
 
@@ -124,12 +128,12 @@ class ProjectMemberServiceTest {
                 .role(Role.ADMIN)
                 .build();
         
-        List<User> allUsers = List.of(adminUser, technicalUser1, technicalUser2, anotherAdmin);
+        List<User> availableUsers = List.of(technicalUser2);
         Pageable pageable = PageRequest.of(0, 10);
+        Page<User> availablePage = new PageImpl<>(availableUsers, pageable, availableUsers.size());
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));
-        when(userRepository.findById(adminId)).thenReturn(Optional.of(adminUser));
-        when(userRepository.findAll(pageable)).thenReturn(new PageImpl<>(allUsers, pageable, allUsers.size()));
+        when(projectRepository.findAvailableUsersForProject(projectId, pageable)).thenReturn(availablePage);
 
         Page<User> result = projectService.getAvailableUsers(projectId, pageable);
 
@@ -142,6 +146,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_OnlyAdminCanAdd() {
+        setupSecurityContext();
         User technicalUser = User.builder()
                 .id(UUID.randomUUID())
                 .username("tech")
@@ -159,6 +164,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_Success() {
+        setupSecurityContext();
         List<UUID> userIdsToAdd = List.of(technicalUser2.getId());
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));
@@ -176,6 +182,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_ExcludesDuplicates() {
+        setupSecurityContext();
         List<UUID> userIdsToAdd = List.of(technicalUser1.getId(), technicalUser2.getId());
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));
@@ -192,6 +199,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_UserNotFound() {
+        setupSecurityContext();
         List<UUID> userIdsToAdd = List.of(UUID.randomUUID());
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));
@@ -205,6 +213,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_RejectsAdminUsers() {
+        setupSecurityContext();
         UUID anotherAdminId = UUID.randomUUID();
         User anotherAdmin = User.builder()
                 .id(anotherAdminId)
@@ -224,6 +233,7 @@ class ProjectMemberServiceTest {
 
     @Test
     void testAddMembersToProject_AllAlreadyMembers() {
+        setupSecurityContext();
         List<UUID> userIdsToAdd = List.of(technicalUser1.getId());
 
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(testProject));

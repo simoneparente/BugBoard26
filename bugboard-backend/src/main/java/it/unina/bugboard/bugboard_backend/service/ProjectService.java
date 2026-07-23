@@ -27,11 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
-import it.unina.bugboard.bugboard_backend.entity.Project;
-import it.unina.bugboard.bugboard_backend.entity.Role;
-import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import java.util.Map;
-import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
 
 @Service
 @RequiredArgsConstructor
