@@ -118,10 +118,10 @@ export class ProjectComponent implements OnInit {
           'Project Deleted',
           'The project has been successfully deleted.',
         );
+        this.loadProjects();
       },
       error: () => {
         this.error.set('There was an error deleting the project. Please try again.');
-        this.loadProjects();
       },
     });
   }

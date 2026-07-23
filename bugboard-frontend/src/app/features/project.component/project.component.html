@@ -64,10 +64,11 @@
                   <span class="bi bi-calendar3 me-1"></span>{{ getLastModifiedDate(project) }}
                 </span>
 
-                <span
-                  class="bi bi-trash text-danger cursor-pointer"
-                  (click)="deleteProject(project.id, $event)"
-                ></span>
+                <a
+                  class="bi bi-gear text-muted cursor-pointer transition-colors"
+                  [routerLink]="['/projects', project.id, 'settings']"
+                  title="Project Settings"
+                ></a>
               </div>
             </div>
           </div>
