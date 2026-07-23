@@ -76,6 +76,7 @@ export const routes: Routes = [
         path: 'projects/:projectId/tags',
         component: TagManagementComponent,
         title: 'BugBoard26 - Tag Management',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectId/report',

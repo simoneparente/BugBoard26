@@ -231,18 +231,4 @@ export class IssueComponent implements OnInit, OnDestroy {
     };
     return styles[tagName] || 'bg-light text-secondary border';
   }
-
-  // USER ACTIONS
-  onActionClick(event: Event, issueId: string): void {
-    event.stopPropagation();
-    console.log('Action clicked for:', issueId);
-  }
-
-  editIssue(id: string): void {
-    console.log('Edit issue:', id);
-  }
-
-  deleteIssue(id: string): void {
-    console.log('Delete issue:', id);
-  }
 }
