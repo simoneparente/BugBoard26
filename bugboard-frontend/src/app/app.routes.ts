@@ -64,9 +64,9 @@ export const routes: Routes = [
         title: 'BugBoard26 - Create Project',
       },
       {
-        path: 'projects/:projectId/tags',
-        component: TagManagementComponent,
-        title: 'BugBoard26 - Tag Management',
+        path: 'projects/:projectId',
+        redirectTo: 'projects/:projectId/issues',
+        pathMatch: 'full',
       },
       {
         path: 'projects/:projectId/tags',

@@ -51,52 +51,62 @@ export class BreadcrumbService {
       icon: 'bi-house-door',
     });
 
-    if (
-      segments.length === 0 ||
-      segments[0] === 'dashboard' ||
-      (segments.length === 1 && segments[0] === 'projects')
-    ) {
+    if (segments.length === 0 || segments[0] === 'dashboard') {
       this.breadcrumbs.set(items);
       return;
     }
 
-    const currentProjectLabel = this.projectName() ?? 'Project Details';
-
     if (segments[0] === 'projects') {
-      if (segments.length === 2 && segments[1] === 'create') {
+      if (segments.length === 1) {
+        // Just /projects, we can redirect or ignore it, as dashboard is projects.
+      } else if (segments.length === 2 && segments[1] === 'create') {
         items.push({
           label: 'Create Project',
           icon: 'bi-plus-circle',
         });
       } else if (segments.length >= 2 && segments[1] !== 'create') {
         const projectId = segments[1];
+        const currentProjectLabel = this.projectName() ?? 'Issue Tracker';
+
         items.push({
           label: currentProjectLabel,
-          url: `/projects/${projectId}`,
+          url: `/projects/${projectId}/issues`,
           icon: 'bi-kanban',
         });
 
-        if (segments.length === 4 && segments[2] === 'issues' && segments[3] === 'create') {
-          items.push({
-            label: 'Create Issue',
-            icon: 'bi-bug',
-          });
+        if (segments.length >= 3) {
+          const projectFeature = segments[2];
+
+          if (projectFeature === 'issues') {
+            if (segments.length === 4) {
+              if (segments[3] === 'create') {
+                items.push({
+                  label: 'Create Issue',
+                  icon: 'bi-bug',
+                });
+              } else {
+                items.push({
+                  label: `Issue #${segments[3].substring(0, 4)}`,
+                  url: `/projects/${projectId}/issues/${segments[3]}`,
+                  icon: 'bi-ticket-detailed',
+                });
+              }
+            }
+          } else if (projectFeature === 'report') {
+            items.push({
+              label: 'Report',
+              icon: 'bi-file-earmark-bar-graph',
+            });
+          } else if (projectFeature === 'tags') {
+            items.push({
+              label: 'Tags',
+              icon: 'bi-tags',
+            });
+          }
         }
       }
-    } else if (segments[0] === 'reports') {
-      if (segments.length >= 2) {
-        const projectId = segments[1];
-        items.push({
-          label: currentProjectLabel,
-          url: `/projects/${projectId}`,
-          icon: 'bi-kanban',
-        });
-        items.push({
-          label: 'Monthly Report',
-          icon: 'bi-file-earmark-bar-graph',
-        });
-      }
     } else {
+      // Fallback for other routes
       let currentPath = '';
       for (const seg of segments) {
         currentPath += `/${seg}`;

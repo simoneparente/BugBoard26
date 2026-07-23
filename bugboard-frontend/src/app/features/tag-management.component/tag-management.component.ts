@@ -7,6 +7,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { TagRequest, TagResponse } from '../../core/tag.model';
+import { ProjectService } from '../../core/services/project.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 
 @Component({
   selector: 'app-tag-management',
@@ -19,6 +21,8 @@ export class TagManagementComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly tagService = inject(TagService);
+  private readonly projectService = inject(ProjectService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmService = inject(ConfirmationModalService);
 
@@ -70,6 +74,13 @@ export class TagManagementComponent implements OnInit {
     this.activatedRoute.paramMap.subscribe((params) => {
       const id = params.get('projectId');
       this.projectId.set(id);
+
+      if (id) {
+        this.projectService.getById(id).subscribe({
+          next: (project) => this.breadcrumbService.setProjectName(project.name),
+          error: (err) => console.error('Failed to load project details for breadcrumb', err),
+        });
+      }
     });
   }
 
