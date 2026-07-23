@@ -2,9 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { of } from 'rxjs';
 
 import { IssueComponent } from './issue.component';
+import { IssueService } from '../../core/services/issue.service';
 
 describe('IssueComponent', () => {
   let component: IssueComponent;
@@ -27,13 +29,19 @@ describe('IssueComponent', () => {
 
   it('should update searchQuery and reset page on onSearchInput', () => {
     vi.useFakeTimers();
-    const spy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
+    const issueService = TestBed.inject(IssueService);
+    const spy = vi
+      .spyOn(issueService, 'getIssuesByProject')
+      .mockReturnValue(of({ content: [], totalPages: 0, totalElements: 0 } as any));
+
+    component.projectId = 'proj-1';
     component.onSearchInput('login');
 
     expect(component.searchQuery()).toBe('login');
-    vi.advanceTimersByTime(300);
     expect(component.currentPage()).toBe(0);
-    expect(spy).toHaveBeenCalled();
+
+    vi.advanceTimersByTime(300);
+    expect(spy).toHaveBeenCalledWith('proj-1', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
     vi.useRealTimers();
   });
 

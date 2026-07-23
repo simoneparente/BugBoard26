@@ -14,15 +14,15 @@
     >
       <!-- Keyword Search Input -->
       <div
-        class="input-group flex-grow-1 flex-sm-grow-0"
-        style="min-width: 220px; max-width: 320px"
+        class="search-input-group flex-grow-1 flex-sm-grow-0"
+        style="min-width: 240px; max-width: 320px"
       >
-        <span class="input-group-text bg-white border-end-0 text-muted">
+        <span class="input-group-text">
           <i class="bi bi-search"></i>
         </span>
         <input
           type="text"
-          class="form-control border-start-0 border-end-0 ps-0 shadow-none"
+          class="form-control"
           placeholder="Search issues by keyword..."
           [ngModel]="searchQuery()"
           (ngModelChange)="onSearchInput($event)"
@@ -30,9 +30,10 @@
         />
         @if (searchQuery()) {
           <button
-            class="btn btn-outline-secondary border-start-0 bg-white text-muted"
+            class="btn-clear"
             type="button"
             (click)="clearSearch()"
+            aria-label="Clear search"
           >
             <i class="bi bi-x-lg"></i>
           </button>
