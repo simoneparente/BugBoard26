@@ -95,7 +95,7 @@ describe('IssueComponent additional behavior', () => {
           provide: IssueService,
           useValue: {
             getIssuesByProject: vi.fn(() =>
-              of({ content: [], totalPages: 0, totalElements: 0 } as any)
+              of({ content: [], totalPages: 0, totalElements: 0 } as any),
             ),
           },
         },
@@ -114,9 +114,7 @@ describe('IssueComponent additional behavior', () => {
   });
 
   it('should load project name on init', () => {
-    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(
-      of({ name: 'Demo Project' })
-    );
+    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project' }));
     component.ngOnInit();
     expect(spy).toHaveBeenCalledWith('proj-123');
     expect(component.projectName()).toBe('Demo Project');
@@ -176,4 +174,3 @@ describe('IssueComponent additional behavior', () => {
     logSpy.mockRestore();
   });
 });
-
