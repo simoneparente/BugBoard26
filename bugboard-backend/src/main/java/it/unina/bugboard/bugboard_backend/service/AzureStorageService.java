@@ -34,12 +34,13 @@ public class AzureStorageService {
                 .connectionString(connectionString)
                 .buildClient();
 
-        this.containerClient = blobServiceClient.getBlobContainerClient(containerName);
+        BlobContainerClient client = blobServiceClient.getBlobContainerClient(containerName);
 
-        if (!containerClient.exists()) {
-            containerClient.create();
+        if (!client.exists()) {
+            client.create();
         }
 
+        this.containerClient = client;
         return containerClient;
     }
 

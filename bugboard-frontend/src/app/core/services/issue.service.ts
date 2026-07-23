@@ -54,4 +54,12 @@ export class IssueService {
   public uploadAttachment(issueId: string, file: File): Observable<any> {
     return this.apiService.issues.uploadAttachment(issueId, file);
   }
+
+  public generateUploadUrl(fileName: string): Observable<{ uploadUrl: string; blobFileName: string }> {
+    return this.apiService.attachments.generateUploadUrl(fileName);
+  }
+
+  public uploadToAzure(uploadUrl: string, file: File): Observable<any> {
+    return this.apiService.attachments.uploadToAzure(uploadUrl, file);
+  }
 }

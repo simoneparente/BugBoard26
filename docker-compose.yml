@@ -18,6 +18,14 @@ services:
       timeout: 3s
       retries: 20
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    hostname: azurite
+    ports:
+      - "10001:10000"
+    command: "azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck"
+
   backend:
     build:
       context: ./bugboard-backend
@@ -28,13 +36,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      azurite:
+        condition: service_started
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-bugboard_db}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-bugboard}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-change_me}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
-      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:?AZURE_STORAGE_CONNECTION_STRING must be set}
-      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:?AZURE_STORAGE_CONTAINER_NAME must be set}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING_OVERRIDE:-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;}
+      - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:-attachments}
       - SEED_USERNAME=${SEED_USERNAME:-bugboard}
       - SEED_EMAIL=${SEED_EMAIL:-bugboard@bugboard.it}
       - SEED_PASSWORD=${SEED_PASSWORD:-bugboard}

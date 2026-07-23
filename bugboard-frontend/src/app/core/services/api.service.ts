@@ -92,9 +92,24 @@ export class ApiService {
     uploadAttachment: (issueId: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      //TODO: Use a better type for the response
       return this.http.post<any>(`${this.baseUrl}/attachments/issue/${issueId}`, formData);
     },
+  };
+
+  readonly attachments = {
+    generateUploadUrl: (fileName: string) =>
+      this.http.post<{ uploadUrl: string; blobFileName: string }>(
+        `${this.baseUrl}/attachments/generate-upload-url`,
+        null,
+        { params: { fileName } },
+      ),
+    uploadToAzure: (uploadUrl: string, file: File) =>
+      this.http.put(uploadUrl, file, {
+        headers: {
+          'x-ms-blob-type': 'BlockBlob',
+          'Content-Type': 'application/octet-stream',
+        },
+      }),
   };
 
   readonly reports = {

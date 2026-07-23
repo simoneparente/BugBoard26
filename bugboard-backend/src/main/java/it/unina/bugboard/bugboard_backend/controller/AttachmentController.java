@@ -25,6 +25,10 @@ public class AttachmentController {
     @PostMapping("/generate-upload-url")
     public ResponseEntity<SasTokenResponse> getUploadUrl(@RequestParam String fileName) {
         SasTokenResponse response = azureStorageService.generateUploadSasUrl(fileName);
+        if (response != null && response.getUploadUrl() != null && response.getUploadUrl().contains("http://azurite:10000")) {
+            String externalUrl = response.getUploadUrl().replace("http://azurite:10000", "http://127.0.0.1:10001");
+            response = new SasTokenResponse(externalUrl, response.getBlobFileName());
+        }
         return ResponseEntity.ok(response);
     }
 
@@ -56,14 +60,21 @@ public class AttachmentController {
      * GET /api/attachments/{id}/download
      */
     @GetMapping("/{id}/download")
-    public ResponseEntity<org.springframework.core.io.Resource> downloadAttachment(@PathVariable UUID id) {
+    public ResponseEntity<?> downloadAttachment(@PathVariable UUID id) {
         AttachmentResponse metadata = attachmentService.getAttachmentById(id);
-        org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.fileName() + "\"")
-                .body(resource);
+        try {
+            org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.fileName() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            String sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
+                sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
+            }
+            return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
+        }
     }
 
     /**
@@ -71,25 +82,33 @@ public class AttachmentController {
      * GET /api/attachments/{id}/view
      */
     @GetMapping("/{id}/view")
-    public ResponseEntity<org.springframework.core.io.Resource> viewAttachment(@PathVariable UUID id) {
+    public ResponseEntity<?> viewAttachment(@PathVariable UUID id) {
         AttachmentResponse metadata = attachmentService.getAttachmentById(id);
-        org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
+        try {
+            org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
 
-        String mimeType = "application/octet-stream";
-        if (metadata.fileName() != null) {
-            String lower = metadata.fileName().toLowerCase();
-            if (lower.endsWith(".png")) mimeType = "image/png";
-            else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
-            else if (lower.endsWith(".gif")) mimeType = "image/gif";
-            else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
-            else if (lower.endsWith(".pdf")) mimeType = "application/pdf";
-            else if (lower.endsWith(".txt")) mimeType = "text/plain";
+            String mimeType = "application/octet-stream";
+            if (metadata.fileName() != null) {
+                String lower = metadata.fileName().toLowerCase();
+                if (lower.endsWith(".png")) mimeType = "image/png";
+                else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mimeType = "image/jpeg";
+                else if (lower.endsWith(".gif")) mimeType = "image/gif";
+                else if (lower.endsWith(".svg")) mimeType = "image/svg+xml";
+                else if (lower.endsWith(".pdf")) mimeType = "application/pdf";
+                else if (lower.endsWith(".txt")) mimeType = "text/plain";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + metadata.fileName() + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            String sasUrl = azureStorageService.generateDownloadSasUrl(metadata.filePath());
+            if (sasUrl != null && sasUrl.contains("http://azurite:10000")) {
+                sasUrl = sasUrl.replace("http://azurite:10000", "http://127.0.0.1:10001");
+            }
+            return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(sasUrl)).build();
         }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(mimeType))
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + metadata.fileName() + "\"")
-                .body(resource);
     }
 
     /**
