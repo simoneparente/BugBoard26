@@ -4,8 +4,12 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobCorsRule;
+import com.azure.storage.blob.models.BlobServiceProperties;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import it.unina.bugboard.bugboard_backend.dto.SasTokenResponse;
@@ -16,6 +20,8 @@ import java.util.UUID;
 
 @Service
 public class AzureStorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AzureStorageService.class);
 
     @Value("${azure.storage.connection-string}")
     private String connectionString;
@@ -35,18 +41,18 @@ public class AzureStorageService {
                 .buildClient();
 
         try {
-            com.azure.storage.blob.models.BlobCorsRule corsRule = new com.azure.storage.blob.models.BlobCorsRule()
+            BlobCorsRule corsRule = new BlobCorsRule()
                     .setAllowedOrigins("*")
                     .setAllowedMethods("GET,PUT,POST,DELETE,HEAD,OPTIONS")
                     .setAllowedHeaders("*")
                     .setExposedHeaders("*")
                     .setMaxAgeInSeconds(3600);
 
-            com.azure.storage.blob.models.BlobServiceProperties properties = new com.azure.storage.blob.models.BlobServiceProperties()
+            BlobServiceProperties properties = new BlobServiceProperties()
                     .setCors(java.util.List.of(corsRule));
             blobServiceClient.setProperties(properties);
         } catch (Exception e) {
-            System.err.println("Could not set Azurite CORS rules: " + e.getMessage());
+            logger.error("Failed to configure CORS properties for blob storage", e);
         }
 
         BlobContainerClient client = blobServiceClient.getBlobContainerClient(containerName);
