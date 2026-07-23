@@ -13,6 +13,7 @@ import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
 import { notExternalGuard } from './core/auth/role.guard';
+import { ProjectSettingsComponent } from './features/project-settings.component/project-settings.component';
 import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
 const authGuard = (_route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
@@ -57,6 +58,12 @@ export const routes: Routes = [
         path: 'projects/:projectId/issues',
         component: IssueComponent,
         title: 'BugBoard26 - Issue',
+        canActivate: [authGuard],
+      },
+      {
+        path: 'projects/:projectId/settings',
+        component: ProjectSettingsComponent,
+        title: 'BugBoard26 - Project Settings',
         canActivate: [authGuard],
       },
       {

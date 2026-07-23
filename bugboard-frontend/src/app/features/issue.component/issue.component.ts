@@ -34,8 +34,8 @@ export class IssueComponent implements OnInit, OnDestroy {
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
 
-  @Input() projectId!: string;
   projectName = signal<string>('');
+  readonly projectId = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
@@ -54,14 +54,16 @@ export class IssueComponent implements OnInit, OnDestroy {
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   ngOnInit(): void {
-    if (!this.projectId) {
-      this.projectId = this.route.snapshot.paramMap.get('projectId') || '';
+    // Read projectId from route parameter and set it to the signal
+    const projectIdFromRoute = this.route.snapshot.paramMap.get('projectId');
+    if (projectIdFromRoute) {
+      this.projectId.set(projectIdFromRoute);
     }
 
-    if (this.projectId) {
-      this.projectService.getById(this.projectId).subscribe({
-        next: (project: any) => this.projectName.set(project.name),
-        error: (err: any) => console.error('Failed to load project details', err),
+    if (this.projectId()) {
+      this.projectService.getById(this.projectId()).subscribe({
+        next: (project) => this.projectName.set(project.name),
+        error: (err) => console.error('Failed to load project details', err),
       });
     }
 
@@ -72,7 +74,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         switchMap((query) => {
           this.isLoading.set(true);
           return this.issueService.getIssuesByProject(
-            this.projectId,
+            this.projectId(),
             this.statusFilter(),
             this.priorityFilter(),
             query,
@@ -94,7 +96,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         },
       });
 
-    if (this.projectId) {
+    if (this.projectId()) {
       this.loadIssues();
     }
   }
@@ -110,7 +112,7 @@ export class IssueComponent implements OnInit, OnDestroy {
 
     this.issueService
       .getIssuesByProject(
-        this.projectId,
+        this.projectId(),
         this.statusFilter(),
         this.priorityFilter(),
         this.searchQuery(),
