@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { IssueService } from '../../core/services/issue.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
@@ -16,6 +16,7 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 export class IssueComponent implements OnInit {
   private readonly issueService = inject(IssueService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   // Paginazione
   currentPage = signal<number>(0);
@@ -111,7 +112,7 @@ export class IssueComponent implements OnInit {
   }
 
   onTitleClick(issue: IssueResponse): void {
-    console.log('Title clicked for issue:', issue);
+    this.router.navigate(['/projects', this.projectId, 'issues', issue.id]);
   }
 
   getPriorityStyle(priority: string): string {
