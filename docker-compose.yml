@@ -46,6 +46,8 @@ services:
       context: ./bugboard-frontend
       dockerfile: Dockerfile
     image: bugboard-frontend:local
+    environment:
+      - API_TARGET=http://backend:8080
     depends_on:
       backend:
         condition: service_started

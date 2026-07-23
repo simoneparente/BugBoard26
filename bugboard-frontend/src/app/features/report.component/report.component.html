@@ -1,0 +1,225 @@
+<!-- Loading State -->
+@if (isLoading()) {
+  <div
+    class="report-loading d-flex flex-column align-items-center justify-content-center min-vh-100"
+  >
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Loading report...</span>
+    </div>
+    <p class="text-muted fw-medium">Generating report...</p>
+  </div>
+}
+
+<!-- Error State -->
+@if (!isLoading() && errorMessage()) {
+  <div
+    class="report-error d-flex flex-column align-items-center justify-content-center min-vh-100 px-4"
+  >
+    <div class="text-center">
+      <i class="bi bi-exclamation-triangle-fill text-danger display-3 mb-3"></i>
+      <h3 class="fw-bold text-dark mb-2">Error</h3>
+      <p class="text-muted mb-4">{{ errorMessage() }}</p>
+      <a routerLink="/dashboard" class="btn btn-primary px-4 py-2">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+}
+
+<!-- Report Content -->
+@if (!isLoading() && !errorMessage() && report(); as r) {
+  <main class="report-page">
+    <!-- Report Header -->
+    <section class="report-header mb-4 animate-fade-in">
+      <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
+        <div>
+          <h2 class="report-title fw-bold text-dark mb-1">Report: {{ r.projectName }}</h2>
+          <p class="text-muted mb-0">
+            <i class="bi bi-calendar3 me-1"></i>{{ monthName() }} {{ r.referenceYear }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Cards -->
+    <section class="row g-4 mb-4">
+      <!-- Opened Bugs -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Opened Bugs</span>
+              <div class="kpi-icon kpi-icon--danger">
+                <i class="bi bi-bug"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{ r.openedBugs }}</span>
+            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-danger"
+              [value]="r.openedBugs"
+              [max]="r.openedBugs + r.managedBugs"
+            ></progress>
+          </div>
+        </div>
+      </div>
+
+      <!-- Managed Bugs -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.2s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Managed Bugs</span>
+              <div class="kpi-icon kpi-icon--success">
+                <i class="bi bi-check-circle"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{ r.managedBugs }}</span>
+            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-primary"
+              [value]="r.managedBugs"
+              [max]="r.openedBugs + r.managedBugs"
+            ></progress>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avg Resolution Time -->
+      <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.3s">
+        <div class="kpi-card card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="kpi-label text-muted fw-medium small">Average Resolution Time</span>
+              <div class="kpi-icon kpi-icon--warning">
+                <i class="bi bi-clock-history"></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-3">
+              <span class="kpi-value display-6 fw-bold text-dark">{{
+                formatAvgTime(r.averageResolutionTime)
+              }}</span>
+            </div>
+            <progress
+              class="kpi-progress w-100 kpi-progress-warning"
+              value="50"
+              max="100"
+            ></progress>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Smart Insight -->
+    <section class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.4s">
+      <div class="col-12">
+        <div class="card insight-card border-0 h-100">
+          <div class="card-body p-4 d-flex align-items-start gap-3">
+            <div class="insight-icon-wrapper">
+              <i class="bi bi-lightbulb-fill"></i>
+            </div>
+            <div>
+              <h4 class="fw-semibold fs-5 text-primary mb-2">Smart Insight</h4>
+              @if (r.managedBugs > 0 && r.openedBugs > 0) {
+                <p class="text-secondary small mb-0 lh-lg">
+                  The ratio between managed and opened bugs is
+                  <strong class="text-primary"
+                    >{{ ((r.managedBugs / r.openedBugs) * 100).toFixed(0) }}%</strong
+                  >.
+                  @if (r.managedBugs >= r.openedBugs) {
+                    The team is resolving bugs at the same rate or faster than they are being
+                    opened. Great job!
+                  } @else {
+                    There are still open bugs to manage. Consider allocating more resources to
+                    resolution.
+                  }
+                  @if (r.averageResolutionTime > 0) {
+                    The average resolution time is
+                    <strong class="text-primary">{{
+                      formatAvgTime(r.averageResolutionTime)
+                    }}</strong
+                    >.
+                  }
+                </p>
+              } @else if (r.openedBugs === 0 && r.managedBugs === 0) {
+                <p class="text-secondary small mb-0 lh-lg">
+                  No bug tracking activity recorded this month. The project may be in a stable
+                  phase.
+                </p>
+              } @else {
+                <p class="text-secondary small mb-0 lh-lg">
+                  There were <strong class="text-primary">{{ r.openedBugs }}</strong> bugs opened
+                  and <strong class="text-primary">{{ r.managedBugs }}</strong> managed this month.
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- User Reports Table -->
+    <section class="card border-0 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.5s">
+      <div
+        class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom"
+      >
+        <h3 class="fw-semibold mb-0 fs-5">
+          <i class="bi bi-people me-2 text-primary"></i>User Reports
+        </h3>
+        <span class="badge bg-primary-subtle text-primary rounded-pill">
+          {{ r.userMonthlyReports.length }}
+          {{ r.userMonthlyReports.length === 1 ? 'member' : 'members' }}
+        </span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr class="table-header-row">
+              <th class="ps-4 py-3">User</th>
+              <th class="py-3">Opened</th>
+              <th class="py-3">Managed</th>
+              <th class="py-3 pe-4">Avg Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (r.userMonthlyReports.length === 0) {
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  No activity recorded for users this month.
+                </td>
+              </tr>
+            } @else {
+              @for (user of r.userMonthlyReports; track user.userId) {
+                <tr class="team-row">
+                  <td class="ps-4 py-3">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="user-avatar">
+                        {{ getInitials(user.userName) }}
+                      </div>
+                      <div>
+                        <p class="fw-semibold text-dark mb-0 small">{{ user.userName }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3">
+                    <span class="fw-medium text-dark">{{ user.openedBugs }}</span>
+                  </td>
+                  <td class="py-3">
+                    <span class="fw-medium text-dark">{{ user.managedBugs }}</span>
+                  </td>
+                  <td class="py-3 pe-4">
+                    <span class="fw-medium text-dark">{{
+                      formatAvgTime(user.averageResolutionTime)
+                    }}</span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+}

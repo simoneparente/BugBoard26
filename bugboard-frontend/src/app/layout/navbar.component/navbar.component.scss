@@ -1,0 +1,17 @@
+.btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+  }
+}
+
+.extra-small {
+  font-size: 0.75rem;
+}
+
+.dropdown-menu {
+  min-width: 200px;
+}

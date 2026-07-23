@@ -1,0 +1,185 @@
+// ==========================================================================
+// Report Component Styles
+// ==========================================================================
+
+// -- Animations --
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+// -- Page Layout --
+.report-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+// -- Loading & Error States --
+.report-loading,
+.report-error {
+  min-height: 60vh;
+}
+
+// -- Report Title --
+.report-title {
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+// -- KPI Cards --
+.kpi-card {
+  border: 1px solid var(--bs-border-color) !important;
+  border-radius: 0.5rem;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-2px);
+  }
+}
+
+.kpi-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+
+  &--danger {
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    color: var(--bs-danger);
+  }
+
+  &--success {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+  }
+
+  &--warning {
+    background-color: rgba(var(--bs-warning-rgb), 0.1);
+    color: var(--bs-warning);
+  }
+}
+
+.kpi-value {
+  line-height: 1;
+}
+
+progress.kpi-progress {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.06);
+  border: none;
+  overflow: hidden;
+
+  &::-webkit-progress-bar {
+    background-color: transparent;
+  }
+
+  &::-webkit-progress-value {
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &::-moz-progress-bar {
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &.kpi-progress-danger::-webkit-progress-value {
+    background-color: var(--bs-danger);
+  }
+  &.kpi-progress-danger::-moz-progress-bar {
+    background-color: var(--bs-danger);
+  }
+
+  &.kpi-progress-primary::-webkit-progress-value {
+    background-color: var(--bs-primary);
+  }
+  &.kpi-progress-primary::-moz-progress-bar {
+    background-color: var(--bs-primary);
+  }
+
+  &.kpi-progress-warning::-webkit-progress-value {
+    background-color: var(--bs-warning);
+  }
+  &.kpi-progress-warning::-moz-progress-bar {
+    background-color: var(--bs-warning);
+  }
+}
+
+// -- Team Performance Table --
+.table-header-row {
+  th {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--bs-secondary);
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: rgba(var(--bs-light-rgb), 0.5);
+  }
+}
+
+.team-row {
+  transition: background-color 0.15s;
+
+  td {
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+  }
+
+  &:last-child td {
+    border-bottom: none;
+  }
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid var(--bs-border-color);
+}
+
+// -- Insight Card --
+.insight-card {
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.12) !important;
+}
+
+.insight-icon-wrapper {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  border-radius: 50%;
+  background-color: var(--bs-body-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--bs-primary);
+}

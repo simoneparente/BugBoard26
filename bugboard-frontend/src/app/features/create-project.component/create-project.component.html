@@ -1,0 +1,87 @@
+<div class="container-fluid py-4 px-md-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-2">Create New Project</h2>
+        <p class="text-muted mx-auto" style="max-width: 450px">
+          Set up a new workspace for your team to track issues and manage development progress.
+        </p>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+          @if (error()) {
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+              <span class="bi bi-exclamation-triangle-fill me-2"></span>
+              {{ error() }}
+            </div>
+          }
+
+          <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" novalidate>
+            <div class="mb-4">
+              <label for="projectTitle" class="form-label fw-bold text-dark d-flex">
+                Project Title <span class="text-danger">*</span>
+                <span class="text-muted small fw-normal ms-auto">{{ titleLength }}/100</span>
+              </label>
+
+              <input
+                type="text"
+                class="form-control form-control-lg bg-light"
+                id="projectTitle"
+                formControlName="title"
+                placeholder="e.g., BugBoard Mobile App"
+                [class.is-invalid]="isFieldInvalid('title')"
+                maxlength="100"
+              />
+              <div class="invalid-feedback fw-medium">
+                Please provide a project name (min. 3 characters, max. 100 characters).
+              </div>
+            </div>
+
+            <div class="mb-5">
+              <label for="projectDescription" class="form-label fw-bold text-dark d-flex">
+                Description <span class="text-danger">*</span>
+                <span class="text-muted small fw-normal ms-auto">{{ descriptionLength }}/500</span>
+              </label>
+              <textarea
+                class="form-control bg-light resize-none"
+                id="projectDescription"
+                rows="5"
+                formControlName="description"
+                placeholder="A brief summary of what this project covers..."
+                [class.is-invalid]="isFieldInvalid('description')"
+                maxlength="500"
+              ></textarea>
+              <div class="invalid-feedback fw-medium">
+                Please provide a project description (max. 500 characters).
+              </div>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-3 pt-2">
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg flex-sm-grow-1 fw-bold rounded-3 shadow-sm transition-all primary-btn-hover"
+                [disabled]="isSubmitting()"
+              >
+                @if (isSubmitting()) {
+                  <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                  <span>Creating...</span>
+                } @else {
+                  <span>Create Project</span>
+                }
+              </button>
+              <button
+                type="button"
+                class="btn btn-light btn-lg text-muted fw-medium rounded-3 px-sm-5 transition-colors"
+                (click)="cancel()"
+                [disabled]="isSubmitting()"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
