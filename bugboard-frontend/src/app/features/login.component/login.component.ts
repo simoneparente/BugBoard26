@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth-service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from '../../layout/footer.component/footer.component';
 import { BrandLogoComponent } from '../../layout/brand-logo.component/brand-logo.component';
@@ -17,6 +17,7 @@ export class LoginComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   public readonly isSubmitting = signal<boolean>(false);
   public readonly loginError = signal<string | null>(null);
@@ -57,7 +58,8 @@ export class LoginComponent {
     this.authService.login(payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.router.navigate(['/dashboard']);
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+        this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         this.isSubmitting.set(false);

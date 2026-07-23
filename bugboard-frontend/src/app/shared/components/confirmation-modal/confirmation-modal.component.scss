@@ -1,0 +1,22 @@
+// Custom Indigo primary color - override Bootstrap default
+.btn-primary {
+  --bs-btn-bg: #6366f1;
+  --bs-btn-border-color: #6366f1;
+  --bs-btn-hover-bg: #4f46e5;
+  --bs-btn-hover-border-color: #4f46e5;
+  --bs-btn-active-bg: #4338ca;
+  --bs-btn-active-border-color: #4338ca;
+  --bs-btn-focus-shadow-rgb: 99, 102, 241;
+}
+
+// Modal positioning with flexbox centering
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Adjust dialog width
+.modal-dialog {
+  max-width: 400px;
+}

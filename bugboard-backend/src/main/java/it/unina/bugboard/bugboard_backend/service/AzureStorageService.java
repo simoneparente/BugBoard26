@@ -4,8 +4,12 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobCorsRule;
+import com.azure.storage.blob.models.BlobServiceProperties;
 import com.azure.storage.blob.sas.BlobSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import it.unina.bugboard.bugboard_backend.dto.SasTokenResponse;
@@ -16,6 +20,8 @@ import java.util.UUID;
 
 @Service
 public class AzureStorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AzureStorageService.class);
 
     @Value("${azure.storage.connection-string}")
     private String connectionString;
@@ -34,12 +40,28 @@ public class AzureStorageService {
                 .connectionString(connectionString)
                 .buildClient();
 
-        this.containerClient = blobServiceClient.getBlobContainerClient(containerName);
+        try {
+            BlobCorsRule corsRule = new BlobCorsRule()
+                    .setAllowedOrigins("*")
+                    .setAllowedMethods("GET,PUT,POST,DELETE,HEAD,OPTIONS")
+                    .setAllowedHeaders("*")
+                    .setExposedHeaders("*")
+                    .setMaxAgeInSeconds(3600);
 
-        if (!containerClient.exists()) {
-            containerClient.create();
+            BlobServiceProperties properties = new BlobServiceProperties()
+                    .setCors(java.util.List.of(corsRule));
+            blobServiceClient.setProperties(properties);
+        } catch (Exception e) {
+            logger.error("Failed to configure CORS properties for blob storage", e);
         }
 
+        BlobContainerClient client = blobServiceClient.getBlobContainerClient(containerName);
+
+        if (!client.exists()) {
+            client.create();
+        }
+
+        this.containerClient = client;
         return containerClient;
     }
 
@@ -72,19 +94,33 @@ public class AzureStorageService {
         return new SasTokenResponse(uploadUrl, uniqueFileName);
     }
     
-     /**
+    /**
      * Generate a SAS URL to allow the frontend to DOWNLOAD or view a file (Permission: READ).
      */
     public String generateDownloadSasUrl(String blobFileName) {
+        return generateDownloadSasUrl(blobFileName, null, null);
+    }
+
+    /**
+     * Generate a SAS URL with custom Content-Disposition and Content-Type.
+     */
+    public String generateDownloadSasUrl(String blobFileName, String contentDisposition, String contentType) {
         BlobClient blobClient = getContainerClient().getBlobClient(blobFileName);
 
         BlobSasPermission sasPermission = new BlobSasPermission().setReadPermission(true);
         OffsetDateTime expiryTime = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(15);
 
         BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, sasPermission);
+        if (contentDisposition != null) {
+            sasSignatureValues.setContentDisposition(contentDisposition);
+        }
+        if (contentType != null) {
+            sasSignatureValues.setContentType(contentType);
+        }
 
         return blobClient.getBlobUrl() + "?" + blobClient.generateSas(sasSignatureValues);
     }
+
 
     private String generateUniqueFileName(String originalFilename) {
         String extension = "";

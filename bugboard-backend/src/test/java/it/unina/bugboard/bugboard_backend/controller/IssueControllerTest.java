@@ -32,8 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(IssueController.class)
@@ -173,6 +172,21 @@ class IssueControllerTest {
     }
 
     @Test
+    void setStatus_Success_ReturnsStatus200() throws Exception {
+        UUID issueId = dummyIssue.getId();
+        dummyIssue.setStatus(IssueStatus.IN_PROGRESS);
+        when(issueService.setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS))).thenReturn(dummyIssue);
+
+        mockMvc.perform(put("/api/projects/{projectId}/issues/{id}/status", projectId, issueId)
+                .with(csrf())
+                .param("status", "IN_PROGRESS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+
+        verify(issueService, times(1)).setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS));
+    }
+
+    @Test
     void getIssuesByProjectId_Success_ReturnsStatus200AndPagedJson() throws Exception {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
         Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
@@ -243,5 +257,16 @@ class IssueControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(issueService, times(1)).getIssueByIdAndProjectId(issueId, projectId);
+    }
+
+    @Test
+    void deleteIssue_Success_ReturnsStatus204NoContent() throws Exception {
+        doNothing().when(issueService).deleteIssue(issueId);
+
+        mockMvc.perform(delete("/api/projects/{projectId}/issues/{issueId}", projectId, issueId)
+                .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        verify(issueService, times(1)).deleteIssue(issueId);
     }
 }

@@ -1,5 +1,6 @@
 package it.unina.bugboard.bugboard_backend.controller;
 import it.unina.bugboard.bugboard_backend.mapper.ProjectMapper;
+import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.entity.Project;
@@ -139,5 +140,24 @@ class ProjectControllerTest {
         assertEquals(projectId, body.getId());
         assertEquals("BugBoard Core", body.getName());
         assertEquals("Quality Gate test project", body.getDescription());
+    }
+
+    @Test
+    void getRecommendedAssignees_ReturnsList() {
+        UUID projectId = dummyProject.getId();
+        AssigneeRecommendationResponse recommendation = AssigneeRecommendationResponse.builder()
+                .workloadScore(2)
+                .activeIssueCount(1)
+                .build();
+
+        when(projectService.getRecommendedAssignees(projectId)).thenReturn(List.of(recommendation));
+
+        ResponseEntity<List<AssigneeRecommendationResponse>> responseEntity = projectController.getRecommendedAssignees(projectId);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        assertEquals(1, responseEntity.getBody().size());
+        verify(projectService, times(1)).getRecommendedAssignees(projectId);
     }
 }

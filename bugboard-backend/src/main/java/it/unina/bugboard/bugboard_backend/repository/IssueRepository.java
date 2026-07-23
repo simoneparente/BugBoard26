@@ -65,4 +65,5 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             @Param("status") IssueStatus status);
+    List<Issue> findByProjectIdAndStatusNotIn(UUID projectId, List<IssueStatus> excludeStatuses);
 }
