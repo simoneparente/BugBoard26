@@ -78,18 +78,22 @@ export class IssueDetailComponent implements OnInit {
 
     this.loadRecommendations();
 
-    // Load users list first or concurrently
-    this.issueService.getAllUsers().subscribe({
-      next: (usersList) => {
-        this.users.set(usersList || []);
-        this.fetchIssue();
-      },
-      error: (err) => {
-        console.error('Failed to load users:', err);
-        // Continue loading issue even if user list fails
-        this.fetchIssue();
-      },
-    });
+    // Load project members for assignee selection
+    if (this.projectId) {
+      this.projectService.getById(this.projectId).subscribe({
+        next: (project) => {
+          this.users.set(project.members || []);
+          this.fetchIssue();
+        },
+        error: (err) => {
+          console.error('Failed to load project members:', err);
+          this.users.set([]);
+          this.fetchIssue();
+        },
+      });
+    } else {
+      this.fetchIssue();
+    }
   }
 
   private loadRecommendations(): void {
