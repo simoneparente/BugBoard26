@@ -35,6 +35,7 @@ export class IssueComponent implements OnInit {
   // Filtri e ordinamento
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
+  searchQuery = signal<string>('');
   isLoading = signal<boolean>(false);
   sortField = signal<string>('title');
   sortDirection = signal<'asc' | 'desc'>('asc');
@@ -59,6 +60,7 @@ export class IssueComponent implements OnInit {
         this.projectId,
         this.statusFilter(),
         this.priorityFilter(),
+        this.searchQuery(),
         this.currentPage(),
         this.pageSize(),
         this.sortField() || 'title',
@@ -77,6 +79,36 @@ export class IssueComponent implements OnInit {
   }
 
   // UI ACTIONS
+
+  private searchTimeout: any;
+
+  onSearchInput(query: string): void {
+    this.searchQuery.set(query);
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchTimeout = setTimeout(() => {
+      this.currentPage.set(0);
+      this.loadIssues();
+    }, 300);
+  }
+
+  onSearchEnter(): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
+
+  clearSearch(): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchQuery.set('');
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
 
   onPageChange(newPage: number): void {
     this.currentPage.set(newPage);
