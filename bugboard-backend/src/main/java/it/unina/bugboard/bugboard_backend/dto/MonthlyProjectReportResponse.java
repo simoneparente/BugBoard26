@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonthlyProjectReportResponse {
-    private UUID projectId;
+    private String projectKey;
     private String projectName;
     private Integer referenceMonth;
     private Integer referenceYear;

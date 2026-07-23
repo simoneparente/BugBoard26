@@ -119,7 +119,7 @@ public class ReportService {
 
         // --- Response ---
         return MonthlyProjectReportResponse.builder()
-                .projectId(project.getId())
+                .projectKey(project.getKey())
                 .projectName(project.getName())
                 .referenceMonth(currentMonth)
                 .referenceYear(currentYear)

@@ -27,23 +27,23 @@ class ReportControllerTest {
     @Test
     void generateReport_Returns200_WhenProjectExists() {
         // ARRANGE
-        UUID projectId = UUID.randomUUID();
+        String projectKey = "FRONT";
         MonthlyProjectReportResponse mockResponse = MonthlyProjectReportResponse.builder()
-                .projectId(projectId)
+                .projectKey(projectKey)
                 .projectName("Test Project")
                 .openedBugs(5)
                 .managedBugs(3)
                 .build();
 
-        when(reportService.generateReport(projectId)).thenReturn(mockResponse);
+        when(reportService.generateReport(projectKey)).thenReturn(mockResponse);
 
         // ACT
-        ResponseEntity<MonthlyProjectReportResponse> response = reportController.generateReport(projectId);
+        ResponseEntity<MonthlyProjectReportResponse> response = reportController.generateReport(projectKey);
 
         // ASSERT
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockResponse, response.getBody());
-        verify(reportService, times(1)).generateReport(projectId);
+        verify(reportService, times(1)).generateReport(projectKey);
     }
 }

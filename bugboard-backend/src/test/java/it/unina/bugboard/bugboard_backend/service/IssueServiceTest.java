@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -71,14 +73,15 @@ class IssueServiceTest {
 	@InjectMocks
 	private IssueService issueService;
 
-	private UUID projectId;
+	private String projectKey;
 	private Project project;
 
 	@BeforeEach
 	void setUp() {
-		projectId = UUID.randomUUID();
+		projectKey = "FRONT";
 		project = Project.builder()
-				.id(projectId)
+				.id(UUID.randomUUID())
+				.key(projectKey)
 				.name("BugBoard Core")
 				.description("test project")
 				.build();
@@ -87,10 +90,10 @@ class IssueServiceTest {
 	@Test
 	void createIssue_UsesDefaultStatusAndNoAssignee_WhenStatusAndTagsAreMissing() {
 		IssueRequest request = createRequest(null, null, null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNotNull(result);
 		assertEquals("Issue title", result.getTitle());
@@ -108,10 +111,10 @@ class IssueServiceTest {
 	@Test
 	void createIssue_PreservesExplicitStatus() {
 		IssueRequest request = createRequest(IssueStatus.IN_PROGRESS, null, null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertEquals(IssueStatus.IN_PROGRESS, result.getStatus());
 		verify(issueRepository).save(any(Issue.class));
@@ -120,11 +123,11 @@ class IssueServiceTest {
 	@Test
 	void createIssue_ThrowsWhenProjectDoesNotExist() {
 		IssueRequest request = createRequest(null, null, null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
-		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> issueService.createIssue(projectId, request));
+		ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> issueService.createIssue(projectKey, request));
 
-		assertEquals("Project not found.", exception.getMessage());
+		assertEquals("Project not found with key: " + projectKey, exception.getMessage());
 		verify(issueRepository, never()).save(any(Issue.class));
 	}
 
@@ -137,20 +140,20 @@ class IssueServiceTest {
 			.id(tagOneId)
 			.name("backend")
 			.color("#112233")
-			.projectId(projectId)
+			.projectKey(projectKey)
 			.build();
 		TagResponse tagTwo = TagResponse.builder()
 			.id(tagTwoId)
 			.name("frontend")
 			.color("#445566")
-			.projectId(projectId)
+			.projectKey(projectKey)
 			.build();
 
 		IssueRequest request = createRequest(null, List.of(tagOne, tagTwo), null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNotNull(result.getTags());
 		assertEquals(2, result.getTags().size());
@@ -179,12 +182,12 @@ class IssueServiceTest {
 				.build();
 
 		IssueRequest request = createRequest(null, null, null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
-		assertEquals(projectId, result.getProject().getId());
+		assertEquals(project.getId(), result.getProject().getId());
 		assertEquals(project, result.getProject());
         assertNotEquals(otherProjectId, result.getProject().getId());
         assertNotEquals(otherProject, result.getProject());
@@ -193,10 +196,10 @@ class IssueServiceTest {
 	@Test
 	void createIssue_IgnoresNullTagEntries() {
 		IssueRequest request = createRequest(null, Collections.singletonList(null), null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNotNull(result.getTags());
 		assertEquals(0, result.getTags().size());
@@ -205,10 +208,10 @@ class IssueServiceTest {
 	@Test
 	void createIssue_LeavesTagsEmptyWhenListIsEmpty() {
 		IssueRequest request = createRequest(null, List.of(), null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNotNull(result.getTags());
 		assertEquals(0, result.getTags().size());
@@ -217,10 +220,10 @@ class IssueServiceTest {
 	@Test
 	void createIssue_LeavesAssigneeEmptyWhenUsernameIsNull() {
 		IssueRequest request = createRequest(null, null, null);
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNull(result.getAssignee());
 	}
@@ -229,11 +232,11 @@ class IssueServiceTest {
     void createIssue_AssignsAssigneeWhenUsernameIsProvided() {
         User assignee = createUser("johndoe");
         IssueRequest request = createRequest(null, null, assignee.getUsername());
-        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
         when(userRepository.findByUsername(assignee.getUsername())).thenReturn(Optional.of(assignee));
         when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Issue result = issueService.createIssue(projectId, request);
+        Issue result = issueService.createIssue(projectKey, request);
         
         assertNotNull(result.getAssignee());
         assertEquals(assignee.getUsername(), result.getAssignee().getUsername());
@@ -257,11 +260,11 @@ class IssueServiceTest {
 		IssueRequest request = createRequest(null, null, null);
 		request.setAttachments(List.of(meta1, meta2));
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(attachmentRepository.save(any(Attachment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Issue result = issueService.createIssue(projectId, request);
+		Issue result = issueService.createIssue(projectKey, request);
 
 		assertNotNull(result);
 		verify(attachmentRepository, times(2)).save(any(Attachment.class));
@@ -272,10 +275,10 @@ class IssueServiceTest {
 		IssueRequest request = createRequest(null, null, null);
 		request.setAttachments(null);
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		issueService.createIssue(projectId, request);
+		issueService.createIssue(projectKey, request);
 
 		verify(attachmentRepository, never()).save(any(Attachment.class));
 	}
@@ -285,10 +288,10 @@ class IssueServiceTest {
 		IssueRequest request = createRequest(null, null, null);
 		request.setAttachments(List.of());
 
-		when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
 		when(issueRepository.save(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		issueService.createIssue(projectId, request);
+		issueService.createIssue(projectKey, request);
 
 		verify(attachmentRepository, never()).save(any(Attachment.class));
 	}
@@ -429,7 +432,7 @@ class IssueServiceTest {
     }
 
 	@Test
-	void getIssuesByProjectId_ReturnsPagedIssues_WhenStatusAndPriorityAreAll() {
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenStatusAndPriorityAreAll() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 
 		Issue issue = Issue.builder()
@@ -444,18 +447,19 @@ class IssueServiceTest {
 
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
-		when(issueRepository.findByProjectIdAndFilters(projectId, null, null, null, pageable)).thenReturn(pagedResult);
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, pageable)).thenReturn(pagedResult);
 
-		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "ALL", pageable);
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals(issue, result.getContent().get(0));
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, null, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, null, pageable);
 	}
 
 	@Test
-	void getIssuesByProjectId_ReturnsPagedIssues_WhenStatusAndPriorityAreSpecified() {
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenStatusAndPriorityAreSpecified() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 
 		Issue issue = Issue.builder()
@@ -470,52 +474,54 @@ class IssueServiceTest {
 
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
-		when(issueRepository.findByProjectIdAndFilters(projectId, IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable))
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable))
 				.thenReturn(pagedResult);
 
-		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "TO_DO", "HIGH", pageable);
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "TO_DO", "HIGH", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Issue title", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable);
 	}
 
 	@Test
-	void getIssueByIdAndProjectId_ReturnsIssue_WhenFound() {
-		UUID issueId = UUID.randomUUID();
+	void getIssueByProjectKeyAndSequenceNumber_ReturnsIssue_WhenFound() {
+		Long sequenceNumber = 1L;
 		Issue issue = Issue.builder()
-				.id(issueId)
+				.id(UUID.randomUUID())
+				.sequenceNumber(sequenceNumber)
 				.title("Test Issue")
 				.project(project)
 				.build();
 
-		when(issueRepository.findByIdAndProjectId(issueId, projectId)).thenReturn(issue);
+		when(issueRepository.findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber)).thenReturn(issue);
 
-		Issue result = issueService.getIssueByIdAndProjectId(issueId, projectId);
+		Issue result = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
 
 		assertNotNull(result);
-		assertEquals(issueId, result.getId());
+		assertEquals(sequenceNumber, result.getSequenceNumber());
 		assertEquals("Test Issue", result.getTitle());
-		verify(issueRepository, times(1)).findByIdAndProjectId(issueId, projectId);
+		verify(issueRepository, times(1)).findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
 	}
 
 	@Test
-	void getIssueByIdAndProjectId_ThrowsResourceNotFoundException_WhenNotFound() {
-		UUID issueId = UUID.randomUUID();
-		when(issueRepository.findByIdAndProjectId(issueId, projectId)).thenReturn(null);
+	void getIssueByProjectKeyAndSequenceNumber_ThrowsResourceNotFoundException_WhenNotFound() {
+		Long sequenceNumber = 1L;
+		when(issueRepository.findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber)).thenReturn(null);
 
 		ResourceNotFoundException exception = assertThrows(
 				ResourceNotFoundException.class,
-				() -> issueService.getIssueByIdAndProjectId(issueId, projectId)
+				() -> issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber)
 		);
 
-		assertEquals("Issue not found with ID: " + issueId + " in project " + projectId, exception.getMessage());
-		verify(issueRepository, times(1)).findByIdAndProjectId(issueId, projectId);
+		assertEquals("Issue not found with key " + projectKey + "-" + sequenceNumber, exception.getMessage());
+		verify(issueRepository, times(1)).findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
 	}
 
 	@Test
-	void getIssuesByProjectId_ReturnsPagedIssues_WhenOnlyStatusIsSpecified() {
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenOnlyStatusIsSpecified() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 		Issue issue = Issue.builder()
 				.id(UUID.randomUUID())
@@ -526,19 +532,20 @@ class IssueServiceTest {
 				.build();
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
-		when(issueRepository.findByProjectIdAndFilters(projectId, IssueStatus.IN_PROGRESS, null, null, pageable))
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, pageable))
 				.thenReturn(pagedResult);
 
-		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "IN_PROGRESS", "ALL", pageable);
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "IN_PROGRESS", "ALL", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Status filtered issue", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, IssueStatus.IN_PROGRESS, null, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, pageable);
 	}
 
 	@Test
-	void getIssuesByProjectId_ReturnsPagedIssues_WhenOnlyPriorityIsSpecified() {
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenOnlyPriorityIsSpecified() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 		Issue issue = Issue.builder()
 				.id(UUID.randomUUID())
@@ -549,19 +556,20 @@ class IssueServiceTest {
 				.build();
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
-		when(issueRepository.findByProjectIdAndFilters(projectId, null, IssuePriority.HIGHEST, null, pageable))
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, pageable))
 				.thenReturn(pagedResult);
 
-		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "HIGHEST", pageable);
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "HIGHEST", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Priority filtered issue", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, IssuePriority.HIGHEST, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, pageable);
 	}
 
 	@Test
-	void getIssuesByProjectId_ReturnsPagedIssues_WhenSearchKeywordIsSpecified() {
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenSearchKeywordIsSpecified() {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 		Issue issue = Issue.builder()
 				.id(UUID.randomUUID())
@@ -573,15 +581,16 @@ class IssueServiceTest {
 				.build();
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
-		when(issueRepository.findByProjectIdAndFilters(projectId, null, null, "%login%", pageable))
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, "%login%", pageable))
 				.thenReturn(pagedResult);
 
-		Page<Issue> result = issueService.getIssuesByProjectId(projectId, "ALL", "ALL", "Login", pageable);
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", "Login", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("NullPointerException in Login", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, null, "%login%", pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, "%login%", pageable);
 	}
 
 	@Test
@@ -602,5 +611,199 @@ class IssueServiceTest {
 
 		assertThrows(IllegalArgumentException.class, () -> issueService.deleteIssue(issueId));
 		verify(issueRepository, never()).deleteById(any());
+	}
+	@Test
+	void startIssueProgress_Success() {
+		UUID issueId = UUID.randomUUID();
+		User user = User.builder().id(UUID.randomUUID()).build();
+		Issue issue = Issue.builder().id(issueId).status(IssueStatus.TO_DO).assignee(user).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.startIssueProgress(issueId);
+		assertEquals(IssueStatus.IN_PROGRESS, result.getStatus());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void startIssueProgress_ThrowsNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.startIssueProgress(issueId));
+	}
+
+	@Test
+	void acceptIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		Issue issue = Issue.builder().id(issueId).status(IssueStatus.IN_PROGRESS).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.acceptIssue(issueId);
+		assertEquals(IssueStatus.MARKED_FOR_REVIEW, result.getStatus());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void acceptIssue_ThrowsNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.acceptIssue(issueId));
+	}
+
+	@Test
+	void rollbackIssueState_Success() {
+		UUID issueId = UUID.randomUUID();
+		Issue issue = Issue.builder().id(issueId).status(IssueStatus.COMPLETED).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.rollbackIssueState(issueId);
+		assertEquals(IssueStatus.MARKED_FOR_REVIEW, result.getStatus());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void rollbackIssueState_ThrowsNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.rollbackIssueState(issueId));
+	}
+
+	@Test
+	void removeIssueAssignee_Success() {
+		UUID issueId = UUID.randomUUID();
+		User user = User.builder().id(UUID.randomUUID()).build();
+		Issue issue = Issue.builder().id(issueId).assignee(user).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.removeIssueAssignee(issueId);
+		assertNull(result.getAssignee());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void assignIssueToUser_Success() {
+		UUID issueId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		Issue issue = Issue.builder().id(issueId).build();
+		User user = User.builder().id(userId).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.assignIssueToUser(issueId, userId);
+		assertEquals(user, result.getAssignee());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void assignIssueToUser_ThrowsExceptions() {
+		UUID issueId = UUID.randomUUID();
+		UUID userId = UUID.randomUUID();
+		
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.assignIssueToUser(issueId, userId));
+		
+		Issue issue = Issue.builder().id(issueId).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(userRepository.findById(userId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.assignIssueToUser(issueId, userId));
+	}
+
+	@Test
+	void addTagToIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		UUID tagId = UUID.randomUUID();
+		Issue issue = Issue.builder().id(issueId).tags(new java.util.ArrayList<>()).build();
+		Tag tag = Tag.builder().id(tagId).build();
+		
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(tagRepository.findById(tagId)).thenReturn(Optional.of(tag));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.addTagToIssue(issueId, tagId);
+		assertTrue(result.getTags().contains(tag));
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void addTagToIssue_ThrowsExceptions() {
+		UUID issueId = UUID.randomUUID();
+		UUID tagId = UUID.randomUUID();
+		
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.addTagToIssue(issueId, tagId));
+		
+		Issue issue = Issue.builder().id(issueId).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.addTagToIssue(issueId, tagId));
+	}
+
+	@Test
+	void removeTagFromIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		UUID tagId = UUID.randomUUID();
+		Tag tag = Tag.builder().id(tagId).build();
+		List<Tag> tags = new java.util.ArrayList<>();
+		tags.add(tag);
+		Issue issue = Issue.builder().id(issueId).tags(tags).build();
+		
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(tagRepository.findById(tagId)).thenReturn(Optional.of(tag));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.removeTagFromIssue(issueId, tagId);
+		assertFalse(result.getTags().contains(tag));
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void removeTagFromIssue_ThrowsExceptions() {
+		UUID issueId = UUID.randomUUID();
+		UUID tagId = UUID.randomUUID();
+		
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.removeTagFromIssue(issueId, tagId));
+		
+		Issue issue = Issue.builder().id(issueId).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.removeTagFromIssue(issueId, tagId));
+	}
+
+	@Test
+	void setStatus_Success() {
+		UUID issueId = UUID.randomUUID();
+		Issue issue = Issue.builder().id(issueId).status(IssueStatus.TO_DO).build();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.setStatus(issueId, IssueStatus.COMPLETED);
+		assertEquals(IssueStatus.COMPLETED, result.getStatus());
+		verify(issueRepository).save(issue);
+	}
+
+	@Test
+	void setStatus_ThrowsNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.setStatus(issueId, IssueStatus.IN_PROGRESS));
+	}
+
+	@Test
+	void getIssuesByProjectKey_ThrowsWhenProjectDoesNotExist() {
+		String projectKey = "FRONT";
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
+		assertThrows(ResourceNotFoundException.class, () -> issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", null, PageRequest.of(0, 10)));
+	}
+
+	@Test
+	void removeIssueAssignee_ThrowsNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+		assertThrows(RuntimeException.class, () -> issueService.removeIssueAssignee(issueId));
 	}
 }

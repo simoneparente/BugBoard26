@@ -43,6 +43,7 @@ class TagMapperTest {
 
         dummyProject = Project.builder()
                 .id(projectId)
+                .key("FRONT")
                 .name("Test Project")
                 .description("Test description")
                 .build();
@@ -66,7 +67,7 @@ class TagMapperTest {
         assertEquals(tagId, response.getId());
         assertEquals("Bug", response.getName());
         assertEquals("#FF0000", response.getColor());
-        assertEquals(projectId, response.getProjectId());
+        assertEquals("FRONT", response.getProjectKey());
     }
 
     @Test
@@ -94,7 +95,7 @@ class TagMapperTest {
         // Assert
         assertNotNull(response);
         assertEquals("Orphan Tag", response.getName());
-        assertNull(response.getProjectId());
+        assertNull(response.getProjectKey());
     }
 
     @Test
@@ -104,10 +105,10 @@ class TagMapperTest {
                 .id(tagId)
                 .name("Feature")
                 .color("#0000FF")
-                .projectId(projectId)
+                .projectKey("FRONT")
                 .build();
 
-        when(projectService.getProjectById(projectId)).thenReturn(dummyProject);
+        when(projectService.getProjectByKey("FRONT")).thenReturn(dummyProject);
 
         // Act
         Tag tag = tagMapper.mapToEntity(tagResponse);
@@ -117,8 +118,8 @@ class TagMapperTest {
         assertEquals(tagId, tag.getId());
         assertEquals("Feature", tag.getName());
         assertEquals("#0000FF", tag.getColor());
-        assertEquals(projectId, tag.getProject().getId());
-        verify(projectService, times(1)).getProjectById(projectId);
+        assertEquals("FRONT", tag.getProject().getKey());
+        verify(projectService, times(1)).getProjectByKey("FRONT");
     }
 
     @Test
@@ -128,16 +129,16 @@ class TagMapperTest {
                 .id(tagId)
                 .name("Nonexistent Project Tag")
                 .color("#FFFFFF")
-                .projectId(UUID.randomUUID())
+                .projectKey("INVALID")
                 .build();
 
-        when(projectService.getProjectById(any(UUID.class))).thenThrow(new RuntimeException("Project not found"));
+        when(projectService.getProjectByKey(any(String.class))).thenThrow(new RuntimeException("Project not found"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             tagMapper.mapToEntity(tagResponse);
         });
 
-        verify(projectService, times(1)).getProjectById(any(UUID.class));
+        verify(projectService, times(1)).getProjectByKey(any(String.class));
     }
 }

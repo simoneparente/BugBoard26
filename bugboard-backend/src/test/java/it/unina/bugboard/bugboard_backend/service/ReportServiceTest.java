@@ -43,6 +43,7 @@ class ReportServiceTest {
         UUID projectId = UUID.randomUUID();
         Project mockProject = Project.builder()
                 .id(projectId)
+                .key("FRONT")
                 .name("Test Project")
                 .build();
 
@@ -62,7 +63,7 @@ class ReportServiceTest {
                 .build();
 
         // Project exists
-        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(mockProject));
 
         // Project metrics
         when(issueRepository.countByProjectIdAndCreatedAtBetween(eq(projectId), any(), any()))
@@ -87,11 +88,11 @@ class ReportServiceTest {
         when(monthlyProjectReportRepository.saveAll(any())).thenAnswer(i -> i.getArgument(0));
 
         // 2. ACT
-        MonthlyProjectReportResponse response = reportService.generateReport(projectId);
+        MonthlyProjectReportResponse response = reportService.generateReport("FRONT");
 
         // 3. ASSERT
         assertNotNull(response);
-        assertEquals(projectId, response.getProjectId());
+        assertEquals("FRONT", response.getProjectKey());
         assertEquals("Test Project", response.getProjectName());
         assertEquals(5, response.getOpenedBugs());
         assertEquals(3, response.getManagedBugs());
@@ -112,11 +113,11 @@ class ReportServiceTest {
     void generateReport_ThrowsException_WhenProjectNotFound() {
         // ARRANGE
         UUID projectId = UUID.randomUUID();
-        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+        when(projectRepository.findByKey("FRONT")).thenReturn(Optional.empty());
 
         // ACT & ASSERT
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            reportService.generateReport(projectId);
+            reportService.generateReport("FRONT");
         });
 
         assertTrue(exception.getMessage().contains("not found"));
@@ -133,7 +134,7 @@ class ReportServiceTest {
                 .name("Empty Project")
                 .build();
 
-        when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
+        when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(mockProject));
 
         // Return empty lists so avg time is 0.0
         when(issueRepository.findByProjectIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(IssueStatus.COMPLETED), any(), any()))
@@ -143,7 +144,7 @@ class ReportServiceTest {
                 .thenReturn(List.of());
 
         // ACT
-        MonthlyProjectReportResponse response = reportService.generateReport(projectId);
+        MonthlyProjectReportResponse response = reportService.generateReport("FRONT");
 
         // ASSERT
         assertEquals(0.0, response.getAverageResolutionTime());

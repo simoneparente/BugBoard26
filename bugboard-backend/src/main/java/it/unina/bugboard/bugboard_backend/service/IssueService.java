@@ -183,26 +183,12 @@ public class IssueService {
     }
 
     @Transactional(readOnly = true)
-    public Issue getIssueByIdAndProjectId(UUID issueId, UUID projectId) {
-        Issue issue = issueRepository.findByIdAndProjectId(issueId, projectId);
-        if (issue == null) {
-            throw new ResourceNotFoundException(ISSUE_NOT_FOUND_MSG + issueId + " in project " + projectId);
-        }
-        return issue;
-    }
-
-    @Transactional(readOnly = true)
     public Issue getIssueByProjectKeyAndSequenceNumber(String projectKey, Long sequenceNumber) {
         Issue issue = issueRepository.findByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
         if (issue == null) {
             throw new ResourceNotFoundException("Issue not found with key " + projectKey + "-" + sequenceNumber);
         }
         return issue;
-    }
-
-    @Transactional(readOnly = true)
-    public List<Issue> getAllIssues() {
-        return issueRepository.findAll();
     }
 
     @Transactional
