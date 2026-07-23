@@ -1,4 +1,4 @@
-import { Routes, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { CreateIssueComponent } from './features/create-issue.component/create-issue.component';
 import { AuthService } from './core/auth/auth-service';
@@ -11,8 +11,9 @@ import { ReportComponent } from './features/report.component/report.component';
 import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
+import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
-const authGuard = () => {
+const authGuard = (_route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -20,7 +21,7 @@ const authGuard = () => {
     return true;
   }
 
-  router.navigate(['/login']);
+  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
   return false;
 };
 
@@ -70,6 +71,11 @@ export const routes: Routes = [
         path: 'projects/:projectId/issues/create',
         component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
+      },
+      {
+        path: 'projects/:projectId/issues/:issueId',
+        component: IssueDetailComponent,
+        title: 'BugBoard26 - Issue Details',
       },
       {
         path: '',

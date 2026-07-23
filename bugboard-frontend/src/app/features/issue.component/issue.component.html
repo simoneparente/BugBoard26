@@ -205,12 +205,7 @@
 
               <!-- Status Badge -->
               <td>
-                <span
-                  class="badge rounded-pill"
-                  [ngClass]="
-                    issue.status === 'TO_DO' ? 'bg-light text-dark border' : 'bg-primary text-white'
-                  "
-                >
+                <span [class]="getStatusBadgeClass(issue.status)">
                   {{ getStatusLabel(issue.status) }}
                 </span>
               </td>

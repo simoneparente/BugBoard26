@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -292,6 +293,120 @@ class IssueServiceTest {
 		verify(attachmentRepository, never()).save(any(Attachment.class));
 	}
 
+	@Test
+	void setStatus_ClearsAssigneeWhenSetToToDo() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.setStatus(issue.getId(), IssueStatus.TO_DO);
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void setStatus_ClearsAssigneeWhenSetToClosed() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.setStatus(issue.getId(), IssueStatus.CLOSED);
+
+		assertEquals(IssueStatus.CLOSED, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void setStatus_ThrowsWhenSettingInProgressOnUnassignedIssue() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.TO_DO).assignee(null).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.setStatus(issue.getId(), IssueStatus.IN_PROGRESS));
+	}
+
+	@Test
+	void setStatus_ThrowsWhenClosingCompletedIssue() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.COMPLETED).assignee(createUser("johndoe")).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.setStatus(issue.getId(), IssueStatus.CLOSED));
+	}
+
+	@Test
+	void assignIssueToUser_ThrowsWhenIssueIsClosed() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.CLOSED).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.assignIssueToUser(issue.getId(), user.getId()));
+	}
+
+	@Test
+	void assignIssueToUser_SuccessWhenIssueIsActive() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.TO_DO).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+		Issue result = issueService.assignIssueToUser(issue.getId(), user.getId());
+
+		assertEquals(user, result.getAssignee());
+	}
+
+	@Test
+	void removeIssueAssignee_ResetsStatusToToDoAndClearsAssignee() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.removeIssueAssignee(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void removeIssueAssignee_ThrowsWhenIssueIsCompleted() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.COMPLETED).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+
+		assertThrows(it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException.class,
+				() -> issueService.removeIssueAssignee(issue.getId()));
+	}
+
+	@Test
+	void rollbackIssueState_RollsBackClosedToToDoAndClearsAssignee() {
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.CLOSED).assignee(null).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.rollbackIssueState(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
+	@Test
+	void rollbackIssueState_RollsBackInProgressToToDoAndClearsAssignee() {
+		User user = createUser("johndoe");
+		Issue issue = Issue.builder().id(UUID.randomUUID()).project(project).status(IssueStatus.IN_PROGRESS).assignee(user).build();
+		when(issueRepository.findById(issue.getId())).thenReturn(Optional.of(issue));
+		when(issueRepository.save(any(Issue.class))).thenAnswer(i -> i.getArgument(0));
+
+		Issue result = issueService.rollbackIssueState(issue.getId());
+
+		assertEquals(IssueStatus.TO_DO, result.getStatus());
+		assertNull(result.getAssignee());
+	}
+
 	private IssueRequest createRequest(IssueStatus status, List<TagResponse> tags, String assigneeUsername) {
 		IssueRequest request = new IssueRequest();
 		request.setTitle("Issue title");
@@ -467,5 +582,25 @@ class IssueServiceTest {
 		assertEquals(1, result.getTotalElements());
 		assertEquals("NullPointerException in Login", result.getContent().get(0).getTitle());
 		verify(issueRepository, times(1)).findByProjectIdAndFilters(projectId, null, null, "%login%", pageable);
+	}
+
+	@Test
+	void deleteIssue_Success() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(true);
+		doNothing().when(issueRepository).deleteById(issueId);
+
+		issueService.deleteIssue(issueId);
+
+		verify(issueRepository, times(1)).deleteById(issueId);
+	}
+
+	@Test
+	void deleteIssue_ThrowsException_WhenNotFound() {
+		UUID issueId = UUID.randomUUID();
+		when(issueRepository.existsById(issueId)).thenReturn(false);
+
+		assertThrows(IllegalArgumentException.class, () -> issueService.deleteIssue(issueId));
+		verify(issueRepository, never()).deleteById(any());
 	}
 }

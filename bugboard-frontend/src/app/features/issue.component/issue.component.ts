@@ -181,6 +181,29 @@ export class IssueComponent implements OnInit, OnDestroy {
     return status ? status.replace(/_/g, ' ').toUpperCase() : '';
   }
 
+  getStatusBadgeClass(status?: string): string {
+    switch (status?.toUpperCase()) {
+      case 'TO_DO':
+      case 'NEW':
+      case 'OPEN':
+        return 'status-badge status-to-do';
+      case 'IN_PROGRESS':
+        return 'status-badge status-in-progress';
+      case 'MARKED_FOR_REVIEW':
+        return 'status-badge status-marked-for-review';
+      case 'NOT_FIXED':
+        return 'status-badge status-not-fixed';
+      case 'COMPLETED':
+      case 'RESOLVED':
+      case 'ACCEPTED':
+        return 'status-badge status-completed';
+      case 'CLOSED':
+        return 'status-badge status-closed';
+      default:
+        return 'status-badge status-to-do';
+    }
+  }
+
   getTagStyle(tagName: string): string {
     const styles: { [key: string]: string } = {
       Security: 'bg-danger-subtle text-danger border-danger',

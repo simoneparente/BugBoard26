@@ -90,6 +90,9 @@ public class IssueService {
     public Issue assignIssueToUser(UUID issueId, UUID userId) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
+        if (issue.getStatus() == IssueStatus.CLOSED) {
+            throw new OperationNotAllowedException("Cannot assign a user to a CLOSED issue.");
+        }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
@@ -105,6 +108,12 @@ public class IssueService {
 
         if (!isIssueAssigned(issue) && newStatus == IssueStatus.IN_PROGRESS) {
             throw new OperationNotAllowedException("Cannot set status to IN_PROGRESS for an unassigned issue.");
+        }
+        if (issue.getStatus() == IssueStatus.COMPLETED && newStatus == IssueStatus.CLOSED) {
+            throw new OperationNotAllowedException("Cannot close a COMPLETED issue.");
+        }
+        if (newStatus == IssueStatus.TO_DO || newStatus == IssueStatus.CLOSED) {
+            issue.setAssignee(null);
         }
         issue.setStatus(newStatus);
         return issueRepository.save(issue);
@@ -138,9 +147,12 @@ public class IssueService {
             case MARKED_FOR_REVIEW -> IssueStatus.IN_PROGRESS;
             case NOT_FIXED -> IssueStatus.IN_PROGRESS;
             case COMPLETED -> IssueStatus.MARKED_FOR_REVIEW;
-            case CLOSED -> IssueStatus.COMPLETED;
+            case CLOSED -> IssueStatus.TO_DO;
             default -> throw new OperationNotAllowedException("Cannot rollback from status: " + issue.getStatus());
         };
+        if (previous == IssueStatus.TO_DO) {
+            issue.setAssignee(null);
+        }
         issue.setStatus(previous);
         return issueRepository.save(issue);
     }
@@ -150,7 +162,12 @@ public class IssueService {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
 
+        if (issue.getStatus() == IssueStatus.COMPLETED) {
+            throw new OperationNotAllowedException("Cannot remove assignee from a COMPLETED issue.");
+        }
+
         issue.setAssignee(null);
+        issue.setStatus(IssueStatus.TO_DO);
         return issueRepository.save(issue);
     }
 
