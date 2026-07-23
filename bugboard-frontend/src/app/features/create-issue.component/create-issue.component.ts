@@ -49,6 +49,7 @@ export class CreateIssueComponent implements OnInit {
   submitted = false;
   showError = false;
   isLoadingTags = true;
+  isSubmitting = false;
 
   isTagDropdownOpen = false;
   isPriorityDropdownOpen = false;
@@ -177,6 +178,10 @@ export class CreateIssueComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.isSubmitting) {
+      return;
+    }
+
     this.submitted = true;
     this.showError = false;
 
@@ -185,6 +190,7 @@ export class CreateIssueComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting = true;
     const projectId = this.projectId;
 
     const uploadTasks$ =
@@ -225,6 +231,7 @@ export class CreateIssueComponent implements OnInit {
           error: () => {
             this.showError = true;
             this.notificationService.showError('Error', 'Failed to create issue.');
+            this.isSubmitting = false;
           },
         });
       },
@@ -235,6 +242,7 @@ export class CreateIssueComponent implements OnInit {
           'Upload Error',
           'Failed to upload attachments to Azure.',
         );
+        this.isSubmitting = false;
       },
     });
   }
