@@ -42,42 +42,6 @@
   }
 }
 
-// Custom Status Badges Palette (App Brand Colors)
-.status-badge {
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  border-radius: 50rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.3px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-
-  &.status-to-do {
-    background-color: #ffffff;
-    color: #1e293b;
-    border: 1px solid #cbd5e1;
-  }
-  &.status-in-progress {
-    background-color: #d97706;
-    color: #ffffff;
-  }
-  &.status-marked-for-review {
-    background-color: #005bb0;
-    color: #ffffff;
-  }
-  &.status-not-fixed {
-    background-color: #ba1a1a;
-    color: #ffffff;
-  }
-  &.status-completed {
-    background-color: #16a34a;
-    color: #ffffff;
-  }
-  &.status-closed {
-    background-color: #1e293b;
-    color: #ffffff;
-  }
-}
-
 // Custom Action Buttons Palette (App Brand Colors)
 .btn-status-in-progress {
   background-color: #d97706;
@@ -243,50 +207,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-// Priority Color Palette (Gradient from Lowest Green -> Highest Red)
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  border-radius: 50rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  &.priority-lowest {
-    background-color: #dcfce7;
-    color: #15803d;
-    border: 1px solid #bbf7d0;
-  }
-
-  &.priority-low {
-    background-color: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid #bae6fd;
-  }
-
-  &.priority-medium {
-    background-color: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
-  }
-
-  &.priority-high {
-    background-color: #ffedd5;
-    color: #c2410c;
-    border: 1px solid #fed7aa;
-  }
-
-  &.priority-highest,
-  &.priority-critical {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
   }
 }

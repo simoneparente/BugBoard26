@@ -39,16 +39,19 @@
       <div class="card-body p-4">
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
           <span
-            class="badge rounded-pill px-3 py-2 fw-medium"
+            class="badge border rounded-pill px-3 py-1.5 d-inline-flex align-items-center"
             [ngClass]="getTypeBadgeClass(item.type)"
           >
-            <i class="bi bi-tag-fill me-1"></i> {{ item.type }}
+            <i class="bi" [ngClass]="getTypeIcon(item.type)"></i>
+            {{ getTypeLabel(item.type) }}
           </span>
+
           <span
-            class="badge rounded-pill px-3 py-2 fw-medium"
+            class="badge border rounded-pill px-3 py-1.5 d-inline-flex align-items-center"
             [ngClass]="getPriorityBadgeClass(item.priority)"
           >
-            <i class="bi bi-flag-fill me-1"></i> {{ item.priority }}
+            <i class="bi" [ngClass]="getPriorityIcon(item.priority)"></i>
+            {{ item.priority | titlecase }}
           </span>
         </div>
 
@@ -315,11 +318,8 @@
               class="p-3 bg-light rounded-3 mb-4 d-flex align-items-center justify-content-between"
             >
               <span class="text-muted small fw-medium">Current Status</span>
-              <span
-                class="badge rounded-pill px-3 py-2 fw-medium"
-                [ngClass]="getStatusBadgeClass(item.status)"
-              >
-                <i class="bi bi-circle-fill me-1 small"></i> {{ item.status }}
+              <span [class]="getStatusBadgeClass(item.status)">
+                {{ getStatusLabel(item.status) }}
               </span>
             </div>
 

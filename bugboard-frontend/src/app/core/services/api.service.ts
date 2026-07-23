@@ -80,10 +80,7 @@ export class ApiService {
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
     getById: (projectId: string, issueId: string) =>
       this.http.get<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
-    getByProject: (projectId: string, page = 0, size = 10) =>
-      this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
-        params: { page: page.toString(), size: size.toString() },
-      }),
+
     assign: (projectId: string, issueId: string, assigneeId: string) =>
       this.http.put<IssueResponse>(
         `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assign`,

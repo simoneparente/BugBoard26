@@ -264,6 +264,9 @@ export class IssueDetailComponent implements OnInit {
       },
     });
   }
+  public getStatusLabel(status?: string): string {
+    return status ? status.replace(/_/g, ' ').toUpperCase() : '';
+  }
 
   public getStatusBadgeClass(status?: string): string {
     switch (status?.toUpperCase()) {
@@ -289,20 +292,25 @@ export class IssueDetailComponent implements OnInit {
   }
 
   public getPriorityBadgeClass(priority?: string): string {
+    if (!priority) return 'priority-lowest';
+    return `priority-${priority.toLowerCase()}`;
+  }
+
+  public getPriorityIcon(priority?: string): string {
     switch (priority?.toUpperCase()) {
-      case 'LOWEST':
-        return 'priority-badge priority-lowest';
-      case 'LOW':
-        return 'priority-badge priority-low';
-      case 'MEDIUM':
-        return 'priority-badge priority-medium';
-      case 'HIGH':
-        return 'priority-badge priority-high';
       case 'HIGHEST':
       case 'CRITICAL':
-        return 'priority-badge priority-highest';
+        return 'bi-chevron-double-up';
+      case 'HIGH':
+        return 'bi-chevron-up';
+      case 'MEDIUM':
+        return 'bi-dash-lg';
+      case 'LOW':
+        return 'bi-chevron-down';
+      case 'LOWEST':
+        return 'bi-chevron-double-down';
       default:
-        return 'priority-badge priority-medium';
+        return 'bi-dash-lg';
     }
   }
 
@@ -312,10 +320,49 @@ export class IssueDetailComponent implements OnInit {
         return 'bg-danger-subtle text-danger border border-danger-subtle';
       case 'FEATURE':
         return 'bg-primary-subtle text-primary border border-primary-subtle';
+      case 'QUESTION':
+        return 'bg-warning-subtle text-warning border border-warning-subtle';
+      case 'DOCUMENTATION':
+        return 'bg-info-subtle text-info border border-info-subtle';
       case 'ENHANCEMENT':
         return 'bg-success-subtle text-success border border-success-subtle';
       default:
-        return 'bg-light text-dark border';
+        return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+    }
+  }
+
+  public getTypeIcon(type?: string): string {
+    switch (type?.toUpperCase()) {
+      case 'BUG':
+        return 'bi-bug-fill text-danger';
+      case 'FEATURE':
+        return 'bi-star-fill text-primary';
+      case 'QUESTION':
+        return 'bi-question-circle-fill text-warning';
+      case 'DOCUMENTATION':
+        return 'bi-file-earmark-text-fill text-info';
+      case 'ENHANCEMENT':
+        return 'bi-lightning-charge-fill text-success';
+      default:
+        return 'bi-tag-fill text-secondary';
+    }
+  }
+
+  public getTypeLabel(type?: string): string {
+    if (!type) return '';
+    switch (type.toUpperCase()) {
+      case 'BUG':
+        return 'Bug';
+      case 'FEATURE':
+        return 'Feature';
+      case 'QUESTION':
+        return 'Question';
+      case 'DOCUMENTATION':
+        return 'Documentation';
+      case 'ENHANCEMENT':
+        return 'Enhancement';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
     }
   }
 
