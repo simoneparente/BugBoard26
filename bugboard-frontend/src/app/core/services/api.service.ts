@@ -123,6 +123,11 @@ export class ApiService {
       ),
     delete: (projectKey: string, sequenceNumber: string) =>
       this.http.delete<void>(`${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}`),
+    export: (projectKey: string, format: string) =>
+      this.http.get(`${this.baseUrl}/projects/${projectKey}/issues/export`, {
+        params: { format },
+        responseType: 'blob',
+      }),
     uploadAttachment: (sequenceNumber: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);

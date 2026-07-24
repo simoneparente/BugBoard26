@@ -282,4 +282,28 @@ export class IssueComponent implements OnInit, OnDestroy {
     };
     return styles[tagName] || 'bg-light text-secondary border';
   }
+
+  onExportIssues(format: string): void {
+    this.isLoading.set(true);
+    this.issueService.exportIssues(this.projectKey, format).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `issues_${Date.now()}.${format.toLowerCase()}`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        window.setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          link.remove();
+        }, 0);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Export failed', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
 }

@@ -2,6 +2,8 @@ package it.unina.bugboard.bugboard_backend.service;
 
 import it.unina.bugboard.bugboard_backend.dto.AttachmentMetadataRequest;
 import it.unina.bugboard.bugboard_backend.dto.IssueRequest;
+import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
+import it.unina.bugboard.bugboard_backend.mapper.IssueMapper;
 import it.unina.bugboard.bugboard_backend.entity.*;
 import it.unina.bugboard.bugboard_backend.repository.*;
 import it.unina.bugboard.bugboard_backend.exception.OperationNotAllowedException;
@@ -29,6 +31,7 @@ public class IssueService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final AttachmentRepository attachmentRepository;
+    private final IssueMapper issueMapper;
 
     @Transactional
     public Issue createIssue(String projectKey, IssueRequest request) {
@@ -207,6 +210,14 @@ public class IssueService {
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, String search, Pageable pageable) {
         return getIssuesByProjectKeyInternal(projectKey, status, priority, search, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<IssueResponse> getExportIssuesByProjectKey(String projectKey, Pageable pageable) {
+        Project project = projectRepository.findByKey(projectKey)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
+        Page<Issue> issues = issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, pageable);
+        return issues.map(issueMapper::toResponse);
     }
 
     private Page<Issue> getIssuesByProjectKeyInternal(String projectKey, String status, String priority, String search, Pageable pageable) {

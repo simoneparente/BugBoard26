@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.DispatcherType;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,6 +47,8 @@ public class SecurityConfig {
 
         configuredHttp
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
