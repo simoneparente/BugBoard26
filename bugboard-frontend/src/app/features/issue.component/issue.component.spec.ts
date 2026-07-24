@@ -116,7 +116,17 @@ describe('IssueComponent additional behavior', () => {
   });
 
   it('should load project name on init', () => {
-    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project', id: 'proj-123', description: '', createdAt: '', updatedAt: '' } as any));
+    const spy = vi
+      .spyOn(projectService, 'getById')
+      .mockReturnValue(
+        of({
+          name: 'Demo Project',
+          id: 'proj-123',
+          description: '',
+          createdAt: '',
+          updatedAt: '',
+        } as any),
+      );
     component.ngOnInit();
     expect(spy).toHaveBeenCalledWith('proj-123');
     expect(component.projectName()).toBe('Demo Project');
