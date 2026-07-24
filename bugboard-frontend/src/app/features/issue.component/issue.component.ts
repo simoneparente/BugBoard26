@@ -99,7 +99,6 @@ export class IssueComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
         },
       });
-
   }
 
   ngOnDestroy(): void {
