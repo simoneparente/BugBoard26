@@ -496,7 +496,6 @@ class TagServiceTest {
     @Test
     void updateTag_ThrowsException_WhenTagDoesNotBelongToProject() {
         // ARRANGE
-        UUID projectId = UUID.randomUUID();
         UUID differentProjectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
         
