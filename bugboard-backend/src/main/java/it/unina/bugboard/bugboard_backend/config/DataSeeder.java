@@ -78,14 +78,14 @@ public class DataSeeder implements CommandLineRunner {
         // 2. Create Projects with assigned Members
         Project bugboardProject = projectRepository.save(Project.builder()
                 .name("BugBoard Reborn")
-                .key("fro")
+                .key("BUG")
                 .description("Piattaforma principale per il tracciamento dei bug e della produttività")
                 .members(List.of(admin, mario, giulia, luca))
                 .build());
 
         Project mobileProject = projectRepository.save(Project.builder()
                 .name("Mobile App")
-                .key("mob")
+                .key("MOB")
                 .description("Applicazione mobile per iOS e Android")
                 .members(List.of(admin, mario, anna))
                 .build());

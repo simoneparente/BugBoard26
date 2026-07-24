@@ -57,7 +57,7 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.projectKey) {
-      this.projectKey = this.route.snapshot.paramMap.get('projectKey') || '';
+      this.projectKey = (this.route.snapshot.paramMap.get('projectKey') || '').toUpperCase();
     }
 
     if (this.projectKey) {

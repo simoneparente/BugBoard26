@@ -55,9 +55,9 @@ public class ProjectService {
             throw new IllegalArgumentException("Project with the same name already exists.");
         }
 
-        String baseKey = projectRequest.getName().trim().split("\\s+")[0].toLowerCase().replaceAll("[^a-z]", "");
+        String baseKey = projectRequest.getName().trim().split("\\s+")[0].toUpperCase().replaceAll("[^A-Z]", "");
         if (baseKey.isEmpty()) {
-            baseKey = "prj";
+            baseKey = "PRJ";
         } else if (baseKey.length() > 3) {
             baseKey = baseKey.substring(0, 3);
         }

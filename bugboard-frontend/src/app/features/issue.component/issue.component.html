@@ -155,7 +155,7 @@
       <table class="table table-hover align-middle mb-0" style="min-width: 520px">
         <thead class="table-light text-muted">
           <tr>
-            <th class="ps-4 py-3" style="width: 80px">ID</th>
+            <th class="ps-4 py-3" style="width: 80px">#</th>
             <th class="py-3 cursor-pointer" (click)="sortData('title')">
               Title
               @if (sortField() === 'title') {
@@ -189,7 +189,7 @@
           @for (issue of issues(); track issue.id) {
             <tr>
               <td class="ps-4 text-secondary fw-medium text-nowrap">
-                {{ issue.projectKey }}-{{ issue.sequenceNumber }}
+                {{ issue.sequenceNumber }}
               </td>
               <td class="fw-medium text-break" style="max-width: 250px">
                 <a

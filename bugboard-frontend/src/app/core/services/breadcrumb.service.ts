@@ -65,7 +65,7 @@ export class BreadcrumbService {
           icon: 'bi-plus-circle',
         });
       } else if (segments.length >= 2 && segments[1] !== 'create') {
-        const projectKey = segments[1];
+        const projectKey = segments[1].toUpperCase();
         const currentProjectLabel = this.projectName() ?? 'Issue Tracker';
 
         items.push({
@@ -85,8 +85,9 @@ export class BreadcrumbService {
                   icon: 'bi-bug',
                 });
               } else {
+                const issueId = segments[3].replace(new RegExp(`^${projectKey}-`, 'i'), '');
                 items.push({
-                  label: `Issue ${projectKey}-${segments[3]}`,
+                  label: `Issue ${issueId}`,
                   url: `/projects/${projectKey}/issues/${segments[3]}`,
                   icon: 'bi-ticket-detailed',
                 });
