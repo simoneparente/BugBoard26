@@ -66,12 +66,13 @@
         </div>
       </div>
 
-      <!-- Sidebar (left) - Members Management -->
       <div class="col-lg-4">
         @if (project()?.id) {
           <app-project-members-list [projectId]="project()!.id"></app-project-members-list>
         }
       </div>
     </div>
+    <!-- Confirmation Modal -->
+    <app-confirmation-modal></app-confirmation-modal>
   }
 </div>

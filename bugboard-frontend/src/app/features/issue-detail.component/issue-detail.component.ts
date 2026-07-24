@@ -16,16 +16,18 @@ import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
 import { IssueResponse } from '../../core/issue.model';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AssigneeRecommendation } from '../../core/assignee-recommendation.model';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-issue-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ConfirmationModalComponent],
   templateUrl: './issue-detail.component.html',
   styleUrls: ['./issue-detail.component.scss'],
 })
@@ -36,6 +38,7 @@ export class IssueDetailComponent implements OnInit {
   private readonly issueService = inject(IssueService);
   private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
+  private readonly confirmationModalService = inject(ConfirmationModalService);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -49,8 +52,6 @@ export class IssueDetailComponent implements OnInit {
   public readonly isUpdatingAssignee = signal<boolean>(false);
   public readonly isReadonly = computed(() => this.authService.isReadonly());
   public readonly isUpdatingStatus = signal<boolean>(false);
-  public readonly showDeleteModal = signal<boolean>(false);
-  public readonly isDeleting = signal<boolean>(false);
 
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
@@ -270,20 +271,22 @@ export class IssueDetailComponent implements OnInit {
   }
 
   public onOpenDeleteModal(): void {
-    this.showDeleteModal.set(true);
+    const issue = this.issue();
+    if (!issue) return;
+
+    this.confirmationModalService.open({
+      title: 'Delete Issue',
+      message: `Are you sure you want to permanently delete issue \"${issue.title}\"? All associated data and attachments will be deleted.`,
+      confirmButtonText: 'Delete Permanently',
+      cancelButtonText: 'Cancel',
+      isDangerous: true,
+      onConfirm: () => this.performDelete(),
+    });
   }
 
-  public onCloseDeleteModal(): void {
-    if (this.isDeleting()) return;
-    this.showDeleteModal.set(false);
-  }
-
-  public onConfirmDelete(): void {
-    this.isDeleting.set(true);
+  private performDelete(): void {
     this.issueService.deleteIssue(this.projectKey, this.sequenceNumber).subscribe({
       next: () => {
-        this.showDeleteModal.set(false);
-        this.isDeleting.set(false);
         this.notificationService.showSuccess(
           'Issue Deleted',
           'The issue has been permanently deleted.',
@@ -292,7 +295,6 @@ export class IssueDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error deleting issue:', err);
-        this.isDeleting.set(false);
         this.notificationService.showError(
           'Delete Failed',
           err.error?.message || 'Failed to delete the issue. Please try again.',
