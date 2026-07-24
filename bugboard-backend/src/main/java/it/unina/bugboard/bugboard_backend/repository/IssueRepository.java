@@ -31,7 +31,11 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
 
     Page<Issue> findByProjectIdAndStatus(UUID projectId, IssueStatus status, Pageable pageable);
 
-    @Query("SELECT i FROM Issue i WHERE i.project.id = :projectId " +
+    @Query(value = "SELECT i FROM Issue i LEFT JOIN i.assignee a WHERE i.project.id = :projectId " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND (:priority IS NULL OR i.priority = :priority) " +
+            "AND (:searchPattern IS NULL OR LOWER(i.title) LIKE :searchPattern OR (i.description IS NOT NULL AND LOWER(i.description) LIKE :searchPattern))",
+           countQuery = "SELECT COUNT(i) FROM Issue i WHERE i.project.id = :projectId " +
             "AND (:status IS NULL OR i.status = :status) " +
             "AND (:priority IS NULL OR i.priority = :priority) " +
             "AND (:searchPattern IS NULL OR LOWER(i.title) LIKE :searchPattern OR (i.description IS NOT NULL AND LOWER(i.description) LIKE :searchPattern))")
