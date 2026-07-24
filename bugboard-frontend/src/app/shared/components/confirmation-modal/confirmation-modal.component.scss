@@ -1,24 +1,28 @@
-.modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1055;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-}
-
-.modal-dialog {
-  max-width: 440px;
-  width: 100%;
-}
-
-.icon-badge {
-  width: 40px;
-  height: 40px;
-}
-
-.modal-backdrop {
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
   z-index: 1050;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  max-width: 480px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
 }
 
 // Custom Indigo primary color - override Bootstrap default
@@ -30,4 +34,24 @@
   --bs-btn-active-bg: #4338ca;
   --bs-btn-active-border-color: #4338ca;
   --bs-btn-focus-shadow-rgb: 99, 102, 241;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

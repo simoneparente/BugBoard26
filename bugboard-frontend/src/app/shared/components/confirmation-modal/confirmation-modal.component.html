@@ -1,70 +1,68 @@
 @if (state().isOpen) {
   <div
-    class="modal d-flex align-items-center justify-content-center show"
-    tabindex="-1"
+    class="modal-backdrop-custom d-flex align-items-center justify-content-center"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="confirm-modal-title"
-    aria-describedby="confirm-modal-body"
+    aria-labelledby="confirmModalTitle"
+    aria-describedby="confirmModalMessage"
     (click)="onOverlayClick()"
   >
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <!-- Header -->
+    <div
+      class="modal-card bg-white rounded-4 shadow-lg p-4 max-w-md w-100 mx-3"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Header with Icon & Subtitle -->
+      <div class="d-flex align-items-center gap-3 mb-3">
         <div
-          class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between"
+          class="icon-box rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+          [class.bg-danger-subtle]="state().isDangerous"
+          [class.text-danger]="state().isDangerous"
+          [class.bg-primary-subtle]="!state().isDangerous"
+          [class.text-primary]="!state().isDangerous"
         >
-          <div class="d-flex align-items-center gap-3">
-            <div
-              class="icon-badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-              [class.bg-danger-subtle]="state().isDangerous"
-              [class.text-danger]="state().isDangerous"
-              [class.bg-primary-subtle]="!state().isDangerous"
-              [class.text-primary]="!state().isDangerous"
-            >
-              <i
-                class="bi fs-5"
-                [class.bi-exclamation-triangle-fill]="state().isDangerous"
-                [class.bi-info-circle-fill]="!state().isDangerous"
-              ></i>
-            </div>
-            <h5 class="modal-title fw-bold mb-0" id="confirm-modal-title">{{ state().title }}</h5>
-          </div>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="confirmService.performCancel()"
-          ></button>
+          <i
+            class="bi fs-4"
+            [class.bi-exclamation-triangle-fill]="state().isDangerous"
+            [class.bi-info-circle-fill]="!state().isDangerous"
+          ></i>
         </div>
+        <div>
+          <h5 class="fw-bold mb-1 text-dark" id="confirmModalTitle">{{ state().title }}</h5>
+          <p class="text-muted small mb-0">
+            {{
+              state().isDangerous ? 'This action cannot be undone.' : 'Please confirm your choice.'
+            }}
+          </p>
+        </div>
+      </div>
 
-        <!-- Body -->
-        <div class="modal-body px-4 py-3 text-secondary" id="confirm-modal-body">
-          {{ state().message }}
-        </div>
+      <!-- Message Body -->
+      <p class="text-secondary small mb-4" id="confirmModalMessage">
+        {{ state().message }}
+      </p>
 
-        <!-- Footer -->
-        <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
-          <button
-            type="button"
-            class="btn btn-light border fw-medium rounded-3 px-3"
-            (click)="confirmService.performCancel()"
-          >
-            {{ state().cancelButtonText }}
-          </button>
-          <button
-            type="button"
-            class="btn fw-medium rounded-3 px-3"
-            [class.btn-danger]="state().isDangerous"
-            [class.btn-primary]="!state().isDangerous"
-            (click)="confirmService.confirm()"
-          >
-            {{ state().confirmButtonText }}
-          </button>
-        </div>
+      <!-- Action Buttons -->
+      <div class="d-flex justify-content-end gap-2">
+        <button
+          type="button"
+          class="btn btn-light rounded-3 px-4 fw-medium"
+          (click)="confirmService.performCancel()"
+        >
+          {{ state().cancelButtonText }}
+        </button>
+        <button
+          type="button"
+          class="btn rounded-3 px-4 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm"
+          [class.btn-danger]="state().isDangerous"
+          [class.btn-primary]="!state().isDangerous"
+          (click)="confirmService.confirm()"
+        >
+          @if (state().isDangerous) {
+            <i class="bi bi-trash-fill"></i>
+          }
+          {{ state().confirmButtonText }}
+        </button>
       </div>
     </div>
   </div>
-
-  <div class="modal-backdrop fade show"></div>
 }
