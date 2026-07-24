@@ -4,6 +4,10 @@
 
   .card-body {
     padding: 1.5rem;
+
+    @media (max-width: 576px) {
+      padding: 1rem 0.75rem;
+    }
   }
 
   .card-title {
