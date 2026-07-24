@@ -36,9 +36,9 @@ public class ProjectController {
         return new ResponseEntity<>(projectMapper.toResponse(project), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable UUID id) {
-        Project project = projectService.getProjectById(id);
+    @GetMapping("/{key}")
+    public ResponseEntity<ProjectResponse> getProjectByKey(@PathVariable String key) {
+        Project project = projectService.getProjectByKey(key);
         return ResponseEntity.ok(projectMapper.toResponse(project));
     }
 
@@ -49,15 +49,15 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @GetMapping("/{id}/recommended-assignees")
-    public ResponseEntity<List<AssigneeRecommendationResponse>> getRecommendedAssignees(@PathVariable UUID id) {
-        List<AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(id);
+    @GetMapping("/{key}/recommended-assignees")
+    public ResponseEntity<List<AssigneeRecommendationResponse>> getRecommendedAssignees(@PathVariable String key) {
+        List<AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(key);
         return ResponseEntity.ok(recommendations);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
-        projectService.deleteProject(id);
+    @DeleteMapping("/{key}")
+    public ResponseEntity<Void> deleteProject(@PathVariable String key) {
+        projectService.deleteProject(key);
         return ResponseEntity.noContent().build();
     }
 

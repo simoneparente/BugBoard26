@@ -78,12 +78,14 @@ public class DataSeeder implements CommandLineRunner {
         // 2. Create Projects with assigned Members
         Project bugboardProject = projectRepository.save(Project.builder()
                 .name("BugBoard Reborn")
+                .key("BUG")
                 .description("Piattaforma principale per il tracciamento dei bug e della produttività")
                 .members(List.of(admin, mario, giulia, luca))
                 .build());
 
         Project mobileProject = projectRepository.save(Project.builder()
                 .name("Mobile App")
+                .key("MOB")
                 .description("Applicazione mobile per iOS e Android")
                 .members(List.of(admin, mario, anna))
                 .build());
@@ -97,6 +99,7 @@ public class DataSeeder implements CommandLineRunner {
                 .priority(IssuePriority.HIGHEST)
                 .type(IssueType.BUG)
                 .status(IssueStatus.IN_PROGRESS)
+                .sequenceNumber(1L)
                 .assignee(mario)
                 .build());
 
@@ -107,6 +110,7 @@ public class DataSeeder implements CommandLineRunner {
                 .priority(IssuePriority.HIGH)
                 .type(IssueType.FEATURE)
                 .status(IssueStatus.IN_PROGRESS)
+                .sequenceNumber(2L)
                 .assignee(mario)
                 .build());
 
@@ -118,6 +122,7 @@ public class DataSeeder implements CommandLineRunner {
                 .priority(IssuePriority.MEDIUM)
                 .type(IssueType.FEATURE)
                 .status(IssueStatus.IN_PROGRESS)
+                .sequenceNumber(3L)
                 .assignee(giulia)
                 .build());
 
@@ -129,6 +134,7 @@ public class DataSeeder implements CommandLineRunner {
                 .priority(IssuePriority.LOW)
                 .type(IssueType.FEATURE)
                 .status(IssueStatus.TO_DO)
+                .sequenceNumber(4L)
                 .assignee(luca)
                 .build());
 
@@ -140,6 +146,7 @@ public class DataSeeder implements CommandLineRunner {
                 .priority(IssuePriority.MEDIUM)
                 .type(IssueType.DOCUMENTATION)
                 .status(IssueStatus.TO_DO)
+                .sequenceNumber(5L)
                 .assignee(null)
                 .build());
     }

@@ -26,6 +26,9 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "project_key", nullable = false, unique = true, length = 10)
+    private String key;
+
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 

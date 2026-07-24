@@ -14,7 +14,7 @@ public class TagMapper {
     private ProjectService projectService;
     
     public Tag mapToEntity(TagResponse tagResponse) {
-        Project project = projectService.getProjectById(tagResponse.getProjectId());
+        Project project = projectService.getProjectByKey(tagResponse.getProjectKey());
         return Tag.builder()
                 .id(tagResponse.getId())
                 .name(tagResponse.getName())
@@ -32,7 +32,7 @@ public class TagMapper {
                 .id(tag.getId())
                 .name(tag.getName())
                 .color(tag.getColor())
-                .projectId(tag.getProject() != null ? tag.getProject().getId() : null)
+                .projectKey(tag.getProject() != null ? tag.getProject().getKey() : null)
                 .build();
     }
 }

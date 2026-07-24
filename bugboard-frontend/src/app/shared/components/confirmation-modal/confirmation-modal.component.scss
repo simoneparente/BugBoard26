@@ -9,14 +9,57 @@
   --bs-btn-focus-shadow-rgb: 99, 102, 241;
 }
 
-// Modal positioning with flexbox centering
-.modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+// Modal backdrop styling
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-// Adjust dialog width
-.modal-dialog {
-  max-width: 400px;
+// Modal card styling
+.modal-card {
+  max-width: 420px;
+  animation: slideIn 0.3s ease-out;
+}
+
+// Max width utility
+.max-w-md {
+  max-width: 420px;
+}
+
+// Icon box styling
+.icon-box {
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+// Color utilities
+.bg-danger-subtle {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+.text-danger {
+  color: #dc2626;
+}
+
+.bg-primary-subtle {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.text-primary {
+  color: #6366f1;
+}
+
+// Animation for modal entry
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

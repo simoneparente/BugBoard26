@@ -59,10 +59,11 @@ class TagServiceTest {
         // ARRANGE
         UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
-        TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
+        TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -87,8 +88,8 @@ class TagServiceTest {
             mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-            when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-            when(tagRepository.existsByNameAndProjectId(request.getName(), projectId)).thenReturn(false);
+            when(projectRepository.findByKey(request.getProjectKey())).thenReturn(Optional.of(mockProject));
+            when(tagRepository.existsByNameAndProjectKey(request.getName(), request.getProjectKey())).thenReturn(false);
             when(tagRepository.save(any(Tag.class))).thenReturn(savedTag);
 
             // ACT
@@ -98,7 +99,7 @@ class TagServiceTest {
             assertNotNull(response);
             assertEquals("Bug", response.getName());
             assertEquals("#FF0000", response.getColor());
-            assertEquals(projectId, response.getProjectId());
+            assertEquals("FRONT", response.getProjectKey());
 
             verify(tagRepository, times(1)).save(any(Tag.class));
         }
@@ -109,7 +110,7 @@ class TagServiceTest {
         // ARRANGE
         UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
-        TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
+        TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
 
         User mockUser = User.builder()
             .id(userId)
@@ -119,25 +120,14 @@ class TagServiceTest {
             .role(Role.ADMIN)
             .build();
 
-        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
-            SecurityContext securityContext = mock(SecurityContext.class);
-            Authentication authentication = mock(Authentication.class);
+        when(projectRepository.findByKey(request.getProjectKey())).thenReturn(Optional.empty());
 
-            when(authentication.getName()).thenReturn(userId.toString());
-            when(authentication.isAuthenticated()).thenReturn(true);
-            when(securityContext.getAuthentication()).thenReturn(authentication);
-            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        // ACT & ASSERT
+        assertThrows(ResourceNotFoundException.class, () -> {
+            tagService.createTag(request);
+        });
 
-            when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-            when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
-
-            // ACT & ASSERT
-            assertThrows(ResourceNotFoundException.class, () -> {
-                tagService.createTag(request);
-            });
-
-            verify(tagRepository, never()).save(any(Tag.class));
-        }
+        verify(tagRepository, never()).save(any(Tag.class));
     }
 
     @Test
@@ -145,10 +135,11 @@ class TagServiceTest {
         // ARRANGE
         UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
-        TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
+        TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -170,8 +161,8 @@ class TagServiceTest {
             mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-            when(projectRepository.findById(projectId)).thenReturn(Optional.of(mockProject));
-            when(tagRepository.existsByNameAndProjectId(request.getName(), projectId)).thenReturn(true);
+            when(projectRepository.findByKey(request.getProjectKey())).thenReturn(Optional.of(mockProject));
+            when(tagRepository.existsByNameAndProjectKey(request.getName(), request.getProjectKey())).thenReturn(true);
 
             // ACT & ASSERT
             TagDuplicateException exception = assertThrows(TagDuplicateException.class, () -> {
@@ -184,21 +175,22 @@ class TagServiceTest {
     }
 
     @Test
-    void getAllTagsByProjectId_Success() {
+    void getAllTagsByProjectKey_Success() {
         // ARRANGE
         UUID projectId = UUID.randomUUID();
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
         Tag tag1 = new Tag(UUID.randomUUID(), "Bug", "#FF0000", mockProject, null);
         Tag tag2 = new Tag(UUID.randomUUID(), "Feature", "#00FF00", mockProject, null);
 
-        when(tagRepository.findByProjectId(projectId)).thenReturn(List.of(tag1, tag2));
+        when(tagRepository.findByProjectKey("FRONT")).thenReturn(List.of(tag1, tag2));
 
         // ACT
-        List<TagResponse> responses = tagService.getAllTagsByProjectId(projectId);
+        List<TagResponse> responses = tagService.getAllTagsByProjectKey("FRONT");
 
         // ASSERT
         assertNotNull(responses);
@@ -206,7 +198,7 @@ class TagServiceTest {
         assertEquals("Bug", responses.get(0).getName());
         assertEquals("Feature", responses.get(1).getName());
 
-        verify(tagRepository, times(1)).findByProjectId(projectId);
+        verify(tagRepository, times(1)).findByProjectKey("FRONT");
     }
 
     @Test
@@ -215,6 +207,7 @@ class TagServiceTest {
         UUID tagId = UUID.randomUUID();
         Project mockProject = Project.builder()
             .id(UUID.randomUUID())
+            .key("FRONT")
             .name("Test Project")
             .build();
         Tag mockTag = Tag.builder()
@@ -259,10 +252,11 @@ class TagServiceTest {
         UUID projectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
         
-        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", "FRONT");
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -299,7 +293,7 @@ class TagServiceTest {
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
             when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
-            when(tagRepository.existsByNameAndProjectId(request.getName(), projectId)).thenReturn(false);
+            when(tagRepository.existsByNameAndProjectKey(request.getName(), request.getProjectKey())).thenReturn(false);
             when(tagRepository.save(any(Tag.class))).thenReturn(updatedTag);
 
             // ACT
@@ -309,7 +303,7 @@ class TagServiceTest {
             assertNotNull(response);
             assertEquals("Updated Bug", response.getName());
             assertEquals("#00FF00", response.getColor());
-            assertEquals(projectId, response.getProjectId());
+            assertEquals("FRONT", response.getProjectKey());
 
             verify(tagRepository, times(1)).save(any(Tag.class));
         }
@@ -321,7 +315,7 @@ class TagServiceTest {
         UUID tagId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
         
-        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", "FRONT");
         
         when(tagRepository.findById(tagId)).thenReturn(Optional.empty());
 
@@ -338,10 +332,11 @@ class TagServiceTest {
         UUID projectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
         
-        TagRequest request = new TagRequest("Existing Tag", "#00FF00", projectId);
+        TagRequest request = new TagRequest("Existing Tag", "#00FF00", "FRONT");
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -371,7 +366,7 @@ class TagServiceTest {
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
             when(tagRepository.findById(tagId)).thenReturn(Optional.of(existingTag));
-            when(tagRepository.existsByNameAndProjectId("Existing Tag", projectId)).thenReturn(true);
+            when(tagRepository.existsByNameAndProjectKey("Existing Tag", request.getProjectKey())).thenReturn(true);
 
             // ACT & ASSERT
             TagDuplicateException exception = assertThrows(TagDuplicateException.class, () -> {
@@ -392,6 +387,7 @@ class TagServiceTest {
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -470,10 +466,11 @@ class TagServiceTest {
         // ARRANGE
         UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
-        TagRequest request = new TagRequest("Bug", "#FF0000", projectId);
+        TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
 
         Project mockProject = Project.builder()
             .id(projectId)
+            .key("FRONT")
             .name("Test Project")
             .build();
 
@@ -495,6 +492,7 @@ class TagServiceTest {
             mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+            when(projectRepository.findByKey(request.getProjectKey())).thenReturn(Optional.of(mockProject));
             when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(false);
 
             // ACT & ASSERT
@@ -513,10 +511,11 @@ class TagServiceTest {
         UUID differentProjectId = UUID.randomUUID();
         UUID tagId = UUID.randomUUID();
         
-        TagRequest request = new TagRequest("Updated Bug", "#00FF00", projectId);
+        TagRequest request = new TagRequest("Updated Bug", "#00FF00", "FRONT");
 
         Project mockProject = Project.builder()
             .id(differentProjectId)
+            .key("OTHER")
             .name("Different Project")
             .build();
 
@@ -536,5 +535,25 @@ class TagServiceTest {
 
         assertTrue(exception.getMessage().contains("does not belong"));
         verify(tagRepository, never()).save(any(Tag.class));
+    }
+
+    @Test
+    void getCurrentUser_UserNotFound() {
+        UUID userId = UUID.randomUUID();
+        try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+            when(authentication.getName()).thenReturn(userId.toString());
+            when(authentication.isAuthenticated()).thenReturn(true);
+            when(securityContext.getAuthentication()).thenReturn(authentication);
+            mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+            TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
+            Project mockProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
+            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(mockProject));
+
+            assertThrows(UnauthorizedException.class, () -> tagService.createTag(request));
+        }
     }
 }

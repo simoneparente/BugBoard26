@@ -26,6 +26,7 @@ public class ProjectMapper {
 
         return ProjectResponse.builder()
                 .id(project.getId())
+                .key(project.getKey())
                 .name(project.getName())
                 .description(project.getDescription())
                 .createdAt(project.getCreatedAt())
