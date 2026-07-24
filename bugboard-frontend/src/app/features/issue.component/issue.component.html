@@ -268,72 +268,87 @@
           </tr>
         </thead>
         <tbody>
-          @for (issue of issues(); track issue.id) {
+          @if (isLoading()) {
             <tr>
-              <td class="ps-4 text-secondary fw-medium text-nowrap">
-                {{ issue.sequenceNumber }}
-              </td>
-              <td class="fw-medium text-break" style="max-width: 250px">
-                <a
-                  class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
-                  [routerLink]="['/projects', projectKey, 'issues', issue.sequenceNumber]"
+              <td colspan="5" class="text-center py-5">
+                <div
+                  class="spinner-border text-primary mb-2"
+                  role="status"
+                  style="width: 2rem; height: 2rem"
                 >
-                  {{ issue.title }}
-                </a>
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="text-muted small fw-medium">Loading issues...</div>
               </td>
-
-              <!-- Priority Badge -->
-              <td class="text-nowrap">
-                <span
-                  class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
-                  [ngClass]="getPriorityStyle(issue.priority)"
-                >
-                  <i class="bi" [ngClass]="getPriorityIcon(issue.priority)"></i>
-                  {{ issue.priority | titlecase }}
-                </span>
-              </td>
-
-              <!-- Status Badge -->
-              <td>
-                <span
-                  [class]="getStatusBadgeClass(issue.status)"
-                  class="d-inline-flex align-items-center gap-1"
-                >
-                  <i class="bi" [ngClass]="getStatusIcon(issue.status)"></i>
-                  {{ getStatusLabel(issue.status) }}
-                </span>
-              </td>
-
-              <!-- Assignee / User Avatar (Hidden on Mobile) -->
-              <td class="d-none d-md-table-cell">
-                @if (issue.assigneeUsername && issue.assigneeUsername !== 'Unassigned') {
-                  <div class="d-flex align-items-center gap-2">
-                    <div
-                      class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
-                      style="width: 28px; height: 28px; font-size: 11px; letter-spacing: 0.5px"
-                    >
-                      {{ issue.assigneeUsername.substring(0, 2) | uppercase }}
-                    </div>
-                    <span class="fw-medium text-dark text-truncate" style="max-width: 130px">
-                      {{ issue.assigneeUsername }}
-                    </span>
-                  </div>
-                } @else {
-                  <span
-                    class="badge bg-light text-secondary border fw-normal px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5"
+            </tr>
+          } @else {
+            @for (issue of issues(); track issue.id) {
+              <tr>
+                <td class="ps-4 text-secondary fw-medium text-nowrap">
+                  {{ issue.sequenceNumber }}
+                </td>
+                <td class="fw-medium text-break" style="max-width: 250px">
+                  <a
+                    class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
+                    [routerLink]="['/projects', projectKey, 'issues', issue.sequenceNumber]"
                   >
-                    <i class="bi bi-person-dash text-muted"></i>
-                    <span class="text-muted">Unassigned</span>
+                    {{ issue.title }}
+                  </a>
+                </td>
+
+                <!-- Priority Badge -->
+                <td class="text-nowrap">
+                  <span
+                    class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                    [ngClass]="getPriorityStyle(issue.priority)"
+                  >
+                    <i class="bi" [ngClass]="getPriorityIcon(issue.priority)"></i>
+                    {{ issue.priority | titlecase }}
                   </span>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="text-center py-4 text-muted">
-                No issues found with the selected filters.
-              </td>
-            </tr>
+                </td>
+
+                <!-- Status Badge -->
+                <td>
+                  <span
+                    [class]="getStatusBadgeClass(issue.status)"
+                    class="d-inline-flex align-items-center gap-1"
+                  >
+                    <i class="bi" [ngClass]="getStatusIcon(issue.status)"></i>
+                    {{ getStatusLabel(issue.status) }}
+                  </span>
+                </td>
+
+                <!-- Assignee / User Avatar (Hidden on Mobile) -->
+                <td class="d-none d-md-table-cell">
+                  @if (issue.assigneeUsername && issue.assigneeUsername !== 'Unassigned') {
+                    <div class="d-flex align-items-center gap-2">
+                      <div
+                        class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                        style="width: 28px; height: 28px; font-size: 11px; letter-spacing: 0.5px"
+                      >
+                        {{ issue.assigneeUsername.substring(0, 2) | uppercase }}
+                      </div>
+                      <span class="fw-medium text-dark text-truncate" style="max-width: 130px">
+                        {{ issue.assigneeUsername }}
+                      </span>
+                    </div>
+                  } @else {
+                    <span
+                      class="badge bg-light text-secondary border fw-normal px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5"
+                    >
+                      <i class="bi bi-person-dash text-muted"></i>
+                      <span class="text-muted">Unassigned</span>
+                    </span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  No issues found with the selected filters.
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>
