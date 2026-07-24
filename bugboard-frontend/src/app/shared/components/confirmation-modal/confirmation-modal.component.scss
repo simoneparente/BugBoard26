@@ -1,3 +1,26 @@
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1055;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.modal-dialog {
+  max-width: 440px;
+  width: 100%;
+}
+
+.icon-badge {
+  width: 40px;
+  height: 40px;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}
+
 // Custom Indigo primary color - override Bootstrap default
 .btn-primary {
   --bs-btn-bg: #6366f1;
@@ -7,16 +30,4 @@
   --bs-btn-active-bg: #4338ca;
   --bs-btn-active-border-color: #4338ca;
   --bs-btn-focus-shadow-rgb: 99, 102, 241;
-}
-
-// Modal positioning with flexbox centering
-.modal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-// Adjust dialog width
-.modal-dialog {
-  max-width: 400px;
 }

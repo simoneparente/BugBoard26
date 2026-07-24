@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { ConfirmationModalService } from '../../../core/services/confirmation-modal.service';
 
 @Component({
@@ -12,6 +12,13 @@ export class ConfirmationModalComponent {
   public readonly confirmService = inject(ConfirmationModalService);
 
   public readonly state = this.confirmService.modalState;
+
+  @HostListener('document:keydown.escape')
+  public onEscapeKey(): void {
+    if (this.state().isOpen) {
+      this.confirmService.performCancel();
+    }
+  }
 
   /**
    * Close modal if overlay is clicked (standard UX).

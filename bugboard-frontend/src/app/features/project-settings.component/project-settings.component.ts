@@ -5,17 +5,20 @@ import { ProjectService } from '../../core/services/project.service';
 import { ProjectResponse } from '../../core/project.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { ProjectMembersListComponent } from '../../shared/components/project-members-list/project-members-list.component';
+import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
   selector: 'app-project-settings',
   standalone: true,
-  imports: [CommonModule, ProjectMembersListComponent],
+  imports: [CommonModule, ProjectMembersListComponent, ConfirmationModalComponent],
   templateUrl: './project-settings.component.html',
   styleUrl: './project-settings.component.scss',
 })
 export class ProjectSettingsComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
+  private readonly confirmService = inject(ConfirmationModalService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -51,9 +54,18 @@ export class ProjectSettingsComponent implements OnInit {
   }
 
   public deleteProject(projectId: string): void {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
-    }
+    this.confirmService.open({
+      title: 'Delete Project',
+      message:
+        'Are you sure you want to delete this project? This action cannot be undone. All associated issues and tags will be lost.',
+      confirmButtonText: 'Delete Project',
+      cancelButtonText: 'Keep Project',
+      isDangerous: true,
+      onConfirm: () => this.performDelete(projectId),
+    });
+  }
+
+  private performDelete(projectId: string): void {
     this.projectService.delete(projectId).subscribe({
       next: () => {
         this.notificationService.showSuccess(
