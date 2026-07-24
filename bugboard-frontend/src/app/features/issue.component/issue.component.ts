@@ -285,7 +285,7 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   onExportIssues(format: string): void {
     this.isLoading.set(true);
-    this.issueService.exportIssues(this.projectId(), format).subscribe({
+    this.issueService.exportIssues(this.projectKey, format).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');

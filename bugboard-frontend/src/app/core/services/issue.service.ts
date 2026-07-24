@@ -77,8 +77,8 @@ export class IssueService {
     return this.apiService.issues.delete(projectKey, sequenceNumber);
   }
 
-  public exportIssues(projectId: string, format: string): Observable<Blob> {
-    return this.apiService.issues.export(projectId, format);
+  public exportIssues(projectKey: string, format: string): Observable<Blob> {
+    return this.apiService.issues.export(projectKey, format);
   }
 
   public getAllUsers(): Observable<UserResponse[]> {
