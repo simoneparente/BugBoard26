@@ -13,12 +13,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
 import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.export.ExportFormat;
 import it.unina.bugboard.bugboard_backend.export.IssueExportFactory;
-import it.unina.bugboard.bugboard_backend.export.strategy.IssueExporterStrategy;
+import it.unina.bugboard.bugboard_backend.export.strategy.StreamingIssueExporterStrategy;
 import it.unina.bugboard.bugboard_backend.mapper.IssueMapper;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 
@@ -37,26 +38,45 @@ public class IssueExportController {
     }
 
     @GetMapping
-    public ResponseEntity<byte[]> exportIssues(
+    public ResponseEntity<StreamingResponseBody> exportIssues(
             @PathVariable UUID projectId,
             @RequestParam(name = "format") String formatParam) {
 
         ExportFormat format = parseFormat(formatParam);
-        IssueExporterStrategy exporter = exportFactory.getExporter(format);
+        StreamingIssueExporterStrategy exporter = exportFactory.getStreamingExporter(format);
 
-        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE);
-        Page<?> issuesPage = issueService.getIssuesByProjectId(projectId, "ALL", "ALL", pageable);
+        // Streaming response body - writes directly to response stream
+        StreamingResponseBody responseBody = output -> {
+            StreamingIssueExporterStrategy.IssueStreamFetcher fetcher = pageProcessor -> {
+                int pageNumber = 0;
+                int pageSize = 500; // Chunk size - configurable
+                boolean hasMore = true;
 
-        List<IssueResponse> allIssues = issuesPage.getContent().stream()
-                .map(issue -> issueMapper.toResponse((Issue) issue))
-                .toList();
+                while (hasMore) {
+                    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+                    Page<?> issuesPage = issueService.getIssuesByProjectId(
+                            projectId, "ALL", "ALL", pageable);
 
-        byte[] exportedData = exporter.export(allIssues);
+                    List<IssueResponse> pageIssues = issuesPage.getContent().stream()
+                            .map(issue -> issueMapper.toResponse((Issue) issue))
+                            .toList();
+
+                    if (!pageIssues.isEmpty()) {
+                        pageProcessor.processPage(pageIssues);
+                    }
+
+                    hasMore = issuesPage.hasNext();
+                    pageNumber++;
+                }
+            };
+
+            exporter.exportStream(output, fetcher);
+        };
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, getContentType(format))
                 .header(HttpHeaders.CONTENT_DISPOSITION, getContentDisposition(format))
-                .body(exportedData);
+                .body(responseBody);
     }
 
     private ExportFormat parseFormat(String formatParam) {
