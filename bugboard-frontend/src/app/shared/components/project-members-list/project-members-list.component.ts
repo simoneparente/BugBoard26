@@ -67,13 +67,13 @@ export class ProjectMembersListComponent implements OnInit {
   getRoleColor(role: string): string {
     switch (role) {
       case 'ADMIN':
-        return 'badge bg-danger';
+        return 'role-badge role-admin';
       case 'TECHNICAL':
-        return 'badge bg-primary';
+        return 'role-badge role-technical';
       case 'EXTERNAL':
-        return 'badge bg-secondary';
+        return 'role-badge role-external';
       default:
-        return 'badge bg-light text-dark';
+        return 'role-badge';
     }
   }
 }

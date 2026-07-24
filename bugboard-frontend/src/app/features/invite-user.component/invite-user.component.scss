@@ -1,0 +1,166 @@
+// src/app/features/invite-user.component/invite-user.component.scss
+
+.invite-offcanvas {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+
+  .extra-small {
+    font-size: 0.775rem;
+  }
+}
+
+.invite-header-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #005bb0 0%, #00376d 100%) !important;
+}
+
+.alert-primary-subtle {
+  background-color: #f0f7ff !important;
+  border-left: 4px solid #005bb0 !important;
+}
+
+.role-card {
+  background-color: #ffffff;
+  border-color: #e2e8f0 !important;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+
+  &:hover {
+    border-color: #cbd5e1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &.selected {
+    border-color: #005bb0 !important;
+    background-color: rgba(0, 91, 176, 0.025);
+    box-shadow:
+      0 0 0 3px rgba(0, 91, 176, 0.12),
+      0 4px 12px rgba(0, 91, 176, 0.06);
+  }
+
+  // Radio circle styling
+  .radio-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    .radio-check {
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.15s ease;
+    }
+
+    &.checked {
+      border-color: #005bb0;
+      background-color: #005bb0;
+
+      .radio-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+
+  // Role accents
+  &.accent-primary {
+    .role-icon {
+      color: #005bb0;
+    }
+    .role-badge {
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+  }
+
+  &.accent-purple {
+    .role-icon {
+      color: #7c3aed;
+    }
+    .role-badge {
+      background-color: #f3e8ff;
+      color: #6b21a8;
+      border: 1px solid #e9d5ff;
+    }
+  }
+
+  &.accent-amber {
+    .role-icon {
+      color: #d97706;
+    }
+    .role-badge {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+  }
+}
+
+.brand-btn {
+  background: linear-gradient(135deg, #005bb0 0%, #003b73 100%) !important;
+  border: none;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #004b93 0%, #002e5c 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 91, 176, 0.3) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.generated-link-card {
+  background-color: #f8fafc;
+  border-color: #cbd5e1 !important;
+}
+
+.btn-copy {
+  transition: all 0.2s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spinPulse {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-pulse {
+  display: inline-block;
+  animation: spinPulse 2s infinite ease-in-out;
+}
