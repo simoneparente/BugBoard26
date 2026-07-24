@@ -110,8 +110,6 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   loadIssues(): void {
     this.isLoading.set(true);
-    const page = this.currentPage();
-    const size = this.pageSize();
 
     this.issueService
       .getIssuesByProject(
@@ -226,7 +224,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    return status ? status.replace(/_/g, ' ').toUpperCase() : '';
+    return status ? status.replaceAll('_', ' ').toUpperCase() : '';
   }
 
   getStatusIcon(status?: string): string {

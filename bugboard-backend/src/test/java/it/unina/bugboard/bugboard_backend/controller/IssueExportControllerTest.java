@@ -14,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.UUID;
 
@@ -94,8 +95,8 @@ class IssueExportControllerTest {
                 .priority("MEDIUM")
                 .type("BUG")
                 .assigneeUsername("alice")
-                .createdAt(LocalDateTime.of(2026, 1, 1, 10, 0))
-                .updatedAt(LocalDateTime.of(2026, 1, 1, 12, 0))
+                .createdAt(LocalDateTime.of(2026, Month.JANUARY, 1, 10, 0))
+                .updatedAt(LocalDateTime.of(2026, Month.JANUARY, 1, 12, 0))
                 .projectName("Demo project")
                 .tags(List.of())
                 .build();

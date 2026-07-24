@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,8 +49,8 @@ class StreamingCsvIssueExporterTest {
                 .priority("MEDIUM")
                 .type("BUG")
                 .assigneeUsername("testuser")
-                .createdAt(LocalDateTime.of(2023, 1, 1, 10, 0))
-                .updatedAt(LocalDateTime.of(2023, 1, 1, 12, 0))
+                .createdAt(LocalDateTime.of(2023, Month.JANUARY, 1, 10, 0))
+                .updatedAt(LocalDateTime.of(2023, Month.JANUARY, 1, 12, 0))
                 .projectName("Test Project")
                 .tags(List.of())
                 .build();
@@ -62,8 +63,8 @@ class StreamingCsvIssueExporterTest {
                 .priority("HIGH")
                 .type("TASK")
                 .assigneeUsername("otheruser")
-                .createdAt(LocalDateTime.of(2023, 1, 2, 9, 0))
-                .updatedAt(LocalDateTime.of(2023, 1, 2, 10, 0))
+                .createdAt(LocalDateTime.of(2023, Month.JANUARY, 2, 9, 0))
+                .updatedAt(LocalDateTime.of(2023, Month.JANUARY, 2, 10, 0))
                 .projectName("Another Project")
                 .tags(List.of(TagResponse.builder().name("backend").build()))
                 .build();
@@ -153,8 +154,8 @@ class StreamingCsvIssueExporterTest {
                 .priority("HIGH")
                 .type("BUG")
                 .assigneeUsername("user")
-                .createdAt(LocalDateTime.of(2023, 1, 3, 9, 0))
-                .updatedAt(LocalDateTime.of(2023, 1, 3, 10, 0))
+                .createdAt(LocalDateTime.of(2023, Month.JANUARY, 3, 9, 0))
+                .updatedAt(LocalDateTime.of(2023, Month.JANUARY, 3, 10, 0))
                 .projectName("Project X")
                 .tags(null)
                 .build();

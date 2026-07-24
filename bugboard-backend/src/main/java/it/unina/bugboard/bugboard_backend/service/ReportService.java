@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -47,7 +48,7 @@ public class ReportService {
         UUID projectId = project.getId();
 
         // Calculate the current month range
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(ZoneId.systemDefault());
         int currentMonth = now.getMonthValue();
         int currentYear = now.getYear();
 
@@ -146,7 +147,10 @@ public class ReportService {
 
         double totalHours = resolvedIssues.stream()
                 .mapToDouble(issue -> {
-                    Duration duration = Duration.between(issue.getCreatedAt(), issue.getUpdatedAt());
+                    Duration duration = Duration.between(
+                        issue.getCreatedAt().atZone(ZoneId.systemDefault()),
+                        issue.getUpdatedAt().atZone(ZoneId.systemDefault())
+                    );
                     return duration.toMinutes() / 60.0;
                 })
                 .sum();

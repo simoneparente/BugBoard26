@@ -112,7 +112,6 @@ class ReportServiceTest {
     @Test
     void generateReport_ThrowsException_WhenProjectNotFound() {
         // ARRANGE
-        UUID projectId = UUID.randomUUID();
         when(projectRepository.findByKey("FRONT")).thenReturn(Optional.empty());
 
         // ACT & ASSERT

@@ -26,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TagService {
 
+    private static final String TAG_NOT_FOUND_MESSAGE = "Tag with id %s not found";
+
     private final TagRepository tagRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -45,7 +47,7 @@ public class TagService {
      */
     public TagResponse getTagById(UUID id) {
         Tag tag = tagRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", id)));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(TAG_NOT_FOUND_MESSAGE, id)));
         return mapToResponse(tag);
     }
 
@@ -87,7 +89,7 @@ public class TagService {
     public TagResponse updateTag(UUID tagId, TagRequest dto) {
         // 1. Retrieve the tag first
         Tag existingTag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", tagId)));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(TAG_NOT_FOUND_MESSAGE, tagId)));
 
         // 2. Verify that the tag belongs to the requested project (prevents tag hijacking)
         if (!existingTag.getProject().getKey().equals(dto.getProjectKey())) {
@@ -124,7 +126,7 @@ public class TagService {
 
         // 2. Retrieve the tag
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", tagId)));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(TAG_NOT_FOUND_MESSAGE, tagId)));
 
         // 3. Validate authorization for this project
         validateUserIsMemberOrAdmin(currentUser, tag.getProject().getId());
