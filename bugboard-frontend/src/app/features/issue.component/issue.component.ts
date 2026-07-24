@@ -291,8 +291,13 @@ export class IssueComponent implements OnInit, OnDestroy {
         const link = document.createElement('a');
         link.href = url;
         link.download = `issues_${Date.now()}.${format.toLowerCase()}`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
         link.click();
-        window.URL.revokeObjectURL(url);
+        window.setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          link.remove();
+        }, 0);
         this.isLoading.set(false);
       },
       error: (err) => {
