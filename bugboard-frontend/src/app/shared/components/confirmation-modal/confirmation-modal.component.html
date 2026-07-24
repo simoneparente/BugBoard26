@@ -10,7 +10,9 @@
       <div class="d-flex align-items-center gap-3 mb-3">
         <div
           class="icon-box rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-          [ngClass]="state().isDangerous ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'"
+          [ngClass]="
+            state().isDangerous ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'
+          "
         >
           <i
             class="bi fs-4"
@@ -19,7 +21,9 @@
         </div>
         <div>
           <h5 class="fw-bold mb-1 text-dark">{{ state().title }}</h5>
-          <p class="text-muted small mb-0">{{ state().isDangerous ? 'This action cannot be undone.' : '' }}</p>
+          <p class="text-muted small mb-0">
+            {{ state().isDangerous ? 'This action cannot be undone.' : '' }}
+          </p>
         </div>
       </div>
 
