@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/azure-ci-cd
-
 env:
   REGISTRY: bugboard26acr.azurecr.io
   BACKEND_IMAGE: bugboard26acr.azurecr.io/bugboard-backend:latest
