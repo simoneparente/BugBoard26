@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -18,8 +16,10 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    // Endpoint to generate a report for a specific project
-    // Responds to: GET http://localhost:8080/api/reports/{projectId}
+    /**
+     * Endpoint to generate a report for a specific project
+     * Responds to: GET /api/reports/{projectKey}
+     */
     @GetMapping("/{projectKey}")
     public ResponseEntity<MonthlyProjectReportResponse> generateReport(@PathVariable String projectKey) {
         MonthlyProjectReportResponse response = reportService.generateReport(projectKey);
