@@ -17,9 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
@@ -177,10 +175,10 @@ class IssueControllerTest {
 
     @Test
     void setStatus_Success_ReturnsStatus200() throws Exception {
-        UUID issueId = dummyIssue.getId();
+        UUID dummyIssueId = dummyIssue.getId();
         dummyIssue.setStatus(IssueStatus.IN_PROGRESS);
         when(issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber)).thenReturn(dummyIssue);
-        when(issueService.setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS))).thenReturn(dummyIssue);
+        when(issueService.setStatus(eq(dummyIssueId), eq(IssueStatus.IN_PROGRESS))).thenReturn(dummyIssue);
 
         mockMvc.perform(put("/api/projects/{projectKey}/issues/{sequenceNumber}/status", projectKey, sequenceNumber)
                 .with(csrf())
@@ -188,12 +186,11 @@ class IssueControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
 
-        verify(issueService, times(1)).setStatus(eq(issueId), eq(IssueStatus.IN_PROGRESS));
+        verify(issueService, times(1)).setStatus(eq(dummyIssueId), eq(IssueStatus.IN_PROGRESS));
     }
 
     @Test
     void getIssuesByProjectKey_Success_ReturnsStatus200AndPagedJson() throws Exception {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
         Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
 
         when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class)))
