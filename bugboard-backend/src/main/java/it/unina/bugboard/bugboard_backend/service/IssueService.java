@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 
 import java.util.Objects;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,6 +97,50 @@ public class IssueService {
         }
 
         return savedIssue;
+    }
+
+    @Transactional
+    public Issue updateIssue(String projectKey, Long sequenceNumber, IssueRequest request) {
+        Issue issue = getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+
+        issue.setTitle(request.getTitle());
+        issue.setDescription(request.getDescription());
+        if (request.getPriority() != null) {
+            issue.setPriority(request.getPriority());
+        }
+        if (request.getType() != null) {
+            issue.setType(request.getType());
+        }
+
+        if (request.getTags() != null) {
+            List<UUID> requestedTagIds = request.getTags().stream()
+                    .filter(Objects::nonNull)
+                    .map(TagResponse::getId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            List<Tag> projectTags = requestedTagIds.isEmpty()
+                    ? List.of()
+                    : tagRepository.findByProjectKey(projectKey);
+            List<Tag> tags = request.getTags().stream()
+                    .filter(Objects::nonNull)
+                    .map(TagResponse::getId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .map(tagId -> projectTags.stream()
+                            .filter(tag -> tagId.equals(tag.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new ResourceNotFoundException(TAG_NOT_FOUND_MSG + tagId)))
+                    .toList();
+
+            if (tags.size() != requestedTagIds.size()) {
+                throw new OperationNotAllowedException("Cannot assign a tag from another project.");
+            }
+
+            issue.setTags(new ArrayList<>(tags));
+        }
+
+        return issueRepository.save(issue);
     }
 
     @Transactional
