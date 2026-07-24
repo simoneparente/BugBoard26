@@ -205,7 +205,7 @@ export class TagManagementComponent implements OnInit {
   public onDeleteTag(tag: TagResponse): void {
     this.confirmService.open({
       title: 'Delete Tag',
-      message: `Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone and the tag will be removed from all associated issues.`,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       isDangerous: true,

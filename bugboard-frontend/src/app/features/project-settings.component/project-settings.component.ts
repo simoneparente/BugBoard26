@@ -63,8 +63,8 @@ export class ProjectSettingsComponent implements OnInit {
       title: 'Delete Project',
       message:
         'Are you sure you want to delete this project? This action cannot be undone. All associated issues and tags will be lost.',
-      confirmButtonText: 'Delete Project',
-      cancelButtonText: 'Keep Project',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
       isDangerous: true,
       onConfirm: () => this.performDelete(projectKey),
     });

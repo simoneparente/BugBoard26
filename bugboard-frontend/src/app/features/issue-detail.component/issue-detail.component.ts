@@ -277,7 +277,7 @@ export class IssueDetailComponent implements OnInit {
     this.confirmationModalService.open({
       title: 'Delete Issue',
       message: `Are you sure you want to permanently delete issue \"${issue.title}\"? All associated data and attachments will be deleted.`,
-      confirmButtonText: 'Delete Permanently',
+      confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       isDangerous: true,
       onConfirm: () => this.performDelete(),
