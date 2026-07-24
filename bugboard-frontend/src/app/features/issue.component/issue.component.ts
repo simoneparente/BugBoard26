@@ -189,13 +189,64 @@ export class IssueComponent implements OnInit, OnDestroy {
     this.router.navigate(['/projects', this.projectId, 'issues', issue.id]);
   }
 
+  readonly statusOptions = [
+    'TO_DO',
+    'IN_PROGRESS',
+    'MARKED_FOR_REVIEW',
+    'NOT_FIXED',
+    'COMPLETED',
+    'CLOSED',
+  ];
+
+  readonly priorityOptions = ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'];
+
   getPriorityStyle(priority: string): string {
     if (!priority) return 'priority-lowest';
     return `priority-${priority.toLowerCase()}`;
   }
 
+  getPriorityIcon(priority?: string): string {
+    switch (priority?.toLowerCase()) {
+      case 'highest':
+        return 'bi-chevron-double-up';
+      case 'high':
+        return 'bi-chevron-up';
+      case 'medium':
+        return 'bi-dash-lg';
+      case 'low':
+        return 'bi-chevron-down';
+      case 'lowest':
+        return 'bi-chevron-double-down';
+      default:
+        return 'bi-sliders';
+    }
+  }
+
   getStatusLabel(status: string): string {
     return status ? status.replace(/_/g, ' ').toUpperCase() : '';
+  }
+
+  getStatusIcon(status?: string): string {
+    switch (status?.toUpperCase()) {
+      case 'TO_DO':
+      case 'NEW':
+      case 'OPEN':
+        return 'bi-circle';
+      case 'IN_PROGRESS':
+        return 'bi-hourglass-split';
+      case 'MARKED_FOR_REVIEW':
+        return 'bi-eye-fill';
+      case 'NOT_FIXED':
+        return 'bi-x-circle-fill';
+      case 'COMPLETED':
+      case 'RESOLVED':
+      case 'ACCEPTED':
+        return 'bi-check-circle-fill';
+      case 'CLOSED':
+        return 'bi-archive-fill';
+      default:
+        return 'bi-funnel';
+    }
   }
 
   getStatusBadgeClass(status?: string): string {
