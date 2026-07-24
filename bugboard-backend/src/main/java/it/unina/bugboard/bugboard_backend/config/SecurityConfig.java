@@ -52,6 +52,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reports/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/projects/*").hasRole("ADMIN")
+                        .requestMatchers("/api/projects/*/members/**").hasRole("ADMIN")
+                        .requestMatchers("/api/projects/*/available-users/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/me").authenticated()
                         // Modalità Read-Only per utenti EXTERNAL:
                         // Solo ADMIN e TECHNICAL possono effettuare chiamate di modifica (POST, PUT, PATCH, DELETE)

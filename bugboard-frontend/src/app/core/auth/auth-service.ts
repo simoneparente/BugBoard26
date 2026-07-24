@@ -23,6 +23,9 @@ export class AuthService {
   /** True when the logged-in user is a read-only stakeholder (EXTERNAL role). */
   public readonly isReadonly = computed(() => this.userRole() === ROLES.EXTERNAL);
 
+  /** True when the logged-in user is an administrator (ADMIN role). */
+  public readonly isAdmin = computed(() => this.userRole() === ROLES.ADMIN);
+
   /**
    * Authenticates the user and updates the signal.
    */

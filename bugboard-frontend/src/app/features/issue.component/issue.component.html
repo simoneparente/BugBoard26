@@ -25,13 +25,15 @@
         </button>
 
         <!-- View Report Button -->
-        <button
-          class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
-          type="button"
-          [routerLink]="['/projects', projectKey, 'report']"
-        >
-          <i class="bi bi-file-earmark-bar-graph"></i> View Report
-        </button>
+        @if (isAdmin()) {
+          <button
+            class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+            type="button"
+            [routerLink]="['/projects', projectKey, 'report']"
+          >
+            <i class="bi bi-file-earmark-bar-graph"></i> View Report
+          </button>
+        }
 
         <!-- New Issue Button -->
         <button
