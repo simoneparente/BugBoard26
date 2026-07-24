@@ -5,6 +5,15 @@ import { ROLES } from '../../core/roles.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { ApiService } from '../../core/services/api.service';
 
+export interface RoleOption {
+  key: keyof typeof ROLES;
+  title: string;
+  badge: string;
+  icon: string;
+  description: string;
+  accentClass: string;
+}
+
 @Component({
   selector: 'app-invite-user',
   standalone: true,
@@ -27,6 +36,38 @@ export class InviteUserComponent {
 
   // Form Control for role (Default: TECHNICAL)
   roleControl = new FormControl<keyof typeof ROLES>('TECHNICAL', Validators.required);
+
+  readonly rolesList: RoleOption[] = [
+    {
+      key: ROLES.TECHNICAL,
+      title: 'TECHNICAL',
+      badge: 'TECHNICAL',
+      icon: 'bi-code-slash',
+      description: 'Can manage issues, work on tasks, and create project reports.',
+      accentClass: 'accent-primary',
+    },
+    {
+      key: ROLES.ADMIN,
+      title: 'ADMIN',
+      badge: 'ADMIN',
+      icon: 'bi-shield-lock-fill',
+      description: 'Full workspace control, member invitations, and global settings.',
+      accentClass: 'accent-purple',
+    },
+    {
+      key: ROLES.EXTERNAL,
+      title: 'EXTERNAL',
+      badge: 'EXTERNAL',
+      icon: 'bi-person-badge-fill',
+      description: 'Restricted access for external partners and guest reporters.',
+      accentClass: 'accent-amber',
+    },
+  ];
+
+  selectRole(roleKey: keyof typeof ROLES) {
+    this.roleControl.setValue(roleKey);
+    this.roleControl.markAsTouched();
+  }
 
   generateLink() {
     this.notificationService.showInfo('Info', 'Generating link...', 2000);

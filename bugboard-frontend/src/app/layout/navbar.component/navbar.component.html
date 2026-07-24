@@ -26,10 +26,19 @@
         @if (currentUser(); as user) {
           <li class="px-3 py-2 border-bottom">
             <div class="fw-bold text-dark small">{{ user.username }}</div>
-            <div class="text-muted extra-small">{{ user.email }}</div>
+            <div class="text-muted extra-small mb-1">{{ user.email }}</div>
             <span
-              class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill mt-1 extra-small"
+              class="role-badge"
+              [class.role-admin]="user.role === 'ADMIN'"
+              [class.role-technical]="user.role === 'TECHNICAL'"
+              [class.role-external]="user.role === 'EXTERNAL'"
             >
+              <i
+                class="bi"
+                [class.bi-shield-lock-fill]="user.role === 'ADMIN'"
+                [class.bi-code-slash]="user.role === 'TECHNICAL'"
+                [class.bi-person-badge-fill]="user.role === 'EXTERNAL'"
+              ></i>
               {{ user.role }}
             </span>
           </li>
