@@ -82,75 +82,74 @@
       </div>
     </div>
 
-    <!-- Actions & Generated Link Result -->
-    <div class="mt-auto pt-3 border-top">
+    <!-- Generated Link Field (rendered when generated) -->
+    @if (generatedLink()) {
+      <div class="mb-4 animate-fade-in-up">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label text-muted extra-small fw-semibold mb-0">Link for</label>
+            <span
+              class="role-badge"
+              [class.role-technical]="generatedRole() === 'TECHNICAL'"
+              [class.role-admin]="generatedRole() === 'ADMIN'"
+              [class.role-external]="generatedRole() === 'EXTERNAL'"
+            >
+              {{ generatedRole() }}
+            </span>
+          </div>
+          <span class="text-success extra-small fw-medium d-flex align-items-center gap-1">
+            <i class="bi bi-check-circle-fill"></i> Ready
+          </span>
+        </div>
+
+        <div
+          class="input-group rounded-pill border shadow-2xs transition-all overflow-hidden p-0.5 bg-white"
+          [class.link-flash]="isFlashing()"
+        >
+          <span class="input-group-text bg-transparent text-muted border-0 ps-3 pe-1">
+            <i class="bi bi-link-45deg fs-6"></i>
+          </span>
+          <input
+            #linkInput
+            type="text"
+            class="form-control bg-transparent text-dark extra-small font-monospace fw-medium shadow-none border-0 px-2"
+            readonly
+            [value]="generatedLink()"
+            (click)="linkInput.select()"
+            (focus)="linkInput.select()"
+          />
+          <button
+            class="btn btn-primary rounded-pill px-3.5 d-flex align-items-center gap-1.5 fw-semibold btn-copy"
+            [class.btn-success]="isCopied()"
+            (click)="copyToClipboard(generatedLink()!)"
+            type="button"
+          >
+            <i class="bi" [class.bi-clipboard]="!isCopied()" [class.bi-check2-all]="isCopied()"></i>
+            <span>{{ isCopied() ? 'Copied' : 'Copy' }}</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Single Action Footer -->
+    <div class="mt-auto pt-3 border-top d-flex justify-content-end">
       <button
-        class="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-bold d-flex justify-content-center align-items-center gap-2 shadow-sm brand-btn"
+        class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 brand-btn flex-shrink-0"
         (click)="generateLink()"
-        [disabled]="isLoading() || isCooldown() || roleControl.invalid"
+        [disabled]="isLoading() || roleControl.invalid"
       >
         @if (isLoading()) {
-          <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-          <span>Generating Link...</span>
-        } @else if (isCooldown()) {
-          <i class="bi bi-hourglass-split me-1 spin-pulse"></i>
-          <span>Please wait {{ cooldownTime() }}s</span>
+          <span
+            class="spinner-border spinner-border-sm me-1"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          <span>Generating...</span>
         } @else {
-          <i class="bi bi-link-45deg fs-5"></i>
-          <span>Generate Single-Use Link</span>
+          <i class="bi bi-link-45deg fs-6"></i>
+          <span>Generate {{ roleControl.value }} Link</span>
         }
       </button>
-
-      @if (generatedLink()) {
-        <div class="generated-link-card mt-4 p-4 rounded-3 border animate-fade-in-up">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="fw-bold text-primary small d-flex align-items-center gap-2">
-              <i class="bi bi-check-circle-fill text-success fs-6"></i> Invitation Link Ready
-            </span>
-            <span
-              class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill extra-small"
-            >
-              Single-use
-            </span>
-          </div>
-
-          <p class="text-muted extra-small mb-3">
-            Share this link with your new team member. It expires after its first use.
-          </p>
-
-          <div class="input-group mb-3">
-            <input
-              #linkInput
-              type="text"
-              class="form-control bg-white border-end-0 text-dark extra-small font-monospace fw-medium shadow-none"
-              readonly
-              [value]="generatedLink()"
-              (click)="linkInput.select()"
-              (focus)="linkInput.select()"
-            />
-            <button
-              class="btn btn-primary px-3 d-flex align-items-center gap-2 fw-semibold btn-copy"
-              [class.btn-success]="isCopied()"
-              (click)="copyToClipboard(generatedLink()!)"
-              type="button"
-            >
-              <i
-                class="bi"
-                [class.bi-clipboard]="!isCopied()"
-                [class.bi-check2-all]="isCopied()"
-              ></i>
-              <span>{{ isCopied() ? 'Copied!' : 'Copy' }}</span>
-            </button>
-          </div>
-
-          <div
-            class="d-flex align-items-center justify-content-center gap-1 text-muted extra-small"
-          >
-            <i class="bi bi-shield-check text-success me-1"></i>
-            <span>Encrypted single-use token</span>
-          </div>
-        </div>
-      }
     </div>
   </div>
 </div>

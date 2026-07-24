@@ -148,19 +148,22 @@
   animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes spinPulse {
+@keyframes flashGlow {
   0% {
-    transform: rotate(0deg);
+    box-shadow: 0 0 0 4px rgba(0, 91, 176, 0.4);
+    transform: scale(1.01);
   }
   50% {
-    transform: rotate(180deg);
+    box-shadow: 0 0 0 6px rgba(0, 91, 176, 0.2);
   }
   100% {
-    transform: rotate(360deg);
+    box-shadow: 0 0 0 0 rgba(0, 91, 176, 0);
+    transform: scale(1);
   }
 }
 
-.spin-pulse {
-  display: inline-block;
-  animation: spinPulse 2s infinite ease-in-out;
+.link-flash {
+  border-radius: 50rem !important;
+  animation: flashGlow 0.75s ease-out;
+  border-color: #005bb0 !important;
 }

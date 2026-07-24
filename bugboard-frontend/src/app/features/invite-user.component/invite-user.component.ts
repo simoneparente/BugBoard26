@@ -28,11 +28,9 @@ export class InviteUserComponent {
 
   isLoading = signal<boolean>(false);
   generatedLink = signal<string | null>(null);
+  generatedRole = signal<keyof typeof ROLES | null>(null);
   isCopied = signal<boolean>(false);
-
-  isCooldown = signal<boolean>(false);
-  cooldownTime = signal<number>(0);
-  private cooldownInterval: any; //Ref to the timer
+  isFlashing = signal<boolean>(false);
 
   // Form Control for role (Default: TECHNICAL)
   roleControl = new FormControl<keyof typeof ROLES>('TECHNICAL', Validators.required);
@@ -65,29 +63,35 @@ export class InviteUserComponent {
   ];
 
   selectRole(roleKey: keyof typeof ROLES) {
-    this.roleControl.setValue(roleKey);
-    this.roleControl.markAsTouched();
+    if (this.roleControl.value !== roleKey) {
+      this.roleControl.setValue(roleKey);
+      this.roleControl.markAsTouched();
+      // Reset generated link when switching roles to prevent ambiguity
+      this.generatedLink.set(null);
+      this.generatedRole.set(null);
+    }
   }
 
   generateLink() {
-    this.notificationService.showInfo('Info', 'Generating link...', 2000);
-    if (this.roleControl.invalid || this.isCooldown() || this.isLoading()) {
+    if (this.roleControl.invalid || this.isLoading()) {
       this.notificationService.showWarning('Warning', 'Please select a valid role.');
       return;
     }
 
+    const selectedRole = this.roleControl.value as ROLES;
     this.isLoading.set(true);
-    const payload = { role: this.roleControl.value as ROLES };
+    const payload = { role: selectedRole };
 
     this.apiService.invitations.create(payload).subscribe({
       next: (response) => {
         const frontendUrl = window.location.origin;
         const fullInviteLink = `${frontendUrl}/register?token=${response.token}`;
         this.generatedLink.set(fullInviteLink);
+        this.generatedRole.set(selectedRole);
         this.isLoading.set(false);
+        this.triggerFlash();
         this.notificationService.removeAll(); // Clear any previous toasts
-        this.notificationService.showSuccess('Success', 'Link generated successfully!');
-        this.startCooldown();
+        this.notificationService.showSuccess('Success', `Link generated for ${selectedRole}!`);
       },
       error: (err) => {
         this.isLoading.set(false);
@@ -95,25 +99,10 @@ export class InviteUserComponent {
       },
     });
   }
-  private startCooldown() {
-    this.isCooldown.set(true);
-    this.cooldownTime.set(5);
 
-    this.cooldownInterval = setInterval(() => {
-      this.cooldownTime.update((time) => time - 1);
-
-      if (this.cooldownTime() <= 0) {
-        this.clearCooldown();
-      }
-    }, 1000);
-  }
-
-  private clearCooldown() {
-    if (this.cooldownInterval) {
-      clearInterval(this.cooldownInterval);
-    }
-    this.isCooldown.set(false);
-    this.cooldownTime.set(0);
+  private triggerFlash() {
+    this.isFlashing.set(true);
+    setTimeout(() => this.isFlashing.set(false), 800);
   }
 
   copyToClipboard(link: string) {
@@ -126,12 +115,9 @@ export class InviteUserComponent {
 
   resetPanel() {
     this.generatedLink.set(null);
+    this.generatedRole.set(null);
     this.roleControl.setValue('TECHNICAL');
     this.isCopied.set(false);
-    this.clearCooldown();
-  }
-
-  ngOnDestroy() {
-    this.clearCooldown();
+    this.isFlashing.set(false);
   }
 }
