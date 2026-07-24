@@ -81,6 +81,132 @@
       }
     </div>
 
+    <!-- Type Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="d-flex align-items-center gap-2">
+          @if (typeFilter() === 'ALL') {
+            <i class="bi bi-funnel text-secondary"></i>
+            <span class="fw-medium text-dark">All Types</span>
+          } @else {
+            <span
+              class="badge rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
+              [ngClass]="getTypeBadgeClass(typeFilter())"
+            >
+              <i class="bi" [ngClass]="getTypeIcon(typeFilter())"></i>
+              {{ getTypeLabel(typeFilter()) }}
+            </span>
+          }
+        </span>
+      </button>
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
+        <li>
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="typeFilter() === 'ALL'"
+            (click)="onTypeChange('ALL')"
+          >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-funnel text-secondary"></i>
+              <span class="fw-medium">All Types</span>
+            </span>
+            @if (typeFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (tp of typeOptions; track tp) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="typeFilter() === tp"
+              (click)="onTypeChange(tp)"
+            >
+              <span
+                class="badge rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                [ngClass]="getTypeBadgeClass(tp)"
+              >
+                <i class="bi" [ngClass]="getTypeIcon(tp)"></i>
+                {{ getTypeLabel(tp) }}
+              </span>
+              @if (typeFilter() === tp) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Priority Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="d-flex align-items-center gap-2">
+          @if (priorityFilter() === 'ALL') {
+            <i class="bi bi-funnel text-secondary"></i>
+            <span class="fw-medium text-dark">All Priorities</span>
+          } @else {
+            <span
+              class="badge border rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
+              [ngClass]="getPriorityStyle(priorityFilter())"
+            >
+              <i class="bi" [ngClass]="getPriorityIcon(priorityFilter())"></i>
+              {{ priorityFilter() | titlecase }}
+            </span>
+          }
+        </span>
+      </button>
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
+        <li>
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="priorityFilter() === 'ALL'"
+            (click)="onPriorityChange('ALL')"
+          >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-funnel text-secondary"></i>
+              <span class="fw-medium">All Priorities</span>
+            </span>
+            @if (priorityFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (pr of priorityOptions; track pr) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="priorityFilter() === pr"
+              (click)="onPriorityChange(pr)"
+            >
+              <span
+                class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                [ngClass]="getPriorityStyle(pr)"
+              >
+                <i class="bi" [ngClass]="getPriorityIcon(pr)"></i>
+                {{ pr | titlecase }}
+              </span>
+              @if (priorityFilter() === pr) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
     <!-- Status Filter Dropdown -->
     <div class="dropdown flex-grow-1 flex-sm-grow-0">
       <button
@@ -144,69 +270,6 @@
       </ul>
     </div>
 
-    <!-- Priority Filter Dropdown -->
-    <div class="dropdown flex-grow-1 flex-sm-grow-0">
-      <button
-        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
-        type="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        <span class="d-flex align-items-center gap-2">
-          @if (priorityFilter() === 'ALL') {
-            <i class="bi bi-sliders text-secondary"></i>
-            <span class="fw-medium text-dark">All Priorities</span>
-          } @else {
-            <span
-              class="badge border rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
-              [ngClass]="getPriorityStyle(priorityFilter())"
-            >
-              <i class="bi" [ngClass]="getPriorityIcon(priorityFilter())"></i>
-              {{ priorityFilter() | titlecase }}
-            </span>
-          }
-        </span>
-      </button>
-      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
-        <li>
-          <a
-            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
-            [class.active]="priorityFilter() === 'ALL'"
-            (click)="onPriorityChange('ALL')"
-          >
-            <span class="d-flex align-items-center gap-2">
-              <i class="bi bi-sliders text-secondary"></i>
-              <span class="fw-medium">All Priorities</span>
-            </span>
-            @if (priorityFilter() === 'ALL') {
-              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
-            }
-          </a>
-        </li>
-        <li><hr class="dropdown-divider my-1" /></li>
-        @for (pr of priorityOptions; track pr) {
-          <li>
-            <a
-              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
-              [class.active]="priorityFilter() === pr"
-              (click)="onPriorityChange(pr)"
-            >
-              <span
-                class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
-                [ngClass]="getPriorityStyle(pr)"
-              >
-                <i class="bi" [ngClass]="getPriorityIcon(pr)"></i>
-                {{ pr | titlecase }}
-              </span>
-              @if (priorityFilter() === pr) {
-                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
-              }
-            </a>
-          </li>
-        }
-      </ul>
-    </div>
-
     <!-- Export Button with Dropdown -->
     <div class="dropdown ms-md-auto flex-grow-1 flex-sm-grow-0">
       <button
@@ -234,7 +297,7 @@
   <!-- Table Card Section -->
   <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" style="min-width: 520px">
+      <table class="table table-hover align-middle mb-0" style="min-width: 680px">
         <thead class="table-light text-muted">
           <tr>
             <th class="ps-4 py-3" style="width: 80px">#</th>
@@ -250,6 +313,7 @@
                 ></i>
               }
             </th>
+            <th class="py-3">Type</th>
             <th class="py-3">Priority</th>
             <th class="py-3">Status</th>
             <!-- Hidden on mobile, visible from tablet screens up -->
@@ -270,7 +334,7 @@
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="5" class="text-center py-5">
+              <td colspan="6" class="text-center py-5">
                 <div
                   class="spinner-border text-primary mb-2"
                   role="status"
@@ -294,6 +358,17 @@
                   >
                     {{ issue.title }}
                   </a>
+                </td>
+
+                <!-- Type Badge -->
+                <td class="text-nowrap">
+                  <span
+                    class="badge rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                    [ngClass]="getTypeBadgeClass(issue.type)"
+                  >
+                    <i class="bi" [ngClass]="getTypeIcon(issue.type)"></i>
+                    {{ getTypeLabel(issue.type) }}
+                  </span>
                 </td>
 
                 <!-- Priority Badge -->
@@ -344,7 +419,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center py-4 text-muted">
+                <td colspan="6" class="text-center py-4 text-muted">
                   No issues found with the selected filters.
                 </td>
               </tr>

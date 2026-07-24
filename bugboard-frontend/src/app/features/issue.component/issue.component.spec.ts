@@ -44,7 +44,7 @@ describe('IssueComponent', () => {
     expect(component.currentPage()).toBe(0);
 
     vi.advanceTimersByTime(300);
-    expect(spy).toHaveBeenCalledWith('PRJ', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
+    expect(spy).toHaveBeenCalledWith('PRJ', 'ALL', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
     vi.useRealTimers();
   });
 
@@ -86,7 +86,7 @@ describe('IssueComponent additional behavior', () => {
         provideRouter([]),
         {
           provide: AuthService,
-          useValue: { isReadonly: signal(false) },
+          useValue: { isReadonly: signal(false), isAdmin: signal(false) },
         },
         {
           provide: ProjectService,
@@ -141,6 +141,17 @@ describe('IssueComponent additional behavior', () => {
     expect(loadSpy).toHaveBeenCalled();
   });
 
+  it('onTypeChange should update filter, reset page, and reload issues', () => {
+    const loadSpy = vi.spyOn(component, 'loadIssues').mockImplementation(() => {});
+    component.currentPage.set(3);
+
+    component.onTypeChange('BUG');
+
+    expect(component.typeFilter()).toBe('BUG');
+    expect(component.currentPage()).toBe(0);
+    expect(loadSpy).toHaveBeenCalled();
+  });
+
   it('getPriorityStyle returns correct class', () => {
     expect(component.getPriorityStyle('')).toBe('priority-lowest');
     expect(component.getPriorityStyle('HIGH')).toBe('priority-high');
@@ -159,6 +170,26 @@ describe('IssueComponent additional behavior', () => {
     expect(component.getStatusIcon('MARKED_FOR_REVIEW')).toBe('bi-eye-fill');
     expect(component.getStatusIcon('COMPLETED')).toBe('bi-check-circle-fill');
     expect(component.getStatusIcon('ALL')).toBe('bi-funnel');
+  });
+
+  it('getTypeIcon returns correct icon', () => {
+    expect(component.getTypeIcon('BUG')).toBe('bi-bug-fill text-danger');
+    expect(component.getTypeIcon('FEATURE')).toBe('bi-star-fill text-primary');
+    expect(component.getTypeIcon('QUESTION')).toBe('bi-question-circle-fill text-warning');
+    expect(component.getTypeIcon('DOCUMENTATION')).toBe('bi-file-earmark-text-fill text-info');
+    expect(component.getTypeIcon('ALL')).toBe('bi-tag-fill text-secondary');
+  });
+
+  it('getTypeBadgeClass maps types like issue detail', () => {
+    expect(component.getTypeBadgeClass('BUG')).toBe(
+      'bg-danger-subtle text-danger border border-danger-subtle',
+    );
+    expect(component.getTypeBadgeClass('FEATURE')).toBe(
+      'bg-primary-subtle text-primary border border-primary-subtle',
+    );
+    expect(component.getTypeBadgeClass('UNKNOWN')).toBe(
+      'bg-secondary-subtle text-secondary border border-secondary-subtle',
+    );
   });
 
   it('getStatusBadgeClass maps statuses correctly', () => {
