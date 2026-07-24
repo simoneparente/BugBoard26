@@ -121,12 +121,6 @@ class ProjectMemberServiceTest {
 
     @Test
     void testGetAvailableUsers_ExcludesCurrentMembersAndAdmins() {
-        User anotherAdmin = User.builder()
-                .id(UUID.randomUUID())
-                .username("admin2")
-                .email("admin2@example.com")
-                .role(Role.ADMIN)
-                .build();
         
         List<User> availableUsers = List.of(technicalUser2);
         Pageable pageable = PageRequest.of(0, 10);
