@@ -266,16 +266,7 @@
                   class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
                   [ngClass]="getPriorityStyle(issue.priority)"
                 >
-                  <i
-                    class="bi"
-                    [ngClass]="{
-                      'bi-chevron-double-up': issue.priority.toLowerCase() === 'highest',
-                      'bi-chevron-up': issue.priority.toLowerCase() === 'high',
-                      'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
-                      'bi-chevron-down': issue.priority.toLowerCase() === 'low',
-                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest',
-                    }"
-                  ></i>
+                  <i class="bi" [ngClass]="getPriorityIcon(issue.priority)"></i>
                   {{ issue.priority | titlecase }}
                 </span>
               </td>
