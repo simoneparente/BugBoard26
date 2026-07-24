@@ -1,43 +1,34 @@
 @if (state().isOpen) {
-  <div
-    class="modal-backdrop-custom d-flex align-items-center justify-content-center"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="confirmModalTitle"
-    aria-describedby="confirmModalMessage"
-    (click)="onOverlayClick()"
-  >
+  <div class="modal-backdrop-custom d-flex align-items-center justify-content-center">
     <div
       class="modal-card bg-white rounded-4 shadow-lg p-4 max-w-md w-100 mx-3"
+      role="dialog"
+      aria-modal="true"
       (click)="$event.stopPropagation()"
     >
-      <!-- Header with Icon & Subtitle -->
+      <!-- Icon and Title Section -->
       <div class="d-flex align-items-center gap-3 mb-3">
         <div
           class="icon-box rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-          [class.bg-danger-subtle]="state().isDangerous"
-          [class.text-danger]="state().isDangerous"
-          [class.bg-primary-subtle]="!state().isDangerous"
-          [class.text-primary]="!state().isDangerous"
+          [ngClass]="
+            state().isDangerous ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'
+          "
         >
           <i
             class="bi fs-4"
-            [class.bi-exclamation-triangle-fill]="state().isDangerous"
-            [class.bi-info-circle-fill]="!state().isDangerous"
+            [ngClass]="state().isDangerous ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'"
           ></i>
         </div>
         <div>
-          <h5 class="fw-bold mb-1 text-dark" id="confirmModalTitle">{{ state().title }}</h5>
+          <h5 class="fw-bold mb-1 text-dark">{{ state().title }}</h5>
           <p class="text-muted small mb-0">
-            {{
-              state().isDangerous ? 'This action cannot be undone.' : 'Please confirm your choice.'
-            }}
+            {{ state().isDangerous ? 'This action cannot be undone.' : '' }}
           </p>
         </div>
       </div>
 
-      <!-- Message Body -->
-      <p class="text-secondary small mb-4" id="confirmModalMessage">
+      <!-- Message Section -->
+      <p class="text-secondary small mb-4">
         {{ state().message }}
       </p>
 
@@ -57,9 +48,7 @@
           [class.btn-primary]="!state().isDangerous"
           (click)="confirmService.confirm()"
         >
-          @if (state().isDangerous) {
-            <i class="bi bi-trash-fill"></i>
-          }
+          <i class="bi" [ngClass]="state().isDangerous ? 'bi-trash-fill' : 'bi-check-lg'"></i>
           {{ state().confirmButtonText }}
         </button>
       </div>

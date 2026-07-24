@@ -39,9 +39,9 @@
               <h5 class="card-title fw-bold mb-0">
                 <i class="bi bi-gear me-2"></i>General Settings
               </h5>
-              @if (project()?.id) {
+              @if (project()?.key) {
                 <button
-                  (click)="deleteProject(project()!.id)"
+                  (click)="deleteProject(project()!.key)"
                   class="btn btn-sm btn-outline-danger rounded-2 flex-shrink-0"
                   title="Delete project"
                 >
@@ -66,14 +66,13 @@
         </div>
       </div>
 
-      <!-- Sidebar (left) - Members Management -->
       <div class="col-lg-4">
         @if (project()?.id) {
           <app-project-members-list [projectId]="project()!.id"></app-project-members-list>
         }
       </div>
     </div>
+    <!-- Confirmation Modal -->
+    <app-confirmation-modal></app-confirmation-modal>
   }
 </div>
-
-<app-confirmation-modal></app-confirmation-modal>

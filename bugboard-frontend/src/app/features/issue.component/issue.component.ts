@@ -6,6 +6,7 @@ import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { IssueService } from '../../core/services/issue.service';
 import { ProjectService } from '../../core/services/project.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { IssueResponse } from '../../core/issue.model';
 import { Page } from '../../core/page.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -20,6 +21,7 @@ import { AuthService } from '../../core/auth/auth-service';
 export class IssueComponent implements OnInit, OnDestroy {
   private readonly issueService = inject(IssueService);
   private readonly projectService = inject(ProjectService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly authService = inject(AuthService);
@@ -34,8 +36,8 @@ export class IssueComponent implements OnInit, OnDestroy {
   currentPage = signal<number>(0);
   pageSize = signal<number>(10);
 
+  @Input() projectKey!: string;
   projectName = signal<string>('');
-  readonly projectId = signal<string>('');
 
   // Dati paginati dal backend
   issuesPage = signal<Page<IssueResponse> | null>(null);
@@ -54,17 +56,19 @@ export class IssueComponent implements OnInit, OnDestroy {
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   ngOnInit(): void {
-    // Read projectId from route parameter and set it to the signal
-    const projectIdFromRoute = this.route.snapshot.paramMap.get('projectId');
-    if (projectIdFromRoute) {
-      this.projectId.set(projectIdFromRoute);
+    if (!this.projectKey) {
+      this.projectKey = (this.route.snapshot.paramMap.get('projectKey') || '').toUpperCase();
     }
 
-    if (this.projectId()) {
-      this.projectService.getById(this.projectId()).subscribe({
-        next: (project) => this.projectName.set(project.name),
+    if (this.projectKey) {
+      this.projectService.getById(this.projectKey).subscribe({
+        next: (project) => {
+          this.projectName.set(project.name);
+          this.breadcrumbService.setProjectName(project.name);
+        },
         error: (err) => console.error('Failed to load project details', err),
       });
+      this.loadIssues();
     }
 
     this.searchSubscription = this.searchSubject
@@ -74,7 +78,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         switchMap((query) => {
           this.isLoading.set(true);
           return this.issueService.getIssuesByProject(
-            this.projectId(),
+            this.projectKey,
             this.statusFilter(),
             this.priorityFilter(),
             query,
@@ -95,10 +99,6 @@ export class IssueComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
         },
       });
-
-    if (this.projectId()) {
-      this.loadIssues();
-    }
   }
 
   ngOnDestroy(): void {
@@ -112,7 +112,7 @@ export class IssueComponent implements OnInit, OnDestroy {
 
     this.issueService
       .getIssuesByProject(
-        this.projectId(),
+        this.projectKey,
         this.statusFilter(),
         this.priorityFilter(),
         this.searchQuery(),
@@ -186,7 +186,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   }
 
   onTitleClick(issue: IssueResponse): void {
-    this.router.navigate(['/projects', this.projectId, 'issues', issue.id]);
+    this.router.navigate(['/projects', this.projectKey, 'issues', issue.sequenceNumber]);
   }
 
   readonly statusOptions = [

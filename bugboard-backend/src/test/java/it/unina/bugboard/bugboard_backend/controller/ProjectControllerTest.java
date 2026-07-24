@@ -44,6 +44,7 @@ class ProjectControllerTest {
     void setUp() {
         dummyProject = Project.builder()
                 .id(UUID.randomUUID())
+                .key("FRONT")
                 .name("BugBoard Core")
                 .description("Quality Gate test project")
                 .build();
@@ -89,9 +90,9 @@ class ProjectControllerTest {
     }
 
     @Test
-    void getProjectById_ReturnsOkResponse() {
-        UUID projectId = UUID.randomUUID();
-        when(projectService.getProjectById(projectId)).thenReturn(dummyProject);
+    void getProjectByKey_ReturnsOkResponse() {
+        String projectKey = "FRONT";
+        when(projectService.getProjectByKey(projectKey)).thenReturn(dummyProject);
         when(projectMapper.toResponse(any(Project.class))).thenReturn(ProjectResponse.builder()
                 .id(dummyProject.getId())
                 .name(dummyProject.getName())
@@ -100,65 +101,67 @@ class ProjectControllerTest {
                 .updatedAt(dummyProject.getUpdatedAt())
                 .build());
 
-        ResponseEntity<?> responseEntity = projectController.getProjectById(projectId);
+        ResponseEntity<?> responseEntity = projectController.getProjectByKey(projectKey);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        verify(projectService, times(1)).getProjectById(projectId);
+        verify(projectService, times(1)).getProjectByKey(projectKey);
         verify(projectMapper, times(1)).toResponse(any(Project.class));
     }
 
     @Test
     void deleteProject_ReturnsNoContent() {
-        UUID projectId = UUID.randomUUID();
-        doNothing().when(projectService).deleteProject(projectId);
+        String projectKey = "FRONT";
+        doNothing().when(projectService).deleteProject(projectKey);
 
-        ResponseEntity<Void> responseEntity = projectController.deleteProject(projectId);
+        ResponseEntity<Void> responseEntity = projectController.deleteProject(projectKey);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
-        verify(projectService, times(1)).deleteProject(projectId);
+        verify(projectService, times(1)).deleteProject(projectKey);
     }
 
     @Test
-    void getProjectById_ReturnsProjectResponse() {
-        UUID projectId = dummyProject.getId();
+    void getProjectByKey_ReturnsProjectResponse() {
+        String projectKey = "FRONT";
         ProjectResponse projectResponse = ProjectResponse.builder()
-                .id(projectId)
+                .id(dummyProject.getId())
+                .key(projectKey)
                 .name("BugBoard Core")
                 .description("Quality Gate test project")
                 .build();
 
-        when(projectService.getProjectById(projectId)).thenReturn(dummyProject);
+        when(projectService.getProjectByKey(projectKey)).thenReturn(dummyProject);
         when(projectMapper.toResponse(dummyProject)).thenReturn(projectResponse);
 
-        ResponseEntity<?> responseEntity = projectController.getProjectById(projectId);
+        ResponseEntity<?> responseEntity = projectController.getProjectByKey(projectKey);
 
         assertNotNull(responseEntity.getBody());
         ProjectResponse body = (ProjectResponse) responseEntity.getBody();
-        assertEquals(projectId, body.getId());
+        assertEquals(dummyProject.getId(), body.getId());
+        assertEquals("FRONT", body.getKey());
         assertEquals("BugBoard Core", body.getName());
         assertEquals("Quality Gate test project", body.getDescription());
     }
 
     @Test
     void getRecommendedAssignees_ReturnsList() {
-        UUID projectId = dummyProject.getId();
+        String projectKey = "FRONT";
         AssigneeRecommendationResponse recommendation = AssigneeRecommendationResponse.builder()
                 .workloadScore(2)
                 .activeIssueCount(1)
                 .build();
 
-        when(projectService.getRecommendedAssignees(projectId)).thenReturn(List.of(recommendation));
+        when(projectService.getRecommendedAssignees(projectKey)).thenReturn(List.of(recommendation));
 
-        ResponseEntity<List<AssigneeRecommendationResponse>> responseEntity = projectController.getRecommendedAssignees(projectId);
+        ResponseEntity<List<AssigneeRecommendationResponse>> responseEntity = projectController.getRecommendedAssignees(projectKey);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
         assertEquals(1, responseEntity.getBody().size());
-        verify(projectService, times(1)).getRecommendedAssignees(projectId);
+        verify(projectService, times(1)).getRecommendedAssignees(projectKey);
     }
 
     @Test

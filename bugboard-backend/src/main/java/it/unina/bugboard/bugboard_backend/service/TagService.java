@@ -31,11 +31,11 @@ public class TagService {
     private final UserRepository userRepository;
 
     /**
-     * Retrieve all tags of a specific project.
+     * Retrieve all tags of a specific project by key.
      */
-    public List<TagResponse> getAllTagsByProjectId(UUID projectId) {
+    public List<TagResponse> getAllTagsByProjectKey(String projectKey) {
         return tagRepository
-                .findByProjectId(projectId).stream()
+                .findByProjectKey(projectKey).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
@@ -54,16 +54,16 @@ public class TagService {
      */
     @Transactional
     public TagResponse createTag(TagRequest dto) {
-        // 1. Get current user and validate authorization
-        User currentUser = getCurrentUser();
-        validateUserIsMemberOrAdmin(currentUser, dto.getProjectId());
+        // 1. Get current project
+        Project project = projectRepository.findByKey(dto.getProjectKey())
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Project with key %s not found", dto.getProjectKey())));
 
-        // 2. Verify that the project exists
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Project with id %s not found", dto.getProjectId())));
+        // 2. Get current user and validate authorization
+        User currentUser = getCurrentUser();
+        validateUserIsMemberOrAdmin(currentUser, project.getId());
 
         // 3. Avoid duplicates
-        if (tagRepository.existsByNameAndProjectId(dto.getName(), dto.getProjectId())) {
+        if (tagRepository.existsByNameAndProjectKey(dto.getName(), dto.getProjectKey())) {
             throw new TagDuplicateException(String.format("Tag '%s' already exists in this project", dto.getName()));
         }
 
@@ -90,7 +90,7 @@ public class TagService {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Tag with id %s not found", tagId)));
 
         // 2. Verify that the tag belongs to the requested project (prevents tag hijacking)
-        if (!existingTag.getProject().getId().equals(dto.getProjectId())) {
+        if (!existingTag.getProject().getKey().equals(dto.getProjectKey())) {
             throw new IllegalArgumentException("Tag does not belong to the specified project");
         }
 
@@ -100,7 +100,7 @@ public class TagService {
 
         // 4. Check for name duplicate (excluding current tag)
         if (!existingTag.getName().equals(dto.getName()) &&
-                tagRepository.existsByNameAndProjectId(dto.getName(), dto.getProjectId())) {
+                tagRepository.existsByNameAndProjectKey(dto.getName(), dto.getProjectKey())) {
             throw new TagDuplicateException(String.format("Tag '%s' already exists in this project", dto.getName()));
         }
 
@@ -144,7 +144,7 @@ public class TagService {
                 .id(tag.getId())
                 .name(tag.getName())
                 .color(tag.getColor())
-                .projectId(tag.getProject().getId())
+                .projectKey(tag.getProject().getKey())
                 .build();
     }
 

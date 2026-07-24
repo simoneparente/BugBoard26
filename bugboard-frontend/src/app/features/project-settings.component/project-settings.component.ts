@@ -4,8 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../core/services/project.service';
 import { ProjectResponse } from '../../core/project.model';
 import { NotificationService } from '../../core/services/notification.service';
-import { ProjectMembersListComponent } from '../../shared/components/project-members-list/project-members-list.component';
 import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+import { ProjectMembersListComponent } from '../../shared/components/project-members-list/project-members-list.component';
+
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 
 @Component({
@@ -18,7 +19,7 @@ import { ConfirmationModalComponent } from '../../shared/components/confirmation
 export class ProjectSettingsComponent implements OnInit {
   private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
-  private readonly confirmService = inject(ConfirmationModalService);
+  private readonly confirmationModalService = inject(ConfirmationModalService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -32,14 +33,14 @@ export class ProjectSettingsComponent implements OnInit {
   }
 
   private loadProject(): void {
-    const projectId = this.activatedRoute.snapshot.paramMap.get('projectId');
+    const projectKey = this.activatedRoute.snapshot.paramMap.get('projectKey');
 
-    if (!projectId) {
+    if (!projectKey) {
       this.router.navigate(['/projects']);
       return;
     }
 
-    this.projectService.getById(projectId).subscribe({
+    this.projectService.getById(projectKey).subscribe({
       next: (project: ProjectResponse) => {
         this.project.set(project);
         this.isLoading.set(false);
@@ -53,20 +54,25 @@ export class ProjectSettingsComponent implements OnInit {
     });
   }
 
-  public deleteProject(projectId: string): void {
-    this.confirmService.open({
+  public deleteProject(projectKey: string, event?: Event): void {
+    // Prevent click propagation to parent routerLink
+    if (event) {
+      event.stopPropagation();
+    }
+
+    this.confirmationModalService.open({
       title: 'Delete Project',
       message:
         'Are you sure you want to delete this project? This action cannot be undone. All associated issues and tags will be lost.',
-      confirmButtonText: 'Delete Project',
-      cancelButtonText: 'Keep Project',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
       isDangerous: true,
-      onConfirm: () => this.performDelete(projectId),
+      onConfirm: () => this.performDelete(projectKey),
     });
   }
 
-  private performDelete(projectId: string): void {
-    this.projectService.delete(projectId).subscribe({
+  private performDelete(projectKey: string): void {
+    this.projectService.delete(projectKey).subscribe({
       next: () => {
         this.notificationService.showSuccess(
           'Project Deleted',
@@ -81,7 +87,7 @@ export class ProjectSettingsComponent implements OnInit {
   }
 
   goBack(): void {
-    const projectId = this.activatedRoute.snapshot.paramMap.get('projectId');
-    this.router.navigate(['/projects', projectId, 'issues']);
+    const projectKey = this.activatedRoute.snapshot.paramMap.get('projectKey');
+    this.router.navigate(['/projects', projectKey, 'issues']);
   }
 }

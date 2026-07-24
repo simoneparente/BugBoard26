@@ -51,24 +51,24 @@ class TagControllerTest {
     private TagRequest tagRequest;
     private TagResponse tagResponse;
     private UUID tagId;
-    private UUID projectId;
+    private String projectKey;
 
     @BeforeEach
     void setUp() {
         tagId = UUID.randomUUID();
-        projectId = UUID.randomUUID();
+        projectKey = "FRONT";
 
         tagRequest = TagRequest.builder()
                 .name("Bug")
                 .color("#FF0000")
-                .projectId(projectId)
+                .projectKey(projectKey)
                 .build();
 
         tagResponse = TagResponse.builder()
                 .id(tagId)
                 .name("Bug")
                 .color("#FF0000")
-                .projectId(projectId)
+                .projectKey(projectKey)
                 .build();
     }
 
@@ -83,7 +83,7 @@ class TagControllerTest {
                 .andExpect(jsonPath("$.id").value(tagId.toString()))
                 .andExpect(jsonPath("$.name").value("Bug"))
                 .andExpect(jsonPath("$.color").value("#FF0000"))
-                .andExpect(jsonPath("$.projectId").value(projectId.toString()));
+                .andExpect(jsonPath("$.projectKey").value(projectKey));
     }
 
     @Test
@@ -95,20 +95,20 @@ class TagControllerTest {
                 .andExpect(jsonPath("$.id").value(tagId.toString()))
                 .andExpect(jsonPath("$.name").value("Bug"))
                 .andExpect(jsonPath("$.color").value("#FF0000"))
-                .andExpect(jsonPath("$.projectId").value(projectId.toString()));
+                .andExpect(jsonPath("$.projectKey").value(projectKey));
     }
 
     @Test
-    void getTagsByProjectId_ShouldReturnOkAndListOfTagResponse() throws Exception {
+    void getTagsByProjectKey_ShouldReturnOkAndListOfTagResponse() throws Exception {
         List<TagResponse> tagList = Arrays.asList(tagResponse);
-        when(tagService.getAllTagsByProjectId(projectId)).thenReturn(tagList);
+        when(tagService.getAllTagsByProjectKey(projectKey)).thenReturn(tagList);
 
-        mockMvc.perform(get("/api/tags/project/{projectId}", projectId))
+        mockMvc.perform(get("/api/tags/project/{projectKey}", projectKey))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
                 .andExpect(jsonPath("$[0].id").value(tagId.toString()))
                 .andExpect(jsonPath("$[0].name").value("Bug"))
                 .andExpect(jsonPath("$[0].color").value("#FF0000"))
-                .andExpect(jsonPath("$[0].projectId").value(projectId.toString()));
+                .andExpect(jsonPath("$[0].projectKey").value(projectKey));
     }
 }

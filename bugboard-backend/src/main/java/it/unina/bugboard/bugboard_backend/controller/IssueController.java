@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/issues")
+@RequestMapping("/api/projects/{projectKey}/issues")
 public class IssueController {
 
     private final IssueService issueService;
@@ -27,75 +27,83 @@ public class IssueController {
     }
 
     @PostMapping
-    public ResponseEntity<IssueResponse> createIssue(@PathVariable UUID projectId,
+    public ResponseEntity<IssueResponse> createIssue(@PathVariable String projectKey,
             @Valid @RequestBody IssueRequest request) {
-        Issue issue = issueService.createIssue(projectId, request);
+        Issue issue = issueService.createIssue(projectKey, request);
         return new ResponseEntity<>(mapToResponseDTO(issue), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<IssueResponse> getIssueByIdAndProjectId(@PathVariable UUID id, @PathVariable UUID projectId) {
-        Issue issue = issueService.getIssueByIdAndProjectId(id, projectId);
+    @GetMapping("/{sequenceNumber}")
+    public ResponseEntity<IssueResponse> getIssueByProjectKeyAndSequenceNumber(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
     @GetMapping
-    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable UUID projectId,
+    public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable String projectKey,
             @RequestParam(required = false, defaultValue = "ALL") String status,
             @RequestParam(required = false, defaultValue = "ALL") String priority,
             @RequestParam(required = false) String search, Pageable pageable) {
 
-        Page<IssueResponse> issues = issueService.getIssuesByProjectId(projectId, status, priority, search, pageable)
+        Page<IssueResponse> issues = issueService.getIssuesByProjectKey(projectKey, status, priority, search, pageable)
                 .map(this::mapToResponseDTO);
         
         return ResponseEntity.ok(issues);
     }
 
-    @PutMapping("/{id}/assign")
-    public ResponseEntity<IssueResponse> assignIssue(@PathVariable UUID id, @RequestParam UUID assigneeId) {
-        Issue issue = issueService.assignIssueToUser(id, assigneeId);
-        return ResponseEntity.ok(mapToResponseDTO(issue));
-    }
-
-    @PutMapping("/{id}/status")
-    public ResponseEntity<IssueResponse> setStatus(@PathVariable UUID id, @RequestParam IssueStatus status) {
-        Issue issue = issueService.setStatus(id, status);
-        return ResponseEntity.ok(mapToResponseDTO(issue));
-    }
-
-    @PutMapping("/{id}/start-progress")
-    public ResponseEntity<IssueResponse> startProgress(@PathVariable UUID id) {
-        Issue issue = issueService.startIssueProgress(id);
-        return ResponseEntity.ok(mapToResponseDTO(issue));
-    }
-
-    @PutMapping("/{id}/accept")
-    public ResponseEntity<IssueResponse> acceptIssue(@PathVariable UUID id) {
-        Issue issue = issueService.acceptIssue(id);
-        return ResponseEntity.ok(mapToResponseDTO(issue));
-    }
-
-    @PutMapping("/{id}/previous")
-    public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable UUID id) {
-        Issue issue = issueService.rollbackIssueState(id);
-        return ResponseEntity.ok(mapToResponseDTO(issue));
-    }
-
-    @DeleteMapping("/{id}/assignee")
-    public ResponseEntity<IssueResponse> removeAssignee(@PathVariable UUID id) {
-        Issue updatedIssue = issueService.removeIssueAssignee(id);
+    @PutMapping("/{sequenceNumber}/assign")
+    public ResponseEntity<IssueResponse> assignIssue(@PathVariable String projectKey, @PathVariable Long sequenceNumber, @RequestParam UUID assigneeId) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.assignIssueToUser(issue.getId(), assigneeId);
         return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIssue(@PathVariable UUID id) {
-        issueService.deleteIssue(id);
+    @PutMapping("/{sequenceNumber}/status")
+    public ResponseEntity<IssueResponse> setStatus(@PathVariable String projectKey, @PathVariable Long sequenceNumber, @RequestParam IssueStatus status) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.setStatus(issue.getId(), status);
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @PutMapping("/{sequenceNumber}/start-progress")
+    public ResponseEntity<IssueResponse> startProgress(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.startIssueProgress(issue.getId());
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @PutMapping("/{sequenceNumber}/accept")
+    public ResponseEntity<IssueResponse> acceptIssue(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.acceptIssue(issue.getId());
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @PutMapping("/{sequenceNumber}/previous")
+    public ResponseEntity<IssueResponse> goToPreviousState(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.rollbackIssueState(issue.getId());
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @DeleteMapping("/{sequenceNumber}/assignee")
+    public ResponseEntity<IssueResponse> removeAssignee(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        Issue updatedIssue = issueService.removeIssueAssignee(issue.getId());
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
+    @DeleteMapping("/{sequenceNumber}")
+    public ResponseEntity<Void> deleteIssue(@PathVariable String projectKey, @PathVariable Long sequenceNumber) {
+        Issue issue = issueService.getIssueByProjectKeyAndSequenceNumber(projectKey, sequenceNumber);
+        issueService.deleteIssue(issue.getId());
         return ResponseEntity.noContent().build();
     }
 
     private IssueResponse mapToResponseDTO(Issue issue) {
         return IssueResponse.builder()
                 .id(issue.getId())
+                .sequenceNumber(issue.getSequenceNumber())
                 .title(issue.getTitle())
                 .description(issue.getDescription())
                 .createdAt(issue.getCreatedAt())
@@ -105,13 +113,14 @@ public class IssueController {
                 .type(issue.getType().name())
                 .assigneeUsername(issue.getAssignee() != null ? issue.getAssignee().getUsername() : "Unassigned")
                 .projectId(issue.getProject().getId())
+                .projectKey(issue.getProject().getKey())
                 .projectName(issue.getProject().getName())
                 .tags(issue.getTags().stream()
                         .map(tag -> TagResponse.builder()
                                 .id(tag.getId())
                                 .name(tag.getName())
                                 .color(tag.getColor())
-                                .projectId(tag.getProject().getId())
+                                .projectKey(tag.getProject() != null ? tag.getProject().getKey() : null)
                                 .build())
                         .toList())
                 .attachments(issue.getAttachments().stream()

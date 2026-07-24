@@ -37,14 +37,14 @@ describe('IssueComponent', () => {
       .spyOn(issueService, 'getIssuesByProject')
       .mockReturnValue(of({ content: [], totalPages: 0, totalElements: 0 } as any));
 
-    component.projectId.set('proj-1');
+    component.projectKey = 'PRJ';
     component.onSearchInput('login');
 
     expect(component.searchQuery()).toBe('login');
     expect(component.currentPage()).toBe(0);
 
     vi.advanceTimersByTime(300);
-    expect(spy).toHaveBeenCalledWith('proj-1', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
+    expect(spy).toHaveBeenCalledWith('PRJ', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
     vi.useRealTimers();
   });
 
@@ -108,7 +108,7 @@ describe('IssueComponent additional behavior', () => {
     issueService = TestBed.inject(IssueService);
     projectService = TestBed.inject(ProjectService);
     authService = TestBed.inject(AuthService);
-    component.projectId.set('proj-123');
+    component.projectKey = 'PRJ';
     fixture.detectChanges();
     await fixture.whenStable();
   });
@@ -118,7 +118,7 @@ describe('IssueComponent additional behavior', () => {
       .spyOn(projectService, 'getById')
       .mockReturnValue(of({ id: 'proj-123', name: 'Demo Project' } as any));
     component.ngOnInit();
-    expect(spy).toHaveBeenCalledWith('proj-123');
+    expect(spy).toHaveBeenCalledWith('PRJ');
     expect(component.projectName()).toBe('Demo Project');
   });
 

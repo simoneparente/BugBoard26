@@ -16,11 +16,12 @@ import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
 import { IssueResponse } from '../../core/issue.model';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AssigneeRecommendation } from '../../core/assignee-recommendation.model';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
-import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { environment } from '../../../environments/environment';
 
@@ -38,7 +39,7 @@ export class IssueDetailComponent implements OnInit {
   private readonly issueService = inject(IssueService);
   private readonly projectService = inject(ProjectService);
   private readonly notificationService = inject(NotificationService);
-  private readonly confirmService = inject(ConfirmationModalService);
+  private readonly confirmationModalService = inject(ConfirmationModalService);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -56,16 +57,16 @@ export class IssueDetailComponent implements OnInit {
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
 
-  public projectId: string = '';
-  public issueId: string = '';
+  public projectKey: string = '';
+  public sequenceNumber: string = '';
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.route.paramMap.subscribe((params) => {
-        this.projectId = params.get('projectId') || '';
-        this.issueId = params.get('issueId') || '';
+        this.projectKey = params.get('projectKey') || '';
+        this.sequenceNumber = params.get('sequenceNumber') || '';
 
-        if (this.projectId && this.issueId) {
+        if (this.projectKey && this.sequenceNumber) {
           this.loadData();
         } else {
           this.isLoading.set(false);
@@ -84,8 +85,8 @@ export class IssueDetailComponent implements OnInit {
     this.loadRecommendations();
 
     // Load project members for assignee selection
-    if (this.projectId) {
-      this.projectService.getById(this.projectId).subscribe({
+    if (this.projectKey) {
+      this.projectService.getById(this.projectKey).subscribe({
         next: (project) => {
           this.users.set(project.members || []);
           this.fetchIssue();
@@ -102,8 +103,8 @@ export class IssueDetailComponent implements OnInit {
   }
 
   private loadRecommendations(): void {
-    if (!this.projectId) return;
-    this.projectService.getRecommendedAssignees(this.projectId).subscribe({
+    if (!this.projectKey) return;
+    this.projectService.getRecommendedAssignees(this.projectKey).subscribe({
       next: (recs) => {
         this.recommendations.set(recs || []);
         this.cdr.detectChanges();
@@ -115,7 +116,7 @@ export class IssueDetailComponent implements OnInit {
   }
 
   private fetchIssue(): void {
-    this.issueService.getIssueById(this.projectId, this.issueId).subscribe({
+    this.issueService.getIssueById(this.projectKey, this.sequenceNumber).subscribe({
       next: (data) => {
         this.issue.set(data);
         if (data.projectName) {
@@ -153,7 +154,7 @@ export class IssueDetailComponent implements OnInit {
       return;
     }
     this.isUpdatingAssignee.set(true);
-    this.issueService.removeAssignee(this.projectId, this.issueId).subscribe({
+    this.issueService.removeAssignee(this.projectKey, this.sequenceNumber).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
@@ -201,7 +202,7 @@ export class IssueDetailComponent implements OnInit {
     this.isUserDropdownOpen = false;
     this.userSearchQuery = '';
     this.isUpdatingAssignee.set(true);
-    this.issueService.assignIssue(this.projectId, this.issueId, user.id).subscribe({
+    this.issueService.assignIssue(this.projectKey, this.sequenceNumber, user.id).subscribe({
       next: (updatedIssue) => {
         this.issue.set(updatedIssue);
         this.isUpdatingAssignee.set(false);
@@ -228,7 +229,7 @@ export class IssueDetailComponent implements OnInit {
     if (!status || status === this.issue()?.status) return;
 
     this.updateStatusCall(
-      this.issueService.setStatus(this.projectId, this.issueId, status),
+      this.issueService.setStatus(this.projectKey, this.sequenceNumber, status),
       'Status Updated',
       `Issue status changed to ${status}`,
     );
@@ -236,7 +237,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onStartProgress(): void {
     this.updateStatusCall(
-      this.issueService.startProgress(this.projectId, this.issueId),
+      this.issueService.startProgress(this.projectKey, this.sequenceNumber),
       'Issue started',
       'Status updated to In Progress',
     );
@@ -244,7 +245,7 @@ export class IssueDetailComponent implements OnInit {
 
   public onAccept(): void {
     this.updateStatusCall(
-      this.issueService.acceptIssue(this.projectId, this.issueId),
+      this.issueService.acceptIssue(this.projectKey, this.sequenceNumber),
       'Marked for Review',
       'Issue has been marked for review',
     );
@@ -264,34 +265,34 @@ export class IssueDetailComponent implements OnInit {
 
   public onRollback(): void {
     this.updateStatusCall(
-      this.issueService.rollbackStatus(this.projectId, this.issueId),
+      this.issueService.rollbackStatus(this.projectKey, this.sequenceNumber),
       'Status rolled back',
       'Issue reverted to previous status',
     );
   }
 
   public onOpenDeleteModal(): void {
-    const item = this.issue();
-    const issueTitle = item ? `"${item.title}"` : 'this issue';
+    const issue = this.issue();
+    if (!issue) return;
 
-    this.confirmService.open({
+    this.confirmationModalService.open({
       title: 'Delete Issue',
-      message: `Are you sure you want to permanently delete issue ${issueTitle}? All associated data and attachments will be deleted.`,
-      confirmButtonText: 'Delete Issue',
+      message: `Are you sure you want to permanently delete issue \"${issue.title}\"? All associated data and attachments will be deleted.`,
+      confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       isDangerous: true,
-      onConfirm: () => this.performDeleteIssue(),
+      onConfirm: () => this.performDelete(),
     });
   }
 
-  private performDeleteIssue(): void {
-    this.issueService.deleteIssue(this.projectId, this.issueId).subscribe({
+  private performDelete(): void {
+    this.issueService.deleteIssue(this.projectKey, this.sequenceNumber).subscribe({
       next: () => {
         this.notificationService.showSuccess(
           'Issue Deleted',
           'The issue has been permanently deleted.',
         );
-        this.router.navigate(['/projects', this.projectId, 'issues']);
+        this.router.navigate(['/projects', this.projectKey, 'issues']);
       },
       error: (err) => {
         console.error('Error deleting issue:', err);

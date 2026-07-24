@@ -1,20 +1,20 @@
-# Fase 1: Build (usa un'immagine con Maven e JDK)
+# Phase 1: Build using Maven
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copia i file di configurazione per scaricare le dipendenze
+# Copy configuration files to download dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# Copia il codice sorgente e compila
+# Copy source code and compile
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
-# Fase 2: Runtime (usa un'immagine leggera solo con JRE)
+# Phase 2: Runtime (use a lightweight image with only JRE)
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copia solo il file JAR generato dalla fase di build
+# Copy only the JAR file generated from the build phase
 COPY --from=build /app/target/*.jar /app/app.jar
 
 EXPOSE 8080

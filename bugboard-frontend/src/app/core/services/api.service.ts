@@ -56,7 +56,7 @@ export class ApiService {
 
   readonly issues = {
     getByProject: (
-      projectId: string,
+      projectKey: string,
       status: string = 'ALL',
       priority: string = 'ALL',
       search: string = '',
@@ -79,52 +79,54 @@ export class ApiService {
         params = params.set('search', search.trim());
       }
 
-      return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectId}/issues`, {
+      return this.http.get<Page<IssueResponse>>(`${this.baseUrl}/projects/${projectKey}/issues`, {
         params,
       });
     },
-    create: (projectId: string, payload: any) =>
-      this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues`, payload),
-    getById: (projectId: string, issueId: string) =>
-      this.http.get<IssueResponse>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
+    create: (projectKey: string, payload: any) =>
+      this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectKey}/issues`, payload),
+    getById: (projectKey: string, sequenceNumber: string) =>
+      this.http.get<IssueResponse>(
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}`,
+      ),
 
-    assign: (projectId: string, issueId: string, assigneeId: string) =>
+    assign: (projectKey: string, sequenceNumber: string, assigneeId: string) =>
       this.http.put<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assign`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/assign`,
         null,
         { params: { assigneeId } },
       ),
-    removeAssignee: (projectId: string, issueId: string) =>
+    removeAssignee: (projectKey: string, sequenceNumber: string) =>
       this.http.delete<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/assignee`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/assignee`,
       ),
-    setStatus: (projectId: string, issueId: string, status: string) =>
+    setStatus: (projectKey: string, sequenceNumber: string, status: string) =>
       this.http.put<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/status`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/status`,
         null,
         { params: { status } },
       ),
-    startProgress: (projectId: string, issueId: string) =>
+    startProgress: (projectKey: string, sequenceNumber: string) =>
       this.http.put<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/start-progress`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/start-progress`,
         null,
       ),
-    accept: (projectId: string, issueId: string) =>
+    accept: (projectKey: string, sequenceNumber: string) =>
       this.http.put<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/accept`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/accept`,
         null,
       ),
-    previous: (projectId: string, issueId: string) =>
+    previous: (projectKey: string, sequenceNumber: string) =>
       this.http.put<IssueResponse>(
-        `${this.baseUrl}/projects/${projectId}/issues/${issueId}/previous`,
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}/previous`,
         null,
       ),
-    delete: (projectId: string, issueId: string) =>
-      this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/issues/${issueId}`),
-    uploadAttachment: (issueId: string, file: File) => {
+    delete: (projectKey: string, sequenceNumber: string) =>
+      this.http.delete<void>(`${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}`),
+    uploadAttachment: (sequenceNumber: string, file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      return this.http.post<any>(`${this.baseUrl}/attachments/issue/${issueId}`, formData);
+      return this.http.post<any>(`${this.baseUrl}/attachments/issue/${sequenceNumber}`, formData);
     },
   };
 
@@ -145,21 +147,21 @@ export class ApiService {
   };
 
   readonly reports = {
-    getMonthlyReport: (projectId: string) =>
-      this.http.get<any>(`${this.baseUrl}/reports/${projectId}`),
+    getMonthlyReport: (projectKey: string) =>
+      this.http.get<any>(`${this.baseUrl}/reports/${projectKey}`),
   };
 
   readonly projectMembers = {
-    getMembers: (projectId: string, page: number, size: number) =>
-      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectId}/members`, {
+    getMembers: (projectKey: string, page: number, size: number) =>
+      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectKey}/members`, {
         params: { page: page.toString(), size: size.toString() },
       }),
-    getAvailable: (projectId: string, page: number, size: number) =>
-      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectId}/available-users`, {
+    getAvailable: (projectKey: string, page: number, size: number) =>
+      this.http.get<Page<UserResponse>>(`${this.baseUrl}/projects/${projectKey}/available-users`, {
         params: { page: page.toString(), size: size.toString() },
       }),
-    addMembers: (projectId: string, userIds: string[]) =>
-      this.http.post<UserResponse[]>(`${this.baseUrl}/projects/${projectId}/members`, {
+    addMembers: (projectKey: string, userIds: string[]) =>
+      this.http.post<UserResponse[]>(`${this.baseUrl}/projects/${projectKey}/members`, {
         userIds,
       }),
   };

@@ -2,7 +2,7 @@
   <!-- Back Button & Header Navigation -->
   <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
     <a
-      [routerLink]="['/projects', projectId, 'issues']"
+      [routerLink]="['/projects', projectKey, 'issues']"
       class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
     >
       <i class="bi bi-arrow-left"></i> Back to Project
@@ -492,6 +492,6 @@
       </div>
     </div>
   }
+  <!-- Confirmation Modal -->
+  <app-confirmation-modal></app-confirmation-modal>
 </div>
-
-<app-confirmation-modal></app-confirmation-modal>
