@@ -29,6 +29,9 @@ export class IssueComponent implements OnInit, OnDestroy {
   /** True when the current user has EXTERNAL (read-only) role. Used in the template to hide write controls. */
   readonly isReadonly = this.authService.isReadonly;
 
+  /** True when the current user has ADMIN role. Used to show/hide the Report link. */
+  readonly isAdmin = this.authService.isAdmin;
+
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
 
