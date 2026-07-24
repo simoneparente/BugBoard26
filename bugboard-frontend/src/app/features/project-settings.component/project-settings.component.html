@@ -1,0 +1,84 @@
+<div class="container-fluid py-4 px-4">
+  <!-- Header -->
+  <div class="mb-4">
+    <button class="btn btn-link text-muted ps-0" (click)="goBack()">
+      <i class="bi bi-chevron-left"></i> Back to Issues
+    </button>
+    <h2 class="fw-bold mb-1 mt-2">Project Settings</h2>
+    <p class="text-muted mb-0">Manage project members and configurations</p>
+  </div>
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <output class="text-center py-5 d-block">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </output>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading() && project()) {
+    <div class="row g-4">
+      <!-- Main Content Area (top) -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body">
+            <div
+              class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-0"
+            >
+              <div class="d-flex gap-3 align-items-start">
+                <div
+                  class="bg-primary-subtle text-primary rounded p-3 d-flex align-items-center justify-content-center"
+                >
+                  <i class="bi bi-folder2-open fs-3"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <h4 class="fw-bold mb-0">
+                      {{ project()?.name }}
+                    </h4>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill border">{{
+                      project()?.key
+                    }}</span>
+                  </div>
+                  <p class="text-muted mb-0 fs-6">
+                    {{ project()?.description || 'No description provided' }}
+                  </p>
+                </div>
+              </div>
+              @if (project()?.key) {
+                <button
+                  (click)="deleteProject(project()!.key)"
+                  class="btn btn-sm btn-outline-danger rounded-2 flex-shrink-0"
+                  title="Delete project"
+                >
+                  <i class="bi bi-trash me-1"></i
+                  ><span class="d-none d-sm-inline">Delete Project</span
+                  ><span class="d-sm-none">Delete</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        @if (project()?.id) {
+          <app-project-members-list [projectId]="project()!.id"></app-project-members-list>
+        }
+      </div>
+    </div>
+    <!-- Confirmation Modal -->
+    <app-confirmation-modal></app-confirmation-modal>
+  }
+</div>

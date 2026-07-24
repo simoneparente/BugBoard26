@@ -89,7 +89,7 @@
                 />
                 <i class="bi bi-cloud-upload display-4 text-primary opacity-50 mb-3"></i>
                 <p class="fw-medium mb-1">Click or drag images to upload</p>
-                <p class="small text-muted mb-0">PNG, JPG, or GIF up to 10MB</p>
+                <p class="small text-muted mb-0">PNG, JPG, or GIF up to 5MB</p>
               </div>
               @if (selectedFiles.length > 0) {
                 <ul class="list-group mt-3">
@@ -132,9 +132,10 @@
                 (click)="isPriorityDropdownOpen = !isPriorityDropdownOpen"
               >
                 <span
-                  class="badge rounded-pill px-3 py-1.5 fw-bold"
+                  class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
                   [ngClass]="currentPriorityObj.class"
                 >
+                  <i class="bi" [ngClass]="currentPriorityObj.icon"></i>
                   {{ currentPriorityObj.label }}
                 </span>
                 <i class="bi bi-chevron-down text-muted small ms-2"></i>
@@ -149,7 +150,11 @@
                       class="popover-menu-item p-2 rounded cursor-pointer d-flex align-items-center justify-content-between"
                       (click)="selectPriority(p.value)"
                     >
-                      <span class="badge rounded-pill px-3 py-1.5 fw-bold" [ngClass]="p.class">
+                      <span
+                        class="badge rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1"
+                        [ngClass]="p.class"
+                      >
+                        <i class="bi" [ngClass]="p.icon"></i>
                         {{ p.label }}
                       </span>
                       @if (issueForm.get('priority')?.value === p.value) {
@@ -322,11 +327,22 @@
       <button
         type="button"
         class="btn btn-light fw-medium px-4"
-        [routerLink]="['/projects', projectId, 'issues']"
+        [routerLink]="['/projects', projectKey, 'issues']"
       >
         Cancel
       </button>
-      <button type="submit" class="btn btn-primary fw-bold px-5 shadow">Create Issue</button>
+      <button type="submit" class="btn btn-primary fw-bold px-5 shadow" [disabled]="isSubmitting">
+        @if (isSubmitting) {
+          <span
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Creating...
+        } @else {
+          Create Issue
+        }
+      </button>
     </div>
   </form>
 </div>

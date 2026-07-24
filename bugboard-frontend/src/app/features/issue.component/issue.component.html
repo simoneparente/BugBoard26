@@ -1,0 +1,348 @@
+<div class="container-fluid p-3 p-md-4">
+  <!-- Header Section -->
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4"
+  >
+    <div class="d-flex align-items-baseline gap-2 flex-wrap">
+      <h2 class="fw-bold text-dark mb-0">
+        {{ projectName() || 'Project' }}
+      </h2>
+      <span class="text-muted fw-normal fs-4">Issues Tracker</span>
+    </div>
+
+    <!-- Action Buttons -->
+    <div
+      class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
+    >
+      @if (!isReadonly()) {
+        <!-- Manage Tags Button -->
+        <button
+          class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'tags']"
+        >
+          <i class="bi bi-tags"></i> Manage Tags
+        </button>
+
+        <!-- View Report Button -->
+        <button
+          class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'report']"
+        >
+          <i class="bi bi-file-earmark-bar-graph"></i> View Report
+        </button>
+
+        <!-- New Issue Button -->
+        <button
+          class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'issues', 'create']"
+        >
+          <i class="bi bi-plus-lg"></i> New Issue
+        </button>
+      } @else {
+        <!-- Readonly badge shown to stakeholders -->
+        <span
+          class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 d-flex align-items-center gap-1"
+        >
+          <i class="bi bi-eye"></i> View Only
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Filters Row -->
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-4 p-3 bg-light border rounded-3">
+    <!-- Keyword Search Input -->
+    <div class="search-input-group flex-grow-1" style="min-width: 240px; max-width: 320px">
+      <span class="input-group-text bg-white border-end-0">
+        <i class="bi bi-search text-muted"></i>
+      </span>
+      <input
+        type="text"
+        class="form-control border-start-0 ps-0"
+        placeholder="Search issues by keyword..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchInput($event)"
+        (keyup.enter)="onSearchEnter()"
+      />
+      @if (searchQuery()) {
+        <button
+          class="btn-clear text-muted"
+          type="button"
+          (click)="clearSearch()"
+          aria-label="Clear search"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Status Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="d-flex align-items-center gap-2">
+          @if (statusFilter() === 'ALL') {
+            <i class="bi bi-funnel text-secondary"></i>
+            <span class="fw-medium text-dark">All Statuses</span>
+          } @else {
+            <span
+              [class]="getStatusBadgeClass(statusFilter())"
+              class="d-inline-flex align-items-center gap-1"
+            >
+              <i class="bi" [ngClass]="getStatusIcon(statusFilter())"></i>
+              {{ getStatusLabel(statusFilter()) }}
+            </span>
+          }
+        </span>
+      </button>
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
+        <li>
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="statusFilter() === 'ALL'"
+            (click)="onStatusChange('ALL')"
+          >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-funnel text-secondary"></i>
+              <span class="fw-medium">All Statuses</span>
+            </span>
+            @if (statusFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (st of statusOptions; track st) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="statusFilter() === st"
+              (click)="onStatusChange(st)"
+            >
+              <span
+                [class]="getStatusBadgeClass(st)"
+                class="d-inline-flex align-items-center gap-1"
+              >
+                <i class="bi" [ngClass]="getStatusIcon(st)"></i>
+                {{ getStatusLabel(st) }}
+              </span>
+              @if (statusFilter() === st) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Priority Filter Dropdown -->
+    <div class="dropdown flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <span class="d-flex align-items-center gap-2">
+          @if (priorityFilter() === 'ALL') {
+            <i class="bi bi-sliders text-secondary"></i>
+            <span class="fw-medium text-dark">All Priorities</span>
+          } @else {
+            <span
+              class="badge border rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
+              [ngClass]="getPriorityStyle(priorityFilter())"
+            >
+              <i class="bi" [ngClass]="getPriorityIcon(priorityFilter())"></i>
+              {{ priorityFilter() | titlecase }}
+            </span>
+          }
+        </span>
+      </button>
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
+        <li>
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="priorityFilter() === 'ALL'"
+            (click)="onPriorityChange('ALL')"
+          >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-sliders text-secondary"></i>
+              <span class="fw-medium">All Priorities</span>
+            </span>
+            @if (priorityFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
+        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (pr of priorityOptions; track pr) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="priorityFilter() === pr"
+              (click)="onPriorityChange(pr)"
+            >
+              <span
+                class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                [ngClass]="getPriorityStyle(pr)"
+              >
+                <i class="bi" [ngClass]="getPriorityIcon(pr)"></i>
+                {{ pr | titlecase }}
+              </span>
+              @if (priorityFilter() === pr) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Export Button with Dropdown -->
+    <div class="dropdown ms-md-auto flex-grow-1 flex-sm-grow-0">
+      <button
+        class="btn btn-white border border-success text-success dropdown-toggle w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-3 px-3 py-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        [disabled]="isLoading()"
+      >
+        <i class="bi bi-download"></i> Export
+      </button>
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1 dropdown-menu-end">
+        <li>
+          <a
+            class="dropdown-item cursor-pointer d-flex align-items-center gap-2 py-2 px-3"
+            (click)="onExportIssues('CSV')"
+            [class.disabled]="isLoading()"
+          >
+            <i class="bi bi-file-earmark-spreadsheet text-success"></i> CSV
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Table Card Section -->
+  <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-3">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="min-width: 520px">
+        <thead class="table-light text-muted">
+          <tr>
+            <th class="ps-4 py-3" style="width: 80px">#</th>
+            <th class="py-3 cursor-pointer" (click)="sortData('title')">
+              Title
+              @if (sortField() === 'title') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc',
+                  }"
+                ></i>
+              }
+            </th>
+            <th class="py-3">Priority</th>
+            <th class="py-3">Status</th>
+            <!-- Hidden on mobile, visible from tablet screens up -->
+            <th class="py-3 d-none d-md-table-cell cursor-pointer" (click)="sortData('assignee')">
+              Assignee
+              @if (sortField() === 'assignee.username' || sortField() === 'assignee') {
+                <i
+                  class="bi ms-1"
+                  [ngClass]="{
+                    'bi-arrow-down': sortDirection() === 'asc',
+                    'bi-arrow-up': sortDirection() === 'desc',
+                  }"
+                ></i>
+              }
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (issue of issues(); track issue.id) {
+            <tr>
+              <td class="ps-4 text-secondary fw-medium text-nowrap">
+                {{ issue.sequenceNumber }}
+              </td>
+              <td class="fw-medium text-break" style="max-width: 250px">
+                <a
+                  class="text-primary text-decoration-none fw-semibold cursor-pointer link-primary"
+                  [routerLink]="['/projects', projectKey, 'issues', issue.sequenceNumber]"
+                >
+                  {{ issue.title }}
+                </a>
+              </td>
+
+              <!-- Priority Badge -->
+              <td class="text-nowrap">
+                <span
+                  class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                  [ngClass]="getPriorityStyle(issue.priority)"
+                >
+                  <i class="bi" [ngClass]="getPriorityIcon(issue.priority)"></i>
+                  {{ issue.priority | titlecase }}
+                </span>
+              </td>
+
+              <!-- Status Badge -->
+              <td>
+                <span
+                  [class]="getStatusBadgeClass(issue.status)"
+                  class="d-inline-flex align-items-center gap-1"
+                >
+                  <i class="bi" [ngClass]="getStatusIcon(issue.status)"></i>
+                  {{ getStatusLabel(issue.status) }}
+                </span>
+              </td>
+
+              <!-- Assignee / User Avatar (Hidden on Mobile) -->
+              <td class="d-none d-md-table-cell">
+                @if (issue.assigneeUsername && issue.assigneeUsername !== 'Unassigned') {
+                  <div class="d-flex align-items-center gap-2">
+                    <div
+                      class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                      style="width: 28px; height: 28px; font-size: 11px; letter-spacing: 0.5px"
+                    >
+                      {{ issue.assigneeUsername.substring(0, 2) | uppercase }}
+                    </div>
+                    <span class="fw-medium text-dark text-truncate" style="max-width: 130px">
+                      {{ issue.assigneeUsername }}
+                    </span>
+                  </div>
+                } @else {
+                  <span
+                    class="badge bg-light text-secondary border fw-normal px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5"
+                  >
+                    <i class="bi bi-person-dash text-muted"></i>
+                    <span class="text-muted">Non Assegnato</span>
+                  </span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center py-4 text-muted">
+                No issues found with the selected filters.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination Component -->
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalPages]="totalPages()"
+    [totalElements]="totalElements()"
+    (pageChange)="onPageChange($event)"
+  />
+</div>

@@ -26,6 +26,9 @@ public class Issue {
     private UUID id;
 
     @Column(nullable = false)
+    private Long sequenceNumber;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -68,6 +71,9 @@ public class Issue {
     protected void onCreate() {
         createdAt = LocalDateTime.now(ZoneId.of("UTC"));
         updatedAt = LocalDateTime.now(ZoneId.of("UTC"));
+        if (priority == null) {
+            priority = IssuePriority.MEDIUM;
+        }
     }
 
     @PreUpdate

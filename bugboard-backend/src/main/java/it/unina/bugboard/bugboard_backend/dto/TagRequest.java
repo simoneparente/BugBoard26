@@ -21,6 +21,6 @@ public class TagRequest {
     @NotBlank(message = "Tag color is required")
     private String color;
 
-    @NotNull(message = "Project ID is required")
-    private UUID projectId;
+    @NotBlank(message = "Project Key is required")
+    private String projectKey;
 }

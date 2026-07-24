@@ -1,16 +1,24 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import it.unina.bugboard.bugboard_backend.dto.TagRequest;
 import it.unina.bugboard.bugboard_backend.dto.TagResponse;
 import it.unina.bugboard.bugboard_backend.service.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tags")
@@ -41,11 +49,33 @@ public class TagController {
 
     /**
      * Endpoint to retrieve all tags belonging to a specific project.
-     * GET /api/tags/project/{projectId}
+     * GET /api/tags/project/{projectKey}
      */
-    @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<TagResponse>> getTagsByProjectId(@PathVariable UUID projectId) {
-        List<TagResponse> response = tagService.getAllTagsByProjectId(projectId);
+    @GetMapping("/project/{projectKey}")
+    public ResponseEntity<List<TagResponse>> getTagsByProjectKey(@PathVariable String projectKey) {
+        List<TagResponse> response = tagService.getAllTagsByProjectKey(projectKey);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint to update an existing tag.
+     * PUT /api/tags/{id}
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<TagResponse> updateTag(
+            @PathVariable UUID id,
+            @Valid @RequestBody TagRequest request) {
+        TagResponse response = tagService.updateTag(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint to delete a tag by its ID.
+     * DELETE /api/tags/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTag(@PathVariable UUID id) {
+        tagService.deleteTag(id);
+        return ResponseEntity.noContent().build();
     }
 }

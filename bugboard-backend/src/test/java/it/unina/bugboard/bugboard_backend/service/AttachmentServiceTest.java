@@ -259,4 +259,49 @@ class AttachmentServiceTest {
         
         assertEquals("Could not create upload directory!", exception.getMessage());
     }
+
+    @Test
+    void loadFileAsResource_Success() throws java.io.IOException {
+        UUID attachmentId = UUID.randomUUID();
+        Path testFile = tempUploadDir.resolve("test-download.txt");
+        java.nio.file.Files.writeString(testFile, "Hello World");
+
+        Attachment attachment = Attachment.builder()
+                .id(attachmentId)
+                .fileName("test-download.txt")
+                .filePath(testFile.toString())
+                .build();
+        when(attachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+
+        org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(attachmentId);
+
+        assertNotNull(resource);
+        assertTrue(resource.exists());
+    }
+
+    @Test
+    void loadFileAsResource_ThrowsWhenFileNotFound() {
+        UUID attachmentId = UUID.randomUUID();
+        Attachment attachment = Attachment.builder()
+                .id(attachmentId)
+                .fileName("not-exists.txt")
+                .filePath(tempUploadDir.resolve("not-exists.txt").toString())
+                .build();
+        when(attachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+
+        assertThrows(ResourceNotFoundException.class, () -> attachmentService.loadFileAsResource(attachmentId));
+    }
+
+    @Test
+    void loadFileAsResource_ThrowsWhenMalformedUrl() {
+        UUID attachmentId = UUID.randomUUID();
+        Attachment attachment = Attachment.builder()
+                .id(attachmentId)
+                .fileName("bad.txt")
+                .filePath("\u0000://invalid")
+                .build();
+        when(attachmentRepository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+
+        assertThrows(java.nio.file.InvalidPathException.class, () -> attachmentService.loadFileAsResource(attachmentId));
+    }
 }

@@ -3,6 +3,7 @@ package it.unina.bugboard.bugboard_backend.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,10 +22,12 @@ import it.unina.bugboard.bugboard_backend.entity.User;
 class IssueMapperTest {
 
     private IssueMapper issueMapper;
+    private TagMapper tagMapperMock;
 
     @BeforeEach
     void setUp() {
-        issueMapper = new IssueMapper();
+        tagMapperMock = mock(TagMapper.class);
+        issueMapper = new IssueMapper(tagMapperMock);
     }
 
     @Test

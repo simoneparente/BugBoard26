@@ -18,6 +18,14 @@ services:
       timeout: 3s
       retries: 20
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    hostname: azurite
+    ports:
+      - "10001:10000"
+    command: "azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck"
+
   backend:
     build:
       context: ./bugboard-backend
@@ -28,6 +36,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      azurite:
+        condition: service_started
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-bugboard_db}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER:-bugboard}
@@ -37,9 +47,12 @@ services:
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME:?AZURE_STORAGE_CONTAINER_NAME must be set}
       - SEED_USERNAME=${SEED_USERNAME:-bugboard}
       - SEED_EMAIL=${SEED_EMAIL:-bugboard@bugboard.it}
-      - SEED_PASSWORD=${SEED_PASSWORD:-bugboard}
+      - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-disable}
+      - SPRING_DATASOURCE_HIKARI_DATA_SOURCE_PROPERTIES_SSLMODE=${SPRING_DATASOURCE_HIKARI_DATA_SOURCE_PROPERTIES_SSLMODE:-disable}
     ports:
       - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -56,3 +69,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:

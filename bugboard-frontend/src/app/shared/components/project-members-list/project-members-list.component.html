@@ -1,0 +1,100 @@
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body">
+    <!-- Header -->
+    <div
+      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 pb-3 border-bottom"
+    >
+      <h5 class="card-title fw-bold mb-0 d-flex align-items-center gap-2 flex-wrap">
+        <i class="bi bi-people-fill"></i>Project Members
+        <span class="badge bg-primary rounded-pill ms-auto ms-md-2">{{ totalMembers() }}</span>
+      </h5>
+
+      <app-add-project-members
+        [projectId]="projectId"
+        (membersAdded)="onMembersAdded($event)"
+      ></app-add-project-members>
+    </div>
+
+    <!-- Add Members Component -->
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="alert alert-danger alert-sm d-flex align-items-center gap-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-primary mb-2" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted small">Loading members...</p>
+      </div>
+    }
+
+    <!-- Members List -->
+    @if (!isLoading() && members().length > 0) {
+      <div class="members-list">
+        @for (member of members(); track member.id) {
+          <div
+            class="member-item d-flex align-items-center justify-content-between p-3 mb-2 rounded-2 hover-highlight"
+          >
+            <!-- Avatar & Info -->
+            <div class="d-flex align-items-center gap-3 flex-grow-1">
+              <div
+                class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                style="width: 40px; height: 40px; font-size: 14px; font-weight: bold"
+              >
+                {{ (member.username || 'UN').substring(0, 2) | uppercase }}
+              </div>
+              <div>
+                <div class="fw-medium text-dark mb-1">{{ member.username }}</div>
+                <div class="text-muted small">{{ member.email }}</div>
+              </div>
+            </div>
+
+            <!-- Role Badge -->
+            <span [class]="getRoleColor(member.role)" class="ms-2 flex-shrink-0">
+              {{ member.role }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+          <button
+            class="btn btn-sm btn-outline-secondary rounded-2"
+            [disabled]="currentPage() === 0"
+            (click)="onPageChange(currentPage() - 1)"
+          >
+            <i class="bi bi-chevron-left"></i> Previous
+          </button>
+
+          <span class="text-muted small"> Page {{ currentPage() + 1 }} of {{ totalPages() }} </span>
+
+          <button
+            class="btn btn-sm btn-outline-secondary rounded-2"
+            [disabled]="currentPage() === totalPages() - 1"
+            (click)="onPageChange(currentPage() + 1)"
+          >
+            Next <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      }
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && members().length === 0) {
+      <div class="text-center py-4">
+        <i class="bi bi-people text-muted" style="font-size: 2rem"></i>
+        <p class="text-muted mt-2 mb-0">No members yet</p>
+        <small class="text-muted">Add your first member using the button above</small>
+      </div>
+    }
+  </div>
+</div>

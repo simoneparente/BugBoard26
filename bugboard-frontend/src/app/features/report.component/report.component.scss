@@ -66,9 +66,14 @@
     color: var(--bs-danger);
   }
 
-  &--success {
+  &--primary {
     background-color: rgba(var(--bs-primary-rgb), 0.1);
     color: var(--bs-primary);
+  }
+
+  &--success {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    color: var(--bs-success);
   }
 
   &--warning {
@@ -114,6 +119,13 @@ progress.kpi-progress {
   }
   &.kpi-progress-primary::-moz-progress-bar {
     background-color: var(--bs-primary);
+  }
+
+  &.kpi-progress-success::-webkit-progress-value {
+    background-color: var(--bs-success);
+  }
+  &.kpi-progress-success::-moz-progress-bar {
+    background-color: var(--bs-success);
   }
 
   &.kpi-progress-warning::-webkit-progress-value {

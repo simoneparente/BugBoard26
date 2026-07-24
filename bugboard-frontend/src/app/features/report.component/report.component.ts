@@ -90,14 +90,14 @@ export class ReportComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const projectId = this.route.snapshot.paramMap.get('projectId');
-    if (!projectId) {
+    const projectKey = this.route.snapshot.paramMap.get('projectKey');
+    if (!projectKey) {
       this.isLoading.set(false);
-      this.errorMessage.set('Missing Project ID in URL.');
+      this.errorMessage.set('Missing Project Key in URL.');
       return;
     }
 
-    this.reportService.getMonthlyReport(projectId).subscribe({
+    this.reportService.getMonthlyReport(projectKey).subscribe({
       next: (data) => {
         this.report.set(data);
         this.breadcrumbService.setProjectName(data.projectName);

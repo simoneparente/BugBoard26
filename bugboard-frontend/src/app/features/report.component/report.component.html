@@ -43,21 +43,21 @@
 
     <!-- KPI Cards -->
     <section class="row g-4 mb-4">
-      <!-- Opened Bugs -->
+      <!-- Opened Issues -->
       <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.1s">
         <div class="kpi-card card border-0 shadow-sm h-100">
           <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="kpi-label text-muted fw-medium small">Opened Bugs</span>
-              <div class="kpi-icon kpi-icon--danger">
-                <i class="bi bi-bug"></i>
+              <span class="kpi-label text-muted fw-medium small">Opened Issues</span>
+              <div class="kpi-icon kpi-icon--primary">
+                <i class="bi bi-exclamation-circle"></i>
               </div>
             </div>
             <div class="d-flex align-items-baseline gap-2 mb-3">
               <span class="kpi-value display-6 fw-bold text-dark">{{ r.openedBugs }}</span>
             </div>
             <progress
-              class="kpi-progress w-100 kpi-progress-danger"
+              class="kpi-progress w-100 kpi-progress-primary"
               [value]="r.openedBugs"
               [max]="r.openedBugs + r.managedBugs"
             ></progress>
@@ -65,12 +65,12 @@
         </div>
       </div>
 
-      <!-- Managed Bugs -->
+      <!-- Managed Issues -->
       <div class="col-12 col-md-4 animate-fade-in" style="animation-delay: 0.2s">
         <div class="kpi-card card border-0 shadow-sm h-100">
           <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
-              <span class="kpi-label text-muted fw-medium small">Managed Bugs</span>
+              <span class="kpi-label text-muted fw-medium small">Managed Issues</span>
               <div class="kpi-icon kpi-icon--success">
                 <i class="bi bi-check-circle"></i>
               </div>
@@ -79,7 +79,7 @@
               <span class="kpi-value display-6 fw-bold text-dark">{{ r.managedBugs }}</span>
             </div>
             <progress
-              class="kpi-progress w-100 kpi-progress-primary"
+              class="kpi-progress w-100 kpi-progress-success"
               [value]="r.managedBugs"
               [max]="r.openedBugs + r.managedBugs"
             ></progress>
@@ -124,15 +124,15 @@
               <h4 class="fw-semibold fs-5 text-primary mb-2">Smart Insight</h4>
               @if (r.managedBugs > 0 && r.openedBugs > 0) {
                 <p class="text-secondary small mb-0 lh-lg">
-                  The ratio between managed and opened bugs is
+                  The ratio between managed and opened issues is
                   <strong class="text-primary"
                     >{{ ((r.managedBugs / r.openedBugs) * 100).toFixed(0) }}%</strong
                   >.
                   @if (r.managedBugs >= r.openedBugs) {
-                    The team is resolving bugs at the same rate or faster than they are being
+                    The team is resolving issues at the same rate or faster than they are being
                     opened. Great job!
                   } @else {
-                    There are still open bugs to manage. Consider allocating more resources to
+                    There are still open issues to manage. Consider allocating more resources to
                     resolution.
                   }
                   @if (r.averageResolutionTime > 0) {
@@ -145,12 +145,12 @@
                 </p>
               } @else if (r.openedBugs === 0 && r.managedBugs === 0) {
                 <p class="text-secondary small mb-0 lh-lg">
-                  No bug tracking activity recorded this month. The project may be in a stable
+                  No issue tracking activity recorded this month. The project may be in a stable
                   phase.
                 </p>
               } @else {
                 <p class="text-secondary small mb-0 lh-lg">
-                  There were <strong class="text-primary">{{ r.openedBugs }}</strong> bugs opened
+                  There were <strong class="text-primary">{{ r.openedBugs }}</strong> issues opened
                   and <strong class="text-primary">{{ r.managedBugs }}</strong> managed this month.
                 </p>
               }

@@ -4,9 +4,9 @@ import { Page } from '../../core/page.model';
 import { ProjectResponse } from '../../core/project.model';
 import { AuthService } from '../../core/auth/auth-service';
 import { ProjectService } from '../../core/services/project.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { RouterModule } from '@angular/router';
-import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-project',
@@ -42,6 +42,8 @@ export class ProjectComponent implements OnInit {
     return user?.role === 'ADMIN';
   });
 
+  public readonly isReadonly = this.authService.isReadonly;
+
   ngOnInit(): void {
     this.loadProjects();
   }
@@ -76,41 +78,6 @@ export class ProjectComponent implements OnInit {
       error: () => {
         this.error.set('There was an error loading the projects. Try refreshing the page');
         this.loading.set(false);
-      },
-    });
-  }
-
-  public deleteProject(projectId: string, event?: Event): void {
-    // Prevent click propagation to parent routerLink
-    if (event) {
-      event.stopPropagation();
-    }
-
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      return;
-    }
-
-    // Optimistic update: remove from UI immediately
-    const currentProjects = this.projects();
-    if (currentProjects) {
-      const updatedContent = currentProjects.content.filter((p) => p.id !== projectId);
-      this.projects.set({
-        ...currentProjects,
-        content: updatedContent,
-        totalElements: currentProjects.totalElements - 1,
-      });
-    }
-
-    this.projectService.delete(projectId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess(
-          'Project Deleted',
-          'The project has been successfully deleted.',
-        );
-      },
-      error: () => {
-        this.error.set('There was an error deleting the project. Please try again.');
-        this.loadProjects();
       },
     });
   }
