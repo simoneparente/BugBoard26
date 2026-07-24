@@ -53,6 +53,7 @@ export class IssueComponent implements OnInit, OnDestroy {
   // Filtri e ordinamento
   statusFilter = signal<string>('ALL');
   priorityFilter = signal<string>('ALL');
+  typeFilter = signal<string>('ALL');
   searchQuery = signal<string>('');
   isLoading = signal<boolean>(false);
   sortField = signal<string>('title');
@@ -84,6 +85,7 @@ export class IssueComponent implements OnInit, OnDestroy {
             this.projectKey,
             this.statusFilter(),
             this.priorityFilter(),
+            this.typeFilter(),
             query,
             this.currentPage(),
             this.pageSize(),
@@ -116,6 +118,7 @@ export class IssueComponent implements OnInit, OnDestroy {
         this.projectKey,
         this.statusFilter(),
         this.priorityFilter(),
+        this.typeFilter(),
         this.searchQuery(),
         this.currentPage(),
         this.pageSize(),
@@ -170,6 +173,12 @@ export class IssueComponent implements OnInit, OnDestroy {
     this.loadIssues();
   }
 
+  onTypeChange(type: string): void {
+    this.typeFilter.set(type);
+    this.currentPage.set(0);
+    this.loadIssues();
+  }
+
   sortData(field: string): void {
     if (field !== 'title' && field !== 'assignee') return;
 
@@ -201,6 +210,8 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   readonly priorityOptions = ['HIGHEST', 'HIGH', 'MEDIUM', 'LOW', 'LOWEST'];
 
+  readonly typeOptions = ['BUG', 'FEATURE', 'QUESTION', 'DOCUMENTATION', 'OTHER'];
+
   getPriorityStyle(priority: string): string {
     if (!priority) return 'priority-lowest';
     return `priority-${priority.toLowerCase()}`;
@@ -225,6 +236,58 @@ export class IssueComponent implements OnInit, OnDestroy {
 
   getStatusLabel(status: string): string {
     return status ? status.replaceAll('_', ' ').toUpperCase() : '';
+  }
+
+  getTypeBadgeClass(type?: string): string {
+    switch (type?.toUpperCase()) {
+      case 'BUG':
+        return 'bg-danger-subtle text-danger border border-danger-subtle';
+      case 'FEATURE':
+        return 'bg-primary-subtle text-primary border border-primary-subtle';
+      case 'QUESTION':
+        return 'bg-warning-subtle text-warning border border-warning-subtle';
+      case 'DOCUMENTATION':
+        return 'bg-info-subtle text-info border border-info-subtle';
+      case 'ENHANCEMENT':
+        return 'bg-success-subtle text-success border border-success-subtle';
+      default:
+        return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+    }
+  }
+
+  getTypeLabel(type?: string): string {
+    if (!type) return '';
+    switch (type.toUpperCase()) {
+      case 'BUG':
+        return 'Bug';
+      case 'FEATURE':
+        return 'Feature';
+      case 'QUESTION':
+        return 'Question';
+      case 'DOCUMENTATION':
+        return 'Documentation';
+      case 'ENHANCEMENT':
+        return 'Enhancement';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+    }
+  }
+
+  getTypeIcon(type?: string): string {
+    switch (type?.toUpperCase()) {
+      case 'BUG':
+        return 'bi-bug-fill text-danger';
+      case 'FEATURE':
+        return 'bi-star-fill text-primary';
+      case 'QUESTION':
+        return 'bi-question-circle-fill text-warning';
+      case 'DOCUMENTATION':
+        return 'bi-file-earmark-text-fill text-info';
+      case 'ENHANCEMENT':
+        return 'bi-lightning-charge-fill text-success';
+      default:
+        return 'bi-tag-fill text-secondary';
+    }
   }
 
   getStatusIcon(status?: string): string {

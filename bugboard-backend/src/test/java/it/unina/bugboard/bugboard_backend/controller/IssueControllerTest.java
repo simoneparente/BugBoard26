@@ -193,12 +193,13 @@ class IssueControllerTest {
     void getIssuesByProjectKey_Success_ReturnsStatus200AndPagedJson() throws Exception {
         Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
 
-        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class)))
+        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class)))
                 .thenReturn(pagedResult);
 
         mockMvc.perform(get("/api/projects/{projectKey}/issues", projectKey)
                 .param("status", "ALL")
                 .param("priority", "ALL")
+                .param("type", "ALL")
                 .param("page", "0")
                 .param("size", "10")
                 .param("sort", "title,asc")
@@ -209,19 +210,20 @@ class IssueControllerTest {
                 .andExpect(jsonPath("$.content[0].title").value("NullPointerException in Login"))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(issueService, times(1)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class));
+        verify(issueService, times(1)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class));
     }
 
     @Test
     void getIssuesByProjectKey_WithSearchParam_Success() throws Exception {
         Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
 
-        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class)))
+        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class)))
                 .thenReturn(pagedResult);
 
         mockMvc.perform(get("/api/projects/{projectKey}/issues", projectKey)
                 .param("status", "ALL")
                 .param("priority", "ALL")
+                .param("type", "ALL")
                 .param("search", "login")
                 .param("page", "0")
                 .param("size", "10")
@@ -233,7 +235,29 @@ class IssueControllerTest {
                 .andExpect(jsonPath("$.content[0].title").value("NullPointerException in Login"))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(issueService, times(1)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class));
+        verify(issueService, times(1)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("ALL"), eq("login"), any(Pageable.class));
+    }
+
+    @Test
+    void getIssuesByProjectKey_WithTypeParam_Success() throws Exception {
+        Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
+
+        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("FEATURE"), eq(null), any(Pageable.class)))
+                .thenReturn(pagedResult);
+
+        mockMvc.perform(get("/api/projects/{projectKey}/issues", projectKey)
+                .param("status", "ALL")
+                .param("priority", "ALL")
+                .param("type", "FEATURE")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "title,asc")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.totalElements").value(1));
+
+        verify(issueService, times(1)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq("FEATURE"), eq(null), any(Pageable.class));
     }
 
     @Test

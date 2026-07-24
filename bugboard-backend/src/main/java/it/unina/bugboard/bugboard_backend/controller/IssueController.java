@@ -43,9 +43,10 @@ public class IssueController {
     public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable String projectKey,
             @RequestParam(required = false, defaultValue = "ALL") String status,
             @RequestParam(required = false, defaultValue = "ALL") String priority,
+            @RequestParam(required = false, defaultValue = "ALL") String type,
             @RequestParam(required = false) String search, Pageable pageable) {
 
-        Page<IssueResponse> issues = issueService.getIssuesByProjectKey(projectKey, status, priority, search, pageable)
+        Page<IssueResponse> issues = issueService.getIssuesByProjectKey(projectKey, status, priority, type, search, pageable)
                 .map(this::mapToResponseDTO);
         
         return ResponseEntity.ok(issues);

@@ -206,30 +206,36 @@ public class IssueService {
 
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, Pageable pageable) {
-        return getIssuesByProjectKeyInternal(projectKey, status, priority, null, pageable);
+        return getIssuesByProjectKeyInternal(projectKey, status, priority, null, null, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, String search, Pageable pageable) {
-        return getIssuesByProjectKeyInternal(projectKey, status, priority, search, pageable);
+        return getIssuesByProjectKeyInternal(projectKey, status, priority, null, search, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, String type, String search, Pageable pageable) {
+        return getIssuesByProjectKeyInternal(projectKey, status, priority, type, search, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<IssueResponse> getExportIssuesByProjectKey(String projectKey, Pageable pageable) {
         Project project = projectRepository.findByKey(projectKey)
                 .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MSG + projectKey));
-        Page<Issue> issues = issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, pageable);
+        Page<Issue> issues = issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, null, pageable);
         return issues.map(issueMapper::toResponse);
     }
 
-    private Page<Issue> getIssuesByProjectKeyInternal(String projectKey, String status, String priority, String search, Pageable pageable) {
+    private Page<Issue> getIssuesByProjectKeyInternal(String projectKey, String status, String priority, String type, String search, Pageable pageable) {
         Project project = projectRepository.findByKey(projectKey)
                 .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MSG + projectKey));
         IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
         IssuePriority priorityEnum = parseEnum(IssuePriority.class, priority);
+        IssueType typeEnum = parseEnum(IssueType.class, type);
         String searchPattern = (search != null && !search.isBlank()) ? "%" + search.trim().toLowerCase() + "%" : null;
 
-        return issueRepository.findByProjectIdAndFilters(project.getId(), statusEnum, priorityEnum, searchPattern, pageable);
+        return issueRepository.findByProjectIdAndFilters(project.getId(), statusEnum, priorityEnum, typeEnum, searchPattern, pageable);
     }
 
     @Transactional

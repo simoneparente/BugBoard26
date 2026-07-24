@@ -59,6 +59,7 @@ export class ApiService {
       projectKey: string,
       status: string = 'ALL',
       priority: string = 'ALL',
+      type: string = 'ALL',
       search: string = '',
       page: number = 0,
       size: number = 20,
@@ -74,6 +75,9 @@ export class ApiService {
       }
       if (priority && priority !== 'ALL') {
         params = params.set('priority', priority);
+      }
+      if (type && type !== 'ALL') {
+        params = params.set('type', type);
       }
       if (search && search.trim() !== '') {
         params = params.set('search', search.trim());
