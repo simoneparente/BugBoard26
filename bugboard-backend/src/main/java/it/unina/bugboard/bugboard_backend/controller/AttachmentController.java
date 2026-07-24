@@ -66,7 +66,7 @@ public class AttachmentController {
      * GET /api/attachments/{id}/download
      */
     @GetMapping("/{id}/download")
-    public ResponseEntity<?> downloadAttachment(@PathVariable UUID id) {
+    public ResponseEntity<Object> downloadAttachment(@PathVariable UUID id) {
         AttachmentResponse metadata = attachmentService.getAttachmentById(id);
         try {
             org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
@@ -99,7 +99,7 @@ public class AttachmentController {
      * GET /api/attachments/{id}/view
      */
     @GetMapping("/{id}/view")
-    public ResponseEntity<?> viewAttachment(@PathVariable UUID id) {
+    public ResponseEntity<Object> viewAttachment(@PathVariable UUID id) {
         AttachmentResponse metadata = attachmentService.getAttachmentById(id);
         try {
             org.springframework.core.io.Resource resource = attachmentService.loadFileAsResource(id);
