@@ -24,7 +24,7 @@ import it.unina.bugboard.bugboard_backend.mapper.IssueMapper;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/issues/export")
+@RequestMapping("/api/projects/{projectKey}/issues/export")
 public class IssueExportController {
 
     private final IssueExportFactory exportFactory;
@@ -39,7 +39,7 @@ public class IssueExportController {
 
     @GetMapping
     public ResponseEntity<StreamingResponseBody> exportIssues(
-            @PathVariable UUID projectId,
+            @PathVariable String projectKey,
             @RequestParam(name = "format") String formatParam) {
 
         ExportFormat format = parseFormat(formatParam);
@@ -54,8 +54,8 @@ public class IssueExportController {
 
                 while (hasMore) {
                     Pageable pageable = PageRequest.of(pageNumber, pageSize);
-                    Page<?> issuesPage = issueService.getIssuesByProjectId(
-                            projectId, "ALL", "ALL", pageable);
+                    Page<?> issuesPage = issueService.getIssuesByProjectKey(
+                            projectKey, "ALL", "ALL", pageable);
 
                     List<IssueResponse> pageIssues = issuesPage.getContent().stream()
                             .map(issue -> issueMapper.toResponse((Issue) issue))

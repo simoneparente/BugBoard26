@@ -57,16 +57,17 @@ class IssueExportControllerTest {
     @InjectMocks
     private IssueExportController controller;
 
-    private UUID projectId;
+    private String projectKey;
     private Issue issue;
     private IssueResponse issueResponse;
 
     @BeforeEach
     void setUp() {
-        projectId = UUID.randomUUID();
+        projectKey = "PRJ";
 
         Project project = Project.builder()
-                .id(projectId)
+                .id(UUID.randomUUID())
+                .key(projectKey)
                 .name("Demo project")
                 .build();
 
@@ -104,10 +105,10 @@ class IssueExportControllerTest {
     void exportIssues_WithCsvFormat_ReturnsStreamingResponseEntity() throws IOException {
         StreamingCsvIssueExporter realExporter = new StreamingCsvIssueExporter();
         when(exportFactory.getStreamingExporter(ExportFormat.CSV)).thenReturn(realExporter);
-        when(issueService.getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), any(Pageable.class)))
+        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class)))
                 .thenAnswer(invocation -> emptyIssuePage(invocation.getArgument(3)));
 
-        ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectId, "CSV");
+        ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectKey, "CSV");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("text/csv; charset=UTF-8", response.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE));
@@ -130,13 +131,13 @@ class IssueExportControllerTest {
         assertEquals("ID;Title;Description;Status;Priority;Type;Assignee;Created At;Updated At;Project;Tags\n", csv);
 
         verify(exportFactory).getStreamingExporter(ExportFormat.CSV);
-        verify(issueService).getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), any(Pageable.class));
+        verify(issueService).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class));
     }
 
     @Test
     void exportIssues_WithInvalidFormat_ThrowsIllegalArgumentException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> controller.exportIssues(projectId, "JSON"));
+                () -> controller.exportIssues(projectKey, "JSON"));
 
         assertEquals("Invalid export format: JSON", exception.getMessage());
     }
@@ -145,7 +146,7 @@ class IssueExportControllerTest {
     void exportIssues_WhenFirstPageHasDataAndSecondIsEmpty_ProcessesOnlyNonEmptyPages() throws IOException {
         StreamingCsvIssueExporter realExporter = new StreamingCsvIssueExporter();
         when(exportFactory.getStreamingExporter(ExportFormat.CSV)).thenReturn(realExporter);
-        when(issueService.getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), any(Pageable.class)))
+        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class)))
                 .thenAnswer(invocation -> {
                     Pageable pageable = invocation.getArgument(3);
                     if (pageable.getPageNumber() == 0) {
@@ -158,14 +159,14 @@ class IssueExportControllerTest {
                 });
         when(issueMapper.toResponse(issue)).thenReturn(issueResponse);
 
-        ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectId, "CSV");
+        ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectKey, "CSV");
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         response.getBody().writeTo(output);
 
         String csv = new String(output.toByteArray(), 3, output.size() - 3, StandardCharsets.UTF_8);
         assertTrue(csv.contains(issueResponse.getId().toString()));
         assertTrue(csv.contains("Export issue"));
-        verify(issueService, times(2)).getIssuesByProjectId(eq(projectId), eq("ALL"), eq("ALL"), any(Pageable.class));
+        verify(issueService, times(2)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class));
         verify(issueMapper).toResponse(issue);
     }
 
