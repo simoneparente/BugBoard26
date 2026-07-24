@@ -25,6 +25,8 @@ import java.util.UUID;
 public class IssueService {
 
     private static final String ISSUE_NOT_FOUND_MSG = "Issue not found with ID: ";
+    private static final String PROJECT_NOT_FOUND_MSG = "Project not found with key: ";
+    private static final String TAG_NOT_FOUND_MSG = "Tag not found with ID: ";
 
     private final IssueRepository issueRepository;
     private final ProjectRepository projectRepository;
@@ -36,7 +38,7 @@ public class IssueService {
     @Transactional
     public Issue createIssue(String projectKey, IssueRequest request) {
         Project project = projectRepository.findByKey(projectKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
+                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MSG+ projectKey));
 
         List<TagResponse> tagResponses = request.getTags();
         List<Tag> tags = tagResponses == null || tagResponses.isEmpty()
@@ -215,14 +217,14 @@ public class IssueService {
     @Transactional(readOnly = true)
     public Page<IssueResponse> getExportIssuesByProjectKey(String projectKey, Pageable pageable) {
         Project project = projectRepository.findByKey(projectKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
+                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MSG + projectKey));
         Page<Issue> issues = issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, pageable);
         return issues.map(issueMapper::toResponse);
     }
 
     private Page<Issue> getIssuesByProjectKeyInternal(String projectKey, String status, String priority, String search, Pageable pageable) {
         Project project = projectRepository.findByKey(projectKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
+                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND_MSG + projectKey));
         IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
         IssuePriority priorityEnum = parseEnum(IssuePriority.class, priority);
         String searchPattern = (search != null && !search.isBlank()) ? "%" + search.trim().toLowerCase() + "%" : null;
@@ -235,7 +237,7 @@ public class IssueService {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new RuntimeException("Tag not found with ID: " + tagId));
+                .orElseThrow(() -> new RuntimeException(TAG_NOT_FOUND_MSG + tagId));
 
         issue.getTags().add(tag);
         return issueRepository.save(issue);
@@ -246,7 +248,7 @@ public class IssueService {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new RuntimeException(ISSUE_NOT_FOUND_MSG + issueId));
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new RuntimeException("Tag not found with ID: " + tagId));
+                .orElseThrow(() -> new RuntimeException(TAG_NOT_FOUND_MSG + tagId));
 
         issue.getTags().remove(tag);
         return issueRepository.save(issue);
