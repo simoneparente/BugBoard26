@@ -5,6 +5,7 @@ import { ProjectService } from '../../core/services/project.service';
 import { ProjectResponse } from '../../core/project.model';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 import { ProjectMembersListComponent } from '../../shared/components/project-members-list/project-members-list.component';
 
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
@@ -22,6 +23,7 @@ export class ProjectSettingsComponent implements OnInit {
   private readonly confirmationModalService = inject(ConfirmationModalService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly breadcrumbService = inject(BreadcrumbService);
 
   // State signals
   project = signal<ProjectResponse | null>(null);
@@ -43,6 +45,7 @@ export class ProjectSettingsComponent implements OnInit {
     this.projectService.getById(projectKey).subscribe({
       next: (project: ProjectResponse) => {
         this.project.set(project);
+        this.breadcrumbService.setProjectName(project.name);
         this.isLoading.set(false);
       },
       error: (err: any) => {
