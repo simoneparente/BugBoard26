@@ -1,0 +1,93 @@
+name: Build, Push and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+env:
+  REGISTRY: bugboard26acr.azurecr.io
+  BACKEND_IMAGE: bugboard26acr.azurecr.io/bugboard-backend:latest
+  FRONTEND_IMAGE: bugboard26acr.azurecr.io/bugboard-frontend:latest
+  RESOURCE_GROUP: bugboard26
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Log in to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # ==========================================
+      # PHASE 1: BACKEND DEPLOYMENT
+      # ==========================================
+      - name: ☕ Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 🚀 Build Spring Boot
+        working-directory: ./bugboard-backend
+        run: ./mvnw clean package -DskipTests
+
+      - name: 📦 Build and Push Backend Image
+        working-directory: ./bugboard-backend
+        run: |
+          docker build -t ${{ env.BACKEND_IMAGE }} -f Dockerfile.azure .
+          docker push ${{ env.BACKEND_IMAGE }}
+
+      # ==========================================
+      # PHASE 2: FRONTEND DEPLOYMENT
+      # ==========================================
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: './bugboard-frontend/package-lock.json'
+
+      - name: 🚀 Build Angular
+        working-directory: ./bugboard-frontend
+        run: |
+          npm ci
+          npm run build -- --configuration production
+
+      - name: 📦 Build and Push Frontend Image
+        working-directory: ./bugboard-frontend
+        run: |
+          docker build -t ${{ env.FRONTEND_IMAGE }} -f Dockerfile.azure .
+          docker push ${{ env.FRONTEND_IMAGE }}
+
+      # ==========================================
+      # PHASE 3: RESTART AZURE CONTAINER APPS
+      # ==========================================
+      - name: 🔑 Log in to Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 🔄 Update and Restart Container Apps
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            echo "Backend update..."
+            az containerapp update --name bugboard26-api --resource-group ${{ env.RESOURCE_GROUP }} --image ${{ env.BACKEND_IMAGE }}
+            
+            echo "Frontend update..."
+            az containerapp update --name bugboard26-frontend --resource-group ${{ env.RESOURCE_GROUP }} --image ${{ env.FRONTEND_IMAGE }}
