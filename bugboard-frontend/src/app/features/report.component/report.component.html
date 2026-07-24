@@ -71,7 +71,7 @@
           <div class="card-body p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
               <span class="kpi-label text-muted fw-medium small">Managed Issues</span>
-              <div class="kpi-icon kpi-icon--success">
+              <div class="kpi-icon kpi-icon--primary">
                 <i class="bi bi-check-circle"></i>
               </div>
             </div>
@@ -79,7 +79,7 @@
               <span class="kpi-value display-6 fw-bold text-dark">{{ r.managedBugs }}</span>
             </div>
             <progress
-              class="kpi-progress w-100 kpi-progress-success"
+              class="kpi-progress w-100 kpi-progress-primary"
               [value]="r.managedBugs"
               [max]="r.openedBugs + r.managedBugs"
             ></progress>

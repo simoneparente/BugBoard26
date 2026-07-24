@@ -66,6 +66,11 @@
     color: var(--bs-danger);
   }
 
+  &--primary {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+  }
+
   &--success {
     background-color: rgba(var(--bs-success-rgb), 0.1);
     color: var(--bs-success);
