@@ -3,13 +3,33 @@
     class="modal d-flex align-items-center justify-content-center show"
     tabindex="-1"
     role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirm-modal-title"
+    aria-describedby="confirm-modal-body"
     (click)="onOverlayClick()"
   >
-    <div class="modal-dialog" (click)="$event.stopPropagation()">
-      <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
         <!-- Header -->
-        <div class="modal-header">
-          <h5 class="modal-title">{{ state().title }}</h5>
+        <div
+          class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <div
+              class="icon-badge rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              [class.bg-danger-subtle]="state().isDangerous"
+              [class.text-danger]="state().isDangerous"
+              [class.bg-primary-subtle]="!state().isDangerous"
+              [class.text-primary]="!state().isDangerous"
+            >
+              <i
+                class="bi fs-5"
+                [class.bi-exclamation-triangle-fill]="state().isDangerous"
+                [class.bi-info-circle-fill]="!state().isDangerous"
+              ></i>
+            </div>
+            <h5 class="modal-title fw-bold mb-0" id="confirm-modal-title">{{ state().title }}</h5>
+          </div>
           <button
             type="button"
             class="btn-close"
@@ -19,18 +39,22 @@
         </div>
 
         <!-- Body -->
-        <div class="modal-body">
+        <div class="modal-body px-4 py-3 text-secondary" id="confirm-modal-body">
           {{ state().message }}
         </div>
 
         <!-- Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="confirmService.performCancel()">
+        <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+          <button
+            type="button"
+            class="btn btn-light border fw-medium rounded-3 px-3"
+            (click)="confirmService.performCancel()"
+          >
             {{ state().cancelButtonText }}
           </button>
           <button
             type="button"
-            class="btn"
+            class="btn fw-medium rounded-3 px-3"
             [class.btn-danger]="state().isDangerous"
             [class.btn-primary]="!state().isDangerous"
             (click)="confirmService.confirm()"
