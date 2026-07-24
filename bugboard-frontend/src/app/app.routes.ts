@@ -1,5 +1,6 @@
 import { ActivatedRouteSnapshot, RouterStateSnapshot, Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CreateIssueComponent } from './features/create-issue.component/create-issue.component';
 import { AuthService } from './core/auth/auth-service';
 import { LoginComponent } from './features/login.component/login.component';
@@ -20,12 +21,31 @@ const authGuard = (_route: ActivatedRouteSnapshot, state: RouterStateSnapshot) =
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // If already authenticated (signal already populated), allow access
   if (authService.isAuthenticated()) {
     return true;
   }
 
-  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-  return false;
+  // Otherwise, check session with backend and wait for result
+  return firstValueFrom(authService.checkSession()).then(() => {
+    if (authService.isAuthenticated()) {
+      return true;
+    }
+    router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
+    return false;
+  });
+};
+
+const publicOnlyGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isAuthenticated()) {
+    router.navigate(['/dashboard']);
+    return false;
+  }
+
+  return true;
 };
 
 export const routes: Routes = [
@@ -33,11 +53,13 @@ export const routes: Routes = [
     path: 'register',
     component: RegisterComponent,
     title: 'BugBoard26 - Register',
+    canActivate: [publicOnlyGuard],
   },
   {
     path: 'login',
     component: LoginComponent,
     title: 'BugBoard26 - Login',
+    canActivate: [publicOnlyGuard],
   },
   {
     path: '',

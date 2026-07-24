@@ -58,14 +58,13 @@ public class AuthController {
             return ResponseEntity.ok(responseBody);
         }
 
-    @SuppressWarnings("java:S2092") //TODO: remove when secure flag is true
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         long expirationTime = 24 * 60 * (long)60; // 24 hours in seconds
         AuthResult response = authService.login(request);
         ResponseCookie jwtCookie = ResponseCookie.from(SecurityConstants.JWT_COOKIE_NAME, response.token())
                 .httpOnly(true) //Invisible to JS
-                .secure(false) // TODO: put true in production with HTTPS
+                .secure(true)
                 .path("/") // Available for all endpoints
                 .maxAge(expirationTime) // Expires in 24 hours (like the JWT)
                 .sameSite("Strict") // Prevents CSRF attacks
@@ -76,12 +75,11 @@ public class AuthController {
                 .body(responseBody);
     }
 
-    @SuppressWarnings("java:S2092") //TODO: remove when secure flag is true
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         ResponseCookie jwtCookie = ResponseCookie.from(SecurityConstants.JWT_COOKIE_NAME, "")
                 .httpOnly(true)
-                .secure(false) // TODO: put true in production with HTTPS
+                .secure(true)
                 .path("/")
                 .maxAge(0) // Expire the cookie immediately
                 .sameSite("Strict")

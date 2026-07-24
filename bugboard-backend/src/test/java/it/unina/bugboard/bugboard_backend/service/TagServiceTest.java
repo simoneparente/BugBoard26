@@ -108,17 +108,7 @@ class TagServiceTest {
     @Test
     void createTag_ThrowsException_WhenProjectNotFound() {
         // ARRANGE
-        UUID userId = UUID.randomUUID();
-        UUID projectId = UUID.randomUUID();
         TagRequest request = new TagRequest("Bug", "#FF0000", "FRONT");
-
-        User mockUser = User.builder()
-            .id(userId)
-            .username("testuser")
-            .email("test@example.com")
-            .passwordHash("hashedPassword")
-            .role(Role.ADMIN)
-            .build();
 
         when(projectRepository.findByKey(request.getProjectKey())).thenReturn(Optional.empty());
 
@@ -313,7 +303,6 @@ class TagServiceTest {
     void updateTag_ThrowsException_WhenTagNotFound() {
         // ARRANGE
         UUID tagId = UUID.randomUUID();
-        UUID projectId = UUID.randomUUID();
         
         TagRequest request = new TagRequest("Updated Bug", "#00FF00", "FRONT");
         

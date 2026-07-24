@@ -14,7 +14,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,12 +34,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
-import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
-import it.unina.bugboard.bugboard_backend.dto.UserResponse;
-import it.unina.bugboard.bugboard_backend.entity.Issue;
-import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.User;
@@ -478,15 +472,15 @@ class ProjectServiceTest {
 
         @Test
         void getCurrentUser_ThrowsWhenUserNotFound() {
-            UUID userId = UUID.randomUUID();
+            UUID testUserId = UUID.randomUUID();
             try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
                 SecurityContext securityContext = mock(SecurityContext.class);
                 Authentication authentication = mock(Authentication.class);
-                when(authentication.getName()).thenReturn(userId.toString());
+                when(authentication.getName()).thenReturn(testUserId.toString());
                 when(authentication.isAuthenticated()).thenReturn(true);
                 when(securityContext.getAuthentication()).thenReturn(authentication);
                 mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                when(userRepository.findById(userId)).thenReturn(Optional.empty());
+                when(userRepository.findById(testUserId)).thenReturn(Optional.empty());
 
                 assertThrows(UnauthorizedException.class, () -> projectService.deleteProject("FRONT"));
             }
@@ -497,16 +491,16 @@ class ProjectServiceTest {
     class DeleteProjectTests {
         @Test
         void deleteProject_ProjectNotFound() {
-            UUID userId = UUID.randomUUID();
-            User adminUser = User.builder().id(userId).role(Role.ADMIN).build();
+            UUID testUserId = UUID.randomUUID();
+            User adminUser = User.builder().id(testUserId).role(Role.ADMIN).build();
             try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
                 SecurityContext securityContext = mock(SecurityContext.class);
                 Authentication authentication = mock(Authentication.class);
-                when(authentication.getName()).thenReturn(userId.toString());
+                when(authentication.getName()).thenReturn(testUserId.toString());
                 when(authentication.isAuthenticated()).thenReturn(true);
                 when(securityContext.getAuthentication()).thenReturn(authentication);
                 mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-                when(userRepository.findById(userId)).thenReturn(Optional.of(adminUser));
+                when(userRepository.findById(testUserId)).thenReturn(Optional.of(adminUser));
 
                 when(projectRepository.findByKey("FRONT")).thenReturn(Optional.empty());
 
@@ -519,21 +513,21 @@ class ProjectServiceTest {
     class RecommendAssigneesAdditionalTests {
         @Test
         void getRecommendedAssignees_ProjectNotFoundById() {
-            Project dummyProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
-            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(dummyProject));
-            when(projectRepository.findByIdWithMembers(dummyProject.getId())).thenReturn(Optional.empty());
+            Project testProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
+            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(testProject));
+            when(projectRepository.findByIdWithMembers(testProject.getId())).thenReturn(Optional.empty());
 
             assertThrows(ResourceNotFoundException.class, () -> projectService.getRecommendedAssignees("FRONT"));
         }
 
         @Test
         void getRecommendedAssignees_UsernameNullHandling() {
-            Project dummyProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
+            Project testProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
             User user1 = User.builder().id(UUID.randomUUID()).role(Role.TECHNICAL).username(null).build();
-            dummyProject.setMembers(List.of(user1));
-            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(dummyProject));
-            when(projectRepository.findByIdWithMembers(dummyProject.getId())).thenReturn(Optional.of(dummyProject));
-            when(issueRepository.findByProjectIdAndStatusNotIn(eq(dummyProject.getId()), anyList())).thenReturn(List.of());
+            testProject.setMembers(List.of(user1));
+            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(testProject));
+            when(projectRepository.findByIdWithMembers(testProject.getId())).thenReturn(Optional.of(testProject));
+            when(issueRepository.findByProjectIdAndStatusNotIn(eq(testProject.getId()), anyList())).thenReturn(List.of());
 
             List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recs = projectService.getRecommendedAssignees("FRONT");
             assertEquals(1, recs.size());

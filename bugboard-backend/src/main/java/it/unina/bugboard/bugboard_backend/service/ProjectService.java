@@ -33,6 +33,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProjectService {
     
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found.";
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final IssueRepository issueRepository;
@@ -145,7 +146,7 @@ public class ProjectService {
     public Project addMemberToProject(UUID projectId, UUID userId) {
         Project project = getAndValidateProject(projectId);
         User userToAdd = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MESSAGE));
 
         if (!project.getMembers().contains(userToAdd)) {
             project.getMembers().add(userToAdd);
@@ -158,7 +159,7 @@ public class ProjectService {
     public Project removeMemberFromProject(UUID projectId, UUID userId) {
         Project project = getAndValidateProject(projectId);
         User userToRemove = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MESSAGE));
 
         project.getMembers().remove(userToRemove);
         return projectRepository.save(project);
@@ -330,6 +331,6 @@ public class ProjectService {
         }
         
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UnauthorizedException("User not found."));
+                .orElseThrow(() -> new UnauthorizedException(USER_NOT_FOUND_MESSAGE));
     }
 }

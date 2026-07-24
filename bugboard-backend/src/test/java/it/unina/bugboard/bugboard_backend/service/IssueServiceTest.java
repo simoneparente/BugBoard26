@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -423,12 +422,11 @@ class IssueServiceTest {
 	}
 
     private User createUser(String username) {
-        User user = User.builder()
+        return User.builder()
                 .id(UUID.randomUUID())
                 .username(username)
                 .email(username + "@example.com")
                 .build();
-        return user;
     }
 
 	@Test
@@ -795,9 +793,9 @@ class IssueServiceTest {
 
 	@Test
 	void getIssuesByProjectKey_ThrowsWhenProjectDoesNotExist() {
-		String projectKey = "FRONT";
-		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
-		assertThrows(ResourceNotFoundException.class, () -> issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", null, PageRequest.of(0, 10)));
+		String projectDummyKey = "FRONT";
+		when(projectRepository.findByKey(projectDummyKey)).thenReturn(Optional.empty());
+		assertThrows(ResourceNotFoundException.class, () -> issueService.getIssuesByProjectKey(projectDummyKey, "ALL", "ALL", null, PageRequest.of(0, 10)));
 	}
 
 	@Test

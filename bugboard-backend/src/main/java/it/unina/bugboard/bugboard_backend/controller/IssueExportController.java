@@ -1,7 +1,6 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,11 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import it.unina.bugboard.bugboard_backend.dto.IssueResponse;
-import it.unina.bugboard.bugboard_backend.entity.Issue;
 import it.unina.bugboard.bugboard_backend.export.ExportFormat;
 import it.unina.bugboard.bugboard_backend.export.IssueExportFactory;
 import it.unina.bugboard.bugboard_backend.export.strategy.StreamingIssueExporterStrategy;
-import it.unina.bugboard.bugboard_backend.mapper.IssueMapper;
 import it.unina.bugboard.bugboard_backend.service.IssueService;
 
 @RestController
@@ -29,12 +26,10 @@ public class IssueExportController {
 
     private final IssueExportFactory exportFactory;
     private final IssueService issueService;
-    private final IssueMapper issueMapper;
 
-    public IssueExportController(IssueExportFactory exportFactory, IssueService issueService, IssueMapper issueMapper) {
+    public IssueExportController(IssueExportFactory exportFactory, IssueService issueService) {
         this.exportFactory = exportFactory;
         this.issueService = issueService;
-        this.issueMapper = issueMapper;
     }
 
     @GetMapping
