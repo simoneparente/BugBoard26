@@ -446,14 +446,14 @@ class IssueServiceTest {
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
 		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
-		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, pageable)).thenReturn(pagedResult);
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, null, pageable)).thenReturn(pagedResult);
 
 		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", pageable);
 
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals(issue, result.getContent().get(0));
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, null, null, pageable);
 	}
 
 	@Test
@@ -473,7 +473,7 @@ class IssueServiceTest {
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
 		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
-		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable))
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, null, pageable))
 				.thenReturn(pagedResult);
 
 		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "TO_DO", "HIGH", pageable);
@@ -481,7 +481,7 @@ class IssueServiceTest {
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Issue title", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.TO_DO, IssuePriority.HIGH, null, null, pageable);
 	}
 
 	@Test
@@ -531,7 +531,7 @@ class IssueServiceTest {
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
 		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
-		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, pageable))
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, null, pageable))
 				.thenReturn(pagedResult);
 
 		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "IN_PROGRESS", "ALL", pageable);
@@ -539,7 +539,7 @@ class IssueServiceTest {
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Status filtered issue", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), IssueStatus.IN_PROGRESS, null, null, null, pageable);
 	}
 
 	@Test
@@ -555,7 +555,7 @@ class IssueServiceTest {
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
 		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
-		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, pageable))
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, null, pageable))
 				.thenReturn(pagedResult);
 
 		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "HIGHEST", pageable);
@@ -563,7 +563,35 @@ class IssueServiceTest {
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("Priority filtered issue", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, IssuePriority.HIGHEST, null, null, pageable);
+	}
+
+	@Test
+	void getIssuesByProjectKey_ReturnsPagedIssues_WhenOnlyTypeIsSpecified() {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+
+		Issue issue = Issue.builder()
+				.id(UUID.randomUUID())
+				.title("Feature request")
+				.description("Issue description")
+				.status(IssueStatus.TO_DO)
+				.priority(IssuePriority.MEDIUM)
+				.type(IssueType.FEATURE)
+				.project(project)
+				.build();
+
+		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
+
+		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, IssueType.FEATURE, null, pageable))
+				.thenReturn(pagedResult);
+
+		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", "FEATURE", null, pageable);
+
+		assertNotNull(result);
+		assertEquals(1, result.getTotalElements());
+		assertEquals(IssueType.FEATURE, result.getContent().get(0).getType());
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, IssueType.FEATURE, null, pageable);
 	}
 
 	@Test
@@ -580,7 +608,7 @@ class IssueServiceTest {
 		Page<Issue> pagedResult = new PageImpl<>(List.of(issue));
 
 		when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(project));
-		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, "%login%", pageable))
+		when(issueRepository.findByProjectIdAndFilters(project.getId(), null, null, null, "%login%", pageable))
 				.thenReturn(pagedResult);
 
 		Page<Issue> result = issueService.getIssuesByProjectKey(projectKey, "ALL", "ALL", "Login", pageable);
@@ -588,7 +616,7 @@ class IssueServiceTest {
 		assertNotNull(result);
 		assertEquals(1, result.getTotalElements());
 		assertEquals("NullPointerException in Login", result.getContent().get(0).getTitle());
-		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, "%login%", pageable);
+		verify(issueRepository, times(1)).findByProjectIdAndFilters(project.getId(), null, null, null, "%login%", pageable);
 	}
 
 	@Test
