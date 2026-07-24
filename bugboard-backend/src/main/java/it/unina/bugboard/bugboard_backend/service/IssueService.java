@@ -201,12 +201,15 @@ public class IssueService {
 
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, Pageable pageable) {
-        return getIssuesByProjectKey(projectKey, status, priority, null, pageable);
+        return getIssuesByProjectKeyInternal(projectKey, status, priority, null, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<Issue> getIssuesByProjectKey(String projectKey, String status, String priority, String search, Pageable pageable) {
-        System.out.println("⚙️ [3. Service] Inizio elaborazione filtri...");
+        return getIssuesByProjectKeyInternal(projectKey, status, priority, search, pageable);
+    }
+
+    private Page<Issue> getIssuesByProjectKeyInternal(String projectKey, String status, String priority, String search, Pageable pageable) {
         Project project = projectRepository.findByKey(projectKey)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with key: " + projectKey));
         IssueStatus statusEnum = parseEnum(IssueStatus.class, status);
