@@ -284,17 +284,26 @@
 
               <!-- Assignee / User Avatar (Hidden on Mobile) -->
               <td class="d-none d-md-table-cell">
-                <div class="d-flex align-items-center gap-2">
-                  <div
-                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
-                    style="width: 30px; height: 30px; font-size: 12px"
-                  >
-                    {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
+                @if (issue.assigneeUsername && issue.assigneeUsername !== 'Unassigned') {
+                  <div class="d-flex align-items-center gap-2">
+                    <div
+                      class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                      style="width: 28px; height: 28px; font-size: 11px; letter-spacing: 0.5px"
+                    >
+                      {{ issue.assigneeUsername.substring(0, 2) | uppercase }}
+                    </div>
+                    <span class="fw-medium text-dark text-truncate" style="max-width: 130px">
+                      {{ issue.assigneeUsername }}
+                    </span>
                   </div>
-                  <span class="text-truncate" style="max-width: 120px">
-                    {{ issue.assigneeUsername || 'Unassigned' }}
+                } @else {
+                  <span
+                    class="badge bg-light text-secondary border fw-normal px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5"
+                  >
+                    <i class="bi bi-person-dash text-muted"></i>
+                    <span class="text-muted">Non Assegnato</span>
                   </span>
-                </div>
+                }
               </td>
             </tr>
           } @empty {
