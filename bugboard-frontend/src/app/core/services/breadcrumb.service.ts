@@ -103,6 +103,11 @@ export class BreadcrumbService {
               label: 'Tags',
               icon: 'bi-tags',
             });
+          } else if (projectFeature === 'settings') {
+            items.push({
+              label: 'Settings',
+              icon: 'bi-gear',
+            });
           }
         }
       }

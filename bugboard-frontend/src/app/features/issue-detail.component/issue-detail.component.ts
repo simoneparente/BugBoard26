@@ -21,6 +21,7 @@ import { IssueResponse } from '../../core/issue.model';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AssigneeRecommendation } from '../../core/assignee-recommendation.model';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
+
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { environment } from '../../../environments/environment';
 
@@ -334,6 +335,29 @@ export class IssueDetailComponent implements OnInit {
   }
   public getStatusLabel(status?: string): string {
     return status ? status.replace(/_/g, ' ').toUpperCase() : '';
+  }
+
+  public getStatusIcon(status?: string): string {
+    switch (status?.toUpperCase()) {
+      case 'TO_DO':
+      case 'NEW':
+      case 'OPEN':
+        return 'bi-circle';
+      case 'IN_PROGRESS':
+        return 'bi-hourglass-split';
+      case 'MARKED_FOR_REVIEW':
+        return 'bi-eye-fill';
+      case 'NOT_FIXED':
+        return 'bi-x-circle-fill';
+      case 'COMPLETED':
+      case 'RESOLVED':
+      case 'ACCEPTED':
+        return 'bi-check-circle-fill';
+      case 'CLOSED':
+        return 'bi-archive-fill';
+      default:
+        return 'bi-funnel';
+    }
   }
 
   public getStatusBadgeClass(status?: string): string {

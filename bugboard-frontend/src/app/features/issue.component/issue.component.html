@@ -82,69 +82,126 @@
     <!-- Status Filter Dropdown -->
     <div class="dropdown flex-grow-1 flex-sm-grow-0">
       <button
-        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
         type="button"
         data-bs-toggle="dropdown"
+        aria-expanded="false"
       >
-        {{ statusFilter() === 'ALL' ? 'All Statuses' : getStatusLabel(statusFilter()) }}
+        <span class="d-flex align-items-center gap-2">
+          @if (statusFilter() === 'ALL') {
+            <i class="bi bi-funnel text-secondary"></i>
+            <span class="fw-medium text-dark">All Statuses</span>
+          } @else {
+            <span
+              [class]="getStatusBadgeClass(statusFilter())"
+              class="d-inline-flex align-items-center gap-1"
+            >
+              <i class="bi" [ngClass]="getStatusIcon(statusFilter())"></i>
+              {{ getStatusLabel(statusFilter()) }}
+            </span>
+          }
+        </span>
       </button>
-      <ul class="dropdown-menu shadow-sm">
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
         <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('ALL')">All Statuses</a>
-        </li>
-        <li><a class="dropdown-item cursor-pointer" (click)="onStatusChange('TO_DO')">To Do</a></li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('IN_PROGRESS')"
-            >In Progress</a
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="statusFilter() === 'ALL'"
+            (click)="onStatusChange('ALL')"
           >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-funnel text-secondary"></i>
+              <span class="fw-medium">All Statuses</span>
+            </span>
+            @if (statusFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
         </li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('MARKED_FOR_REVIEW')"
-            >Marked For Review</a
-          >
-        </li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('NOT_FIXED')"
-            >Not Fixed</a
-          >
-        </li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('COMPLETED')"
-            >Completed</a
-          >
-        </li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onStatusChange('CLOSED')">Closed</a>
-        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (st of statusOptions; track st) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="statusFilter() === st"
+              (click)="onStatusChange(st)"
+            >
+              <span
+                [class]="getStatusBadgeClass(st)"
+                class="d-inline-flex align-items-center gap-1"
+              >
+                <i class="bi" [ngClass]="getStatusIcon(st)"></i>
+                {{ getStatusLabel(st) }}
+              </span>
+              @if (statusFilter() === st) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
       </ul>
     </div>
 
     <!-- Priority Filter Dropdown -->
     <div class="dropdown flex-grow-1 flex-sm-grow-0">
       <button
-        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2"
+        class="btn btn-white border dropdown-toggle w-100 d-flex align-items-center justify-content-between gap-2 shadow-sm rounded-3 px-3 py-2"
         type="button"
         data-bs-toggle="dropdown"
+        aria-expanded="false"
       >
-        {{ priorityFilter() === 'ALL' ? 'All Priorities' : (priorityFilter() | titlecase) }}
+        <span class="d-flex align-items-center gap-2">
+          @if (priorityFilter() === 'ALL') {
+            <i class="bi bi-sliders text-secondary"></i>
+            <span class="fw-medium text-dark">All Priorities</span>
+          } @else {
+            <span
+              class="badge border rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1"
+              [ngClass]="getPriorityStyle(priorityFilter())"
+            >
+              <i class="bi" [ngClass]="getPriorityIcon(priorityFilter())"></i>
+              {{ priorityFilter() | titlecase }}
+            </span>
+          }
+        </span>
       </button>
-      <ul class="dropdown-menu shadow-sm">
+      <ul class="dropdown-menu shadow rounded-3 py-2 border-0 mt-1">
         <li>
-          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('ALL')"
-            >All Priorities</a
+          <a
+            class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+            [class.active]="priorityFilter() === 'ALL'"
+            (click)="onPriorityChange('ALL')"
           >
+            <span class="d-flex align-items-center gap-2">
+              <i class="bi bi-sliders text-secondary"></i>
+              <span class="fw-medium">All Priorities</span>
+            </span>
+            @if (priorityFilter() === 'ALL') {
+              <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+            }
+          </a>
         </li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGHEST')">Highest</a>
-        </li>
-        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('HIGH')">High</a></li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('MEDIUM')">Medium</a>
-        </li>
-        <li><a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOW')">Low</a></li>
-        <li>
-          <a class="dropdown-item cursor-pointer" (click)="onPriorityChange('LOWEST')">Lowest</a>
-        </li>
+        <li><hr class="dropdown-divider my-1" /></li>
+        @for (pr of priorityOptions; track pr) {
+          <li>
+            <a
+              class="dropdown-item d-flex align-items-center justify-content-between gap-3 py-2 px-3 cursor-pointer"
+              [class.active]="priorityFilter() === pr"
+              (click)="onPriorityChange(pr)"
+            >
+              <span
+                class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
+                [ngClass]="getPriorityStyle(pr)"
+              >
+                <i class="bi" [ngClass]="getPriorityIcon(pr)"></i>
+                {{ pr | titlecase }}
+              </span>
+              @if (priorityFilter() === pr) {
+                <i class="bi bi-check2 text-primary fw-bold ms-2"></i>
+              }
+            </a>
+          </li>
+        }
       </ul>
     </div>
   </div>
@@ -206,40 +263,44 @@
                   class="badge border rounded-pill px-2 d-inline-flex align-items-center gap-1"
                   [ngClass]="getPriorityStyle(issue.priority)"
                 >
-                  <i
-                    class="bi"
-                    [ngClass]="{
-                      'bi-chevron-double-up': issue.priority.toLowerCase() === 'highest',
-                      'bi-chevron-up': issue.priority.toLowerCase() === 'high',
-                      'bi-dash-lg': issue.priority.toLowerCase() === 'medium',
-                      'bi-chevron-down': issue.priority.toLowerCase() === 'low',
-                      'bi-chevron-double-down': issue.priority.toLowerCase() === 'lowest',
-                    }"
-                  ></i>
+                  <i class="bi" [ngClass]="getPriorityIcon(issue.priority)"></i>
                   {{ issue.priority | titlecase }}
                 </span>
               </td>
 
               <!-- Status Badge -->
               <td>
-                <span [class]="getStatusBadgeClass(issue.status)">
+                <span
+                  [class]="getStatusBadgeClass(issue.status)"
+                  class="d-inline-flex align-items-center gap-1"
+                >
+                  <i class="bi" [ngClass]="getStatusIcon(issue.status)"></i>
                   {{ getStatusLabel(issue.status) }}
                 </span>
               </td>
 
               <!-- Assignee / User Avatar (Hidden on Mobile) -->
               <td class="d-none d-md-table-cell">
-                <div class="d-flex align-items-center gap-2">
-                  <div
-                    class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
-                    style="width: 30px; height: 30px; font-size: 12px"
-                  >
-                    {{ (issue.assigneeUsername || 'UN').substring(0, 2) | uppercase }}
+                @if (issue.assigneeUsername && issue.assigneeUsername !== 'Unassigned') {
+                  <div class="d-flex align-items-center gap-2">
+                    <div
+                      class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                      style="width: 28px; height: 28px; font-size: 11px; letter-spacing: 0.5px"
+                    >
+                      {{ issue.assigneeUsername.substring(0, 2) | uppercase }}
+                    </div>
+                    <span class="fw-medium text-dark text-truncate" style="max-width: 130px">
+                      {{ issue.assigneeUsername }}
+                    </span>
                   </div>
-                  <span class="text-truncate" style="max-width: 120px">
-                    {{ issue.assigneeUsername || 'Unassigned' }}
+                } @else {
+                  <span
+                    class="badge bg-light text-secondary border fw-normal px-2.5 py-1.5 d-inline-flex align-items-center gap-1.5"
+                  >
+                    <i class="bi bi-person-dash text-muted"></i>
+                    <span class="text-muted">Non Assegnato</span>
                   </span>
-                </div>
+                }
               </td>
             </tr>
           } @empty {

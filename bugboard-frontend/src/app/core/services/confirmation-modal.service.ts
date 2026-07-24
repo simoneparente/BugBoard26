@@ -46,7 +46,7 @@ export class ConfirmationModalService {
       cancelButtonText: config.cancelButtonText ?? 'Cancel',
       isDangerous: config.isDangerous ?? false,
       onConfirm: config.onConfirm,
-      onCancel: config.onCancel ?? (() => this.close()),
+      onCancel: config.onCancel ?? null,
     });
   }
 

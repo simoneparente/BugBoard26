@@ -1,31 +1,31 @@
-<div class="toast-container position-fixed top-0 end-0 p-3 d-flex flex-column gap-2">
+<div class="toast-container position-fixed top-0 end-0 p-4 d-flex flex-column gap-3">
   @for (toast of notificationService.toasts(); track toast.id) {
     <div
-      class="toast show border shadow-sm bg-white pointer-events-auto toast-{{ toast.type }}"
+      class="toast show border-0 shadow-lg rounded-4 bg-white pointer-events-auto toast-{{
+        toast.type
+      }} overflow-hidden"
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
     >
-      <div class="toast-header d-flex align-items-center">
-        <i
-          class="bi fs-5 me-2 {{ uiConfig[toast.type].icon }} {{ uiConfig[toast.type].color }}"
-        ></i>
-        <strong
-          class="me-auto text-uppercase font-label-md fw-bold tracking-wider fs-7 {{
-            uiConfig[toast.type].color
-          }}"
-        >
-          {{ toast.title }}
-        </strong>
+      <div class="d-flex p-3 align-items-start gap-3">
+        <div class="mt-1 flex-shrink-0">
+          <i class="bi fs-4 {{ uiConfig[toast.type].icon }} {{ uiConfig[toast.type].color }}"></i>
+        </div>
+        <div class="flex-grow-1">
+          <h6 class="mb-1 fw-bold {{ uiConfig[toast.type].color }}">
+            {{ toast.title }}
+          </h6>
+          <p class="mb-0 text-secondary small" style="font-size: 0.85rem">
+            {{ toast.message }}
+          </p>
+        </div>
         <button
           type="button"
-          class="btn-close fs-7"
+          class="btn-close mt-1 flex-shrink-0"
           aria-label="Close"
           (click)="notificationService.remove(toast.id)"
         ></button>
-      </div>
-      <div class="toast-body text-secondary font-body-md fs-7">
-        {{ toast.message }}
       </div>
     </div>
   }
