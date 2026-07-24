@@ -1,77 +1,155 @@
 <div
-  class="offcanvas offcanvas-end border-0 shadow-lg bg-glass"
+  class="offcanvas offcanvas-end invite-offcanvas border-0 shadow-lg"
   tabindex="-1"
   id="inviteUserOffcanvas"
   aria-labelledby="inviteUserLabel"
   (hidden.bs.offcanvas)="resetPanel()"
 >
-  <div class="offcanvas-header pt-5 px-4 pb-0 border-0">
-    <h4 class="offcanvas-title fw-bold text-dark tracking-tight" id="inviteUserLabel">
-      Invite a new user
-    </h4>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  <!-- Header -->
+  <div
+    class="offcanvas-header p-4 border-bottom bg-light-subtle align-items-center justify-content-between"
+  >
+    <div class="d-flex align-items-center gap-3">
+      <div
+        class="invite-header-icon rounded-3 bg-primary text-white d-flex align-items-center justify-content-center shadow-sm"
+      >
+        <i class="bi bi-person-plus-fill fs-5"></i>
+      </div>
+      <div>
+        <h5 class="offcanvas-title fw-bold text-dark mb-0 tracking-tight" id="inviteUserLabel">
+          Invite Workspace Member
+        </h5>
+        <span class="text-muted extra-small">Generate single-use invitation links</span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="btn-close rounded-circle p-2 shadow-none"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"
+    ></button>
   </div>
 
-  <div class="offcanvas-body px-4 pb-5 d-flex flex-column">
-    <p class="text-muted mb-4">
-      Select the role for the new workspace member and generate a unique registration link, then
-      share the link with the user. <br />
-      The link will be valid for a single use only.
-    </p>
-
-    <div class="mb-auto">
-      <label for="roleSelect" class="form-label fw-medium text-dark">User Role</label>
-      <select id="roleSelect" class="form-select form-select-lg" [formControl]="roleControl">
-        <option [value]="ROLES.TECHNICAL">{{ ROLES.TECHNICAL }}</option>
-        <option [value]="ROLES.ADMIN">{{ ROLES.ADMIN }}</option>
-        <option [value]="ROLES.EXTERNAL">{{ ROLES.EXTERNAL }}</option>
-      </select>
+  <!-- Body -->
+  <div class="offcanvas-body p-4 d-flex flex-column">
+    <!-- Info Banner -->
+    <div
+      class="alert alert-primary-subtle border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-3"
+    >
+      <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5 flex-shrink-0"></i>
+      <div class="small text-secondary lh-sm">
+        Select an access role below to generate a secure
+        <strong>single-use invitation link</strong>. The link will automatically expire after
+        registration.
+      </div>
     </div>
 
-    <div
-      class="mt-5 bg-white bg-opacity-75 p-4 rounded-3 border shadow-sm d-flex flex-column gap-4"
-    >
-      <div>
-        <button
-          class="btn btn-primary btn-lg w-100 py-3 rounded-3 fw-semibold d-flex justify-content-center align-items-center"
-          (click)="generateLink()"
-          [disabled]="isLoading() || isCooldown() || roleControl.invalid"
-        >
-          @if (isLoading()) {
-            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
-            <span>Generating...</span>
-          } @else if (isCooldown()) {
-            <i class="bi bi-hourglass-split me-2"></i>
-            <span>Wait {{ cooldownTime() }}s</span>
-          } @else {
-            <span>Generate Link</span>
-          }
-        </button>
+    <!-- Role Selection -->
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <label class="form-label fw-bold text-dark mb-0">Select Access Level</label>
+        <span class="badge bg-light text-muted border fw-normal extra-small">Required</span>
       </div>
 
-      @if (generatedLink()) {
-        <div class="d-flex flex-column gap-3 pt-3 border-top">
-          <label for="linkInput"> Registration Link </label>
+      <div class="role-cards-container d-flex flex-column gap-3">
+        @for (role of rolesList; track role.key) {
+          <div
+            class="role-card p-3 rounded-3 border transition-all cursor-pointer d-flex align-items-start gap-3"
+            [class.selected]="roleControl.value === role.key"
+            [class]="role.accentClass"
+            (click)="selectRole(role.key)"
+          >
+            <!-- Custom Radio -->
+            <div class="form-check-custom mt-1">
+              <div class="radio-circle" [class.checked]="roleControl.value === role.key">
+                <i class="bi bi-check-lg radio-check"></i>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi" [class]="role.icon + ' role-icon fs-6'"></i>
+                  <span class="fw-semibold text-dark small">{{ role.title }}</span>
+                </div>
+                <span class="badge role-badge">{{ role.badge }}</span>
+              </div>
+              <p class="text-muted extra-small mb-0 lh-sm">{{ role.description }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Generated Link Field (rendered when generated) -->
+    @if (generatedLink()) {
+      <div class="mb-4 animate-fade-in-up">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label text-muted extra-small fw-semibold mb-0">Link for</label>
+            <span
+              class="role-badge"
+              [class.role-technical]="generatedRole() === 'TECHNICAL'"
+              [class.role-admin]="generatedRole() === 'ADMIN'"
+              [class.role-external]="generatedRole() === 'EXTERNAL'"
+            >
+              {{ generatedRole() }}
+            </span>
+          </div>
+          <span class="text-success extra-small fw-medium d-flex align-items-center gap-1">
+            <i class="bi bi-check-circle-fill"></i> Ready
+          </span>
+        </div>
+
+        <div
+          class="input-group rounded-pill border shadow-2xs transition-all overflow-hidden p-0.5 bg-white"
+          [class.link-flash]="isFlashing()"
+        >
+          <span class="input-group-text bg-transparent text-muted border-0 ps-3 pe-1">
+            <i class="bi bi-link-45deg fs-6"></i>
+          </span>
           <input
             #linkInput
-            id="linkInput"
             type="text"
-            class="form-control form-control-lg text-center bg-white border-primary border-opacity-50 text-primary fw-medium cursor-pointer"
+            class="form-control bg-transparent text-dark extra-small font-monospace fw-medium shadow-none border-0 px-2"
             readonly
             [value]="generatedLink()"
             (click)="linkInput.select()"
             (focus)="linkInput.select()"
           />
-
           <button
-            class="btn btn-outline-primary btn-lg w-100 py-3 rounded-3 fw-semibold d-flex justify-content-center align-items-center gap-2 transition-all"
+            class="btn btn-primary rounded-pill px-3.5 d-flex align-items-center gap-1.5 fw-semibold btn-copy"
+            [class.btn-success]="isCopied()"
             (click)="copyToClipboard(generatedLink()!)"
+            type="button"
           >
-            <i class="bi" [class.bi-clipboard]="!isCopied()" [class.bi-check-lg]="isCopied()"></i>
-            <span>{{ isCopied() ? 'Copied to clipboard!' : 'Copy Link' }}</span>
+            <i class="bi" [class.bi-clipboard]="!isCopied()" [class.bi-check2-all]="isCopied()"></i>
+            <span>{{ isCopied() ? 'Copied' : 'Copy' }}</span>
           </button>
         </div>
-      }
+      </div>
+    }
+
+    <!-- Single Action Footer -->
+    <div class="mt-auto pt-3 border-top d-flex justify-content-end">
+      <button
+        class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 brand-btn flex-shrink-0"
+        (click)="generateLink()"
+        [disabled]="isLoading() || roleControl.invalid"
+      >
+        @if (isLoading()) {
+          <span
+            class="spinner-border spinner-border-sm me-1"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          <span>Generating...</span>
+        } @else {
+          <i class="bi bi-link-45deg fs-6"></i>
+          <span>Generate {{ roleControl.value }} Link</span>
+        }
+      </button>
     </div>
   </div>
 </div>

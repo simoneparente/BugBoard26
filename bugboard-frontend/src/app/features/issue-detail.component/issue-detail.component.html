@@ -384,7 +384,11 @@
               class="p-3 bg-light rounded-3 mb-4 d-flex align-items-center justify-content-between"
             >
               <span class="text-muted small fw-medium">Current Status</span>
-              <span [class]="getStatusBadgeClass(item.status)">
+              <span
+                [class]="getStatusBadgeClass(item.status)"
+                class="d-inline-flex align-items-center gap-1"
+              >
+                <i class="bi" [ngClass]="getStatusIcon(item.status)"></i>
                 {{ getStatusLabel(item.status) }}
               </span>
             </div>
@@ -488,7 +492,6 @@
       </div>
     </div>
   }
-
   <!-- Confirmation Modal -->
   <app-confirmation-modal></app-confirmation-modal>
 </div>
