@@ -54,12 +54,10 @@ public class IssueExportController {
 
                 while (hasMore) {
                     Pageable pageable = PageRequest.of(pageNumber, pageSize);
-                    Page<?> issuesPage = issueService.getIssuesByProjectKey(
-                            projectKey, "ALL", "ALL", pageable);
+                    Page<IssueResponse> issuesPage = issueService.getExportIssuesByProjectKey(
+                            projectKey, pageable);
 
-                    List<IssueResponse> pageIssues = issuesPage.getContent().stream()
-                            .map(issue -> issueMapper.toResponse((Issue) issue))
-                            .toList();
+                    List<IssueResponse> pageIssues = issuesPage.getContent();
 
                     if (!pageIssues.isEmpty()) {
                         pageProcessor.processPage(pageIssues);

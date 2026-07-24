@@ -105,8 +105,8 @@ class IssueExportControllerTest {
     void exportIssues_WithCsvFormat_ReturnsStreamingResponseEntity() throws IOException {
         StreamingCsvIssueExporter realExporter = new StreamingCsvIssueExporter();
         when(exportFactory.getStreamingExporter(ExportFormat.CSV)).thenReturn(realExporter);
-        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class)))
-                .thenAnswer(invocation -> emptyIssuePage(invocation.getArgument(3)));
+        when(issueService.getExportIssuesByProjectKey(eq(projectKey), any(Pageable.class)))
+                .thenAnswer(invocation -> emptyIssueResponsePage(invocation.getArgument(1)));
 
         ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectKey, "CSV");
 
@@ -131,7 +131,7 @@ class IssueExportControllerTest {
         assertEquals("ID;Title;Description;Status;Priority;Type;Assignee;Created At;Updated At;Project;Tags\n", csv);
 
         verify(exportFactory).getStreamingExporter(ExportFormat.CSV);
-        verify(issueService).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class));
+        verify(issueService).getExportIssuesByProjectKey(eq(projectKey), any(Pageable.class));
     }
 
     @Test
@@ -146,18 +146,17 @@ class IssueExportControllerTest {
     void exportIssues_WhenFirstPageHasDataAndSecondIsEmpty_ProcessesOnlyNonEmptyPages() throws IOException {
         StreamingCsvIssueExporter realExporter = new StreamingCsvIssueExporter();
         when(exportFactory.getStreamingExporter(ExportFormat.CSV)).thenReturn(realExporter);
-        when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class)))
+        when(issueService.getExportIssuesByProjectKey(eq(projectKey), any(Pageable.class)))
                 .thenAnswer(invocation -> {
-                    Pageable pageable = invocation.getArgument(3);
+                    Pageable pageable = invocation.getArgument(1);
                     if (pageable.getPageNumber() == 0) {
-                        return new PageImpl<>(List.of(issue), pageable, 501);
+                        return new PageImpl<>(List.of(issueResponse), pageable, 501);
                     }
                     if (pageable.getPageNumber() == 1) {
                         return new PageImpl<>(List.of(), pageable, 501);
                     }
                     throw new AssertionError("Unexpected page request: " + pageable);
                 });
-        when(issueMapper.toResponse(issue)).thenReturn(issueResponse);
 
         ResponseEntity<StreamingResponseBody> response = controller.exportIssues(projectKey, "CSV");
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -166,11 +165,10 @@ class IssueExportControllerTest {
         String csv = new String(output.toByteArray(), 3, output.size() - 3, StandardCharsets.UTF_8);
         assertTrue(csv.contains(issueResponse.getId().toString()));
         assertTrue(csv.contains("Export issue"));
-        verify(issueService, times(2)).getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), any(Pageable.class));
-        verify(issueMapper).toResponse(issue);
+        verify(issueService, times(2)).getExportIssuesByProjectKey(eq(projectKey), any(Pageable.class));
     }
 
-    private Page<Issue> emptyIssuePage(Pageable pageable) {
+    private Page<IssueResponse> emptyIssueResponsePage(Pageable pageable) {
         return new PageImpl<>(List.of(), pageable, 0);
     }
 }
