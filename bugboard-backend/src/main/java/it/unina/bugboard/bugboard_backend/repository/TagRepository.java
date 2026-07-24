@@ -16,13 +16,16 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
 
     // Retrieve all tags associated with a given project
     List<Tag> findByProjectId(UUID projectId);
+    List<Tag> findByProjectKey(String projectKey);
 
     // Check if a tag with a given name already exists within a specific project
     // Useful during creation validation (prevents duplicates within the same project)
     boolean existsByNameAndProjectId(String name, UUID projectId);
+    boolean existsByNameAndProjectKey(String name, String projectKey);
 
     // Retrieve a specific tag by name and project ID
     Optional<Tag> findByNameAndProjectId(String name, UUID projectId);
+    Optional<Tag> findByNameAndProjectKey(String name, String projectKey);
 
     /**
      * Remove all associations between a tag and issues in the join table.

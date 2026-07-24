@@ -17,7 +17,12 @@ import java.util.UUID;
 
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, UUID> {
-    
+    @Query("SELECT COALESCE(MAX(i.sequenceNumber), 0) FROM Issue i WHERE i.project.id = :projectId")
+    Long findMaxSequenceNumberByProjectId(@Param("projectId") UUID projectId);
+
+    @Query("SELECT i FROM Issue i WHERE i.project.key = :projectKey AND i.sequenceNumber = :sequenceNumber")
+    Issue findByProjectKeyAndSequenceNumber(@Param("projectKey") String projectKey, @Param("sequenceNumber") Long sequenceNumber);
+
     Page<Issue> findByProjectId(UUID projectId, Pageable pageable);
 
     Page<Issue> findByProjectIdAndStatusAndPriority(UUID projectId, IssueStatus status, IssuePriority priority, Pageable pageable);
@@ -26,7 +31,11 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
 
     Page<Issue> findByProjectIdAndStatus(UUID projectId, IssueStatus status, Pageable pageable);
 
-    @Query("SELECT i FROM Issue i WHERE i.project.id = :projectId " +
+    @Query(value = "SELECT i FROM Issue i LEFT JOIN i.assignee a WHERE i.project.id = :projectId " +
+            "AND (:status IS NULL OR i.status = :status) " +
+            "AND (:priority IS NULL OR i.priority = :priority) " +
+            "AND (:searchPattern IS NULL OR LOWER(i.title) LIKE :searchPattern OR (i.description IS NOT NULL AND LOWER(i.description) LIKE :searchPattern))",
+           countQuery = "SELECT COUNT(i) FROM Issue i WHERE i.project.id = :projectId " +
             "AND (:status IS NULL OR i.status = :status) " +
             "AND (:priority IS NULL OR i.priority = :priority) " +
             "AND (:searchPattern IS NULL OR LOWER(i.title) LIKE :searchPattern OR (i.description IS NOT NULL AND LOWER(i.description) LIKE :searchPattern))")
@@ -39,8 +48,8 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     
     Issue findByIdAndProjectId(UUID issueId, UUID projectId);
 
-    // Count bugs opened (created) in the month for a project
-    long countByProjectIdAndCreatedAtBetween(UUID projectId, LocalDateTime start, LocalDateTime end);
+    // Count bugs opened (created) in the month for a project excluding specified statuses (COMPLETED, CLOSED)
+    long countByProjectIdAndStatusNotInAndCreatedAtBetween(UUID projectId, List<IssueStatus> statuses, LocalDateTime start, LocalDateTime end);
 
     // Count resolved bugs (status = COMPLETED, updatedAt in range) for a project
     long countByProjectIdAndStatusAndUpdatedAtBetween(UUID projectId, IssueStatus status, LocalDateTime start, LocalDateTime end);
@@ -48,8 +57,8 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     // Retrieve resolved bugs to calculate average resolution time
     List<Issue> findByProjectIdAndStatusAndUpdatedAtBetween(UUID projectId, IssueStatus status, LocalDateTime start, LocalDateTime end);
 
-    // Count bugs opened in the month for a specific user in a project
-    long countByProjectIdAndAssigneeIdAndCreatedAtBetween(UUID projectId, UUID userId, LocalDateTime start, LocalDateTime end);
+    // Count bugs opened in the month for a specific user in a project excluding specified statuses
+    long countByProjectIdAndAssigneeIdAndStatusNotInAndCreatedAtBetween(UUID projectId, UUID userId, List<IssueStatus> statuses, LocalDateTime start, LocalDateTime end);
 
     // Count resolved bugs in the month for a specific user in a project
     long countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);

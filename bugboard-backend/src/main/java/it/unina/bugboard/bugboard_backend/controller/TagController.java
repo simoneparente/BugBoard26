@@ -49,11 +49,11 @@ public class TagController {
 
     /**
      * Endpoint to retrieve all tags belonging to a specific project.
-     * GET /api/tags/project/{projectId}
+     * GET /api/tags/project/{projectKey}
      */
-    @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<TagResponse>> getTagsByProjectId(@PathVariable UUID projectId) {
-        List<TagResponse> response = tagService.getAllTagsByProjectId(projectId);
+    @GetMapping("/project/{projectKey}")
+    public ResponseEntity<List<TagResponse>> getTagsByProjectKey(@PathVariable String projectKey) {
+        List<TagResponse> response = tagService.getAllTagsByProjectKey(projectKey);
         return ResponseEntity.ok(response);
     }
 

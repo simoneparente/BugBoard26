@@ -14,6 +14,7 @@ public class IssueMapper {
 
         return IssueResponse.builder()
                 .id(issue.getId())
+                .sequenceNumber(issue.getSequenceNumber())
                 .title(issue.getTitle())
                 .description(issue.getDescription())
                 .createdAt(issue.getCreatedAt())
@@ -23,6 +24,7 @@ public class IssueMapper {
                 .type(issue.getType().toString())
                 .assigneeUsername(getAssigneeUsername(issue))
                 .projectId(issue.getProject().getId())
+                .projectKey(issue.getProject().getKey())
                 .projectName(issue.getProject().getName())
                 .build();
     }

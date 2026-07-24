@@ -14,8 +14,8 @@ export class TagService {
   /**
    * Retrieve all tags for a specific project.
    */
-  public getTagsByProjectId(projectId: string): Observable<TagResponse[]> {
-    return this.http.get<TagResponse[]>(`${this.API_URL}/tags/project/${projectId}`);
+  public getTagsByProjectKey(projectKey: string): Observable<TagResponse[]> {
+    return this.http.get<TagResponse[]>(`${this.API_URL}/tags/project/${projectKey}`);
   }
 
   /**

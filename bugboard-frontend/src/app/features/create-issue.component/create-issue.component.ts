@@ -58,7 +58,7 @@ export class CreateIssueComponent implements OnInit {
   tagSearchQuery: string = '';
 
   selectedFiles: File[] = [];
-  projectId: string = '';
+  projectKey: string = '';
   availableTags: TagResponse[] = [];
   selectedTags: TagResponse[] = [];
 
@@ -102,19 +102,20 @@ export class CreateIssueComponent implements OnInit {
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.route.paramMap.subscribe((params) => {
-        let id = params.get('projectId') || this.route.parent?.snapshot.paramMap.get('projectId');
+        let key =
+          params.get('projectKey') || this.route.parent?.snapshot.paramMap.get('projectKey');
 
-        if (!id && typeof window !== 'undefined') {
-          const match = window.location.pathname.match(/projects\/([a-f0-9-]+)/i);
+        if (!key && typeof window !== 'undefined') {
+          const match = window.location.pathname.match(/projects\/([^\/]+)/i);
           if (match) {
-            id = match[1];
+            key = match[1];
           }
         }
 
-        this.projectId = id || '';
-        if (this.projectId) {
-          this.loadTags(this.projectId);
-          this.loadProjectDetails(this.projectId);
+        this.projectKey = key || '';
+        if (this.projectKey) {
+          this.loadTags(this.projectKey);
+          this.loadProjectDetails(this.projectKey);
         } else {
           this.isLoadingTags = false;
         }
@@ -137,9 +138,9 @@ export class CreateIssueComponent implements OnInit {
     });
   }
 
-  private loadTags(projectId: string) {
+  private loadTags(projectKey: string) {
     this.isLoadingTags = true;
-    this.tagService.getTagsByProjectId(projectId).subscribe({
+    this.tagService.getTagsByProjectKey(projectKey).subscribe({
       next: (tags) => {
         this.availableTags = tags || [];
         this.isLoadingTags = false;
@@ -191,7 +192,7 @@ export class CreateIssueComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const projectId = this.projectId;
+    const projectKey = this.projectKey;
 
     const uploadTasks$ =
       this.selectedFiles.length === 0
@@ -223,10 +224,10 @@ export class CreateIssueComponent implements OnInit {
           attachments: attachmentMetadataList,
         };
 
-        this.issueService.createIssue(projectId, payload).subscribe({
+        this.issueService.createIssue(projectKey, payload).subscribe({
           next: (response) => {
             this.notificationService.showSuccess('Success', 'Issue created successfully!');
-            this.router.navigate(['/projects', projectId, 'issues', response.id]);
+            this.router.navigate(['/projects', projectKey, 'issues', response.sequenceNumber]);
           },
           error: () => {
             this.showError = true;

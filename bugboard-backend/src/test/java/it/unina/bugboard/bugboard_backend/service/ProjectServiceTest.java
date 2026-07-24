@@ -2,26 +2,30 @@ package it.unina.bugboard.bugboard_backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.junit.jupiter.api.Nested;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,10 +35,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
+import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
+import it.unina.bugboard.bugboard_backend.dto.UserResponse;
+import it.unina.bugboard.bugboard_backend.entity.Issue;
+import it.unina.bugboard.bugboard_backend.entity.IssueStatus;
 import it.unina.bugboard.bugboard_backend.entity.Project;
 import it.unina.bugboard.bugboard_backend.entity.Role;
 import it.unina.bugboard.bugboard_backend.entity.User;
+import it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException;
 import it.unina.bugboard.bugboard_backend.exception.UnauthorizedException;
 import it.unina.bugboard.bugboard_backend.repository.ProjectRepository;
 import it.unina.bugboard.bugboard_backend.repository.UserRepository;
@@ -58,6 +68,7 @@ class ProjectServiceTest {
     private ProjectService projectService;
 
     private UUID projectId;
+    private String projectKey;
     private UUID userId;
 
     private Project dummyProject;
@@ -65,10 +76,12 @@ class ProjectServiceTest {
 
     protected void setupAuthenticatedContext() {
         projectId = UUID.randomUUID();
+        projectKey = "FRONT";
         userId = UUID.randomUUID();
 
         dummyProject = Project.builder()
                 .id(projectId)
+                .key(projectKey)
                 .name("BugBoard Core")
                 .description("test description")
                 .build();
@@ -140,21 +153,21 @@ class ProjectServiceTest {
         }
 
         @Test
-        void getProjectById_Success() {
-            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+        void getProjectByKey_Success() {
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
 
-            Project result = projectService.getProjectById(projectId);
+            Project result = projectService.getProjectByKey(projectKey);
 
             assertNotNull(result);
             assertEquals(projectId, result.getId());
         }
 
         @Test
-        void getProjectById_ThrowsException_WhenNotFound() {
-            when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
+        void getProjectByKey_ThrowsException_WhenNotFound() {
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.empty());
 
             assertThrows(RuntimeException.class, () -> {
-                projectService.getProjectById(projectId);
+                projectService.getProjectByKey(projectKey);
             });
         }
 
@@ -174,9 +187,10 @@ class ProjectServiceTest {
 
         @Test
         void deleteProject_Success() {
+           when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
            doNothing().when(projectRepository).deleteById(projectId);
 
-           projectService.deleteProject(projectId);
+           projectService.deleteProject(projectKey);
 
            verify(projectRepository, times(1)).deleteById(projectId);
        } 
@@ -187,23 +201,23 @@ class ProjectServiceTest {
             when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
 
             assertThrows(UnauthorizedException.class, () -> {
-                projectService.deleteProject(projectId);
+                projectService.deleteProject(projectKey);
             });
 
             verify(projectRepository, never()).deleteById(projectId);
         }
 
         @Test
-        void getProjectById_Success_AsNonAdmin_WhenMember() {
+        void getProjectByKey_Success_AsNonAdmin_WhenMember() {
             // Setup: change user role to TECHNICAL and is member
             dummyUser.setRole(Role.TECHNICAL);
             dummyProject.setMembers(List.of(dummyUser));
             when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
             when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(true);
-            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
 
             // Act
-            Project result = projectService.getProjectById(projectId);
+            Project result = projectService.getProjectByKey(projectKey);
 
             // Assert
             assertNotNull(result);
@@ -212,15 +226,16 @@ class ProjectServiceTest {
         }
 
         @Test
-        void getProjectById_ThrowsException_WhenNonAdminAndNotMember() {
+        void getProjectByKey_ThrowsException_WhenNonAdminAndNotMember() {
             // Setup: change user role to TECHNICAL and NOT a member
             dummyUser.setRole(Role.TECHNICAL);
             when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
             when(projectRepository.existsByIdAndMembersId(projectId, userId)).thenReturn(false);
 
             // Act & Assert
             assertThrows(UnauthorizedException.class, () -> {
-                projectService.getProjectById(projectId);
+                projectService.getProjectByKey(projectKey);
             });
 
             verify(projectRepository, never()).findById(projectId);
@@ -271,6 +286,7 @@ class ProjectServiceTest {
             User user2 = User.builder().id(UUID.randomUUID()).username("user2").role(Role.TECHNICAL).build();
 
             dummyProject.setMembers(List.of(user1, user2));
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
             when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
 
             it.unina.bugboard.bugboard_backend.entity.Issue highPriorityIssue = it.unina.bugboard.bugboard_backend.entity.Issue.builder()
@@ -285,7 +301,7 @@ class ProjectServiceTest {
             when(userMapper.toResponse(user1)).thenReturn(it.unina.bugboard.bugboard_backend.dto.UserResponse.builder().id(user1.getId()).username("user1").build());
             when(userMapper.toResponse(user2)).thenReturn(it.unina.bugboard.bugboard_backend.dto.UserResponse.builder().id(user2.getId()).username("user2").build());
 
-            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectId);
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectKey);
 
             assertNotNull(recommendations);
             assertEquals(2, recommendations.size());
@@ -299,15 +315,16 @@ class ProjectServiceTest {
         @Test
         void getRecommendedAssignees_EmptyOrNullMembers_ReturnsEmptyList() {
             dummyProject.setMembers(List.of());
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
             when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
 
-            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectId);
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectKey);
 
             assertNotNull(recommendations);
             assertEquals(0, recommendations.size());
 
             dummyProject.setMembers(null);
-            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> nullMembersRecs = projectService.getRecommendedAssignees(projectId);
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> nullMembersRecs = projectService.getRecommendedAssignees(projectKey);
             assertNotNull(nullMembersRecs);
             assertEquals(0, nullMembersRecs.size());
         }
@@ -316,6 +333,7 @@ class ProjectServiceTest {
         void getRecommendedAssignees_IssueWithNullPriorityAndNullAssignee() {
             User user1 = User.builder().id(UUID.randomUUID()).username("user1").role(Role.TECHNICAL).build();
             dummyProject.setMembers(List.of(user1));
+            when(projectRepository.findByKey(projectKey)).thenReturn(Optional.of(dummyProject));
             when(projectRepository.findByIdWithMembers(projectId)).thenReturn(Optional.of(dummyProject));
 
             it.unina.bugboard.bugboard_backend.entity.Issue nullPriorityIssue = it.unina.bugboard.bugboard_backend.entity.Issue.builder()
@@ -335,7 +353,7 @@ class ProjectServiceTest {
 
             when(userMapper.toResponse(user1)).thenReturn(it.unina.bugboard.bugboard_backend.dto.UserResponse.builder().id(user1.getId()).username("user1").build());
 
-            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectId);
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recommendations = projectService.getRecommendedAssignees(projectKey);
 
             assertNotNull(recommendations);
             assertEquals(1, recommendations.size());
@@ -425,6 +443,7 @@ class ProjectServiceTest {
             projectId = UUID.randomUUID();
             dummyProject = Project.builder()
                     .id(projectId)
+                    .key("FRONT")
                     .name("BugBoard Core")
                     .description("test description")
                     .build();
@@ -437,10 +456,87 @@ class ProjectServiceTest {
 
             // Act & Assert
             assertThrows(UnauthorizedException.class, () -> {
-                projectService.deleteProject(projectId);
+                projectService.deleteProject("FRONT");
             });
 
             verify(projectRepository, never()).deleteById(projectId);
+        }
+
+        @Test
+        void getCurrentUser_ThrowsWhenUserIdInvalid() {
+            try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+                SecurityContext securityContext = mock(SecurityContext.class);
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getName()).thenReturn("not-a-uuid");
+                when(authentication.isAuthenticated()).thenReturn(true);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+
+                assertThrows(UnauthorizedException.class, () -> projectService.deleteProject("FRONT"));
+            }
+        }
+
+        @Test
+        void getCurrentUser_ThrowsWhenUserNotFound() {
+            UUID userId = UUID.randomUUID();
+            try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+                SecurityContext securityContext = mock(SecurityContext.class);
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getName()).thenReturn(userId.toString());
+                when(authentication.isAuthenticated()).thenReturn(true);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+                assertThrows(UnauthorizedException.class, () -> projectService.deleteProject("FRONT"));
+            }
+        }
+    }
+
+    @Nested
+    class DeleteProjectTests {
+        @Test
+        void deleteProject_ProjectNotFound() {
+            UUID userId = UUID.randomUUID();
+            User adminUser = User.builder().id(userId).role(Role.ADMIN).build();
+            try (MockedStatic<SecurityContextHolder> mockedSecurityHolder = mockStatic(SecurityContextHolder.class)) {
+                SecurityContext securityContext = mock(SecurityContext.class);
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getName()).thenReturn(userId.toString());
+                when(authentication.isAuthenticated()).thenReturn(true);
+                when(securityContext.getAuthentication()).thenReturn(authentication);
+                mockedSecurityHolder.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+                when(userRepository.findById(userId)).thenReturn(Optional.of(adminUser));
+
+                when(projectRepository.findByKey("FRONT")).thenReturn(Optional.empty());
+
+                assertThrows(ResourceNotFoundException.class, () -> projectService.deleteProject("FRONT"));
+            }
+        }
+    }
+
+    @Nested
+    class RecommendAssigneesAdditionalTests {
+        @Test
+        void getRecommendedAssignees_ProjectNotFoundById() {
+            Project dummyProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
+            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(dummyProject));
+            when(projectRepository.findByIdWithMembers(dummyProject.getId())).thenReturn(Optional.empty());
+
+            assertThrows(ResourceNotFoundException.class, () -> projectService.getRecommendedAssignees("FRONT"));
+        }
+
+        @Test
+        void getRecommendedAssignees_UsernameNullHandling() {
+            Project dummyProject = Project.builder().id(UUID.randomUUID()).key("FRONT").build();
+            User user1 = User.builder().id(UUID.randomUUID()).role(Role.TECHNICAL).username(null).build();
+            dummyProject.setMembers(List.of(user1));
+            when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(dummyProject));
+            when(projectRepository.findByIdWithMembers(dummyProject.getId())).thenReturn(Optional.of(dummyProject));
+            when(issueRepository.findByProjectIdAndStatusNotIn(eq(dummyProject.getId()), anyList())).thenReturn(List.of());
+
+            List<it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse> recs = projectService.getRecommendedAssignees("FRONT");
+            assertEquals(1, recs.size());
         }
     }
 }

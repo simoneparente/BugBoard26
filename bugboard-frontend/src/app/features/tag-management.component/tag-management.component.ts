@@ -7,6 +7,8 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
 import { ConfirmationModalComponent } from '../../shared/components/confirmation-modal/confirmation-modal.component';
 import { TagRequest, TagResponse } from '../../core/tag.model';
+import { ProjectService } from '../../core/services/project.service';
+import { BreadcrumbService } from '../../core/services/breadcrumb.service';
 
 @Component({
   selector: 'app-tag-management',
@@ -19,11 +21,12 @@ export class TagManagementComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly tagService = inject(TagService);
+  private readonly projectService = inject(ProjectService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmService = inject(ConfirmationModalService);
 
-  // Route parameter - extract from route params
-  private readonly projectId = signal<string | null>(null);
+  private readonly projectKey = signal<string | null>(null);
 
   // State
   public readonly tags = signal<TagResponse[]>([]);
@@ -68,8 +71,15 @@ export class TagManagementComponent implements OnInit {
    */
   private loadProjectId(): void {
     this.activatedRoute.paramMap.subscribe((params) => {
-      const id = params.get('projectId');
-      this.projectId.set(id);
+      const key = params.get('projectKey');
+      this.projectKey.set(key);
+
+      if (key) {
+        this.projectService.getById(key).subscribe({
+          next: (project) => this.breadcrumbService.setProjectName(project.name),
+          error: (err) => console.error('Failed to load project details for breadcrumb', err),
+        });
+      }
     });
   }
 
@@ -77,9 +87,9 @@ export class TagManagementComponent implements OnInit {
    * Load tags for the project.
    */
   private loadTags(): void {
-    const projectId = this.projectId();
-    if (!projectId) {
-      this.error.set('Project ID not found in route');
+    const projectKey = this.projectKey();
+    if (!projectKey) {
+      this.error.set('Project Key not found in route');
       this.loading.set(false);
       return;
     }
@@ -87,7 +97,7 @@ export class TagManagementComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.tagService.getTagsByProjectId(projectId).subscribe({
+    this.tagService.getTagsByProjectKey(projectKey).subscribe({
       next: (data) => {
         this.tags.set(data);
         this.loading.set(false);
@@ -104,7 +114,7 @@ export class TagManagementComponent implements OnInit {
    * Submit the form to create or update a tag.
    */
   public onSubmit(): void {
-    if (this.tagForm.invalid || !this.projectId()) {
+    if (this.tagForm.invalid || !this.projectKey()) {
       this.tagForm.markAllAsTouched();
       return;
     }
@@ -114,7 +124,7 @@ export class TagManagementComponent implements OnInit {
     const request: TagRequest = {
       name: this.tagForm.value.name!,
       color: this.tagForm.value.color!,
-      projectId: this.projectId()!,
+      projectKey: this.projectKey()!,
     };
 
     if (this.isEditMode()) {
@@ -195,7 +205,7 @@ export class TagManagementComponent implements OnInit {
   public onDeleteTag(tag: TagResponse): void {
     this.confirmService.open({
       title: 'Delete Tag',
-      message: `Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete the tag "${tag.name}"? This action cannot be undone and the tag will be removed from all associated issues.`,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       isDangerous: true,

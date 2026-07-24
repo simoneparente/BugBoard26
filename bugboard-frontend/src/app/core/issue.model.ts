@@ -14,6 +14,7 @@ export interface IssueRequest {
 
 export interface IssueResponse {
   id: string;
+  sequenceNumber: number;
   title: string;
   description: string;
   createdAt: string; // ISO date string
@@ -25,5 +26,6 @@ export interface IssueResponse {
   tags: TagResponse[];
   attachments: AttachmentResponse[];
   projectId: string;
+  projectKey: string;
   projectName: string;
 }

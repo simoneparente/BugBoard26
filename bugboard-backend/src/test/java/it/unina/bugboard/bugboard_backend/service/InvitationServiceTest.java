@@ -59,4 +59,30 @@ class InvitationServiceTest {
         assertEquals(response.getToken(), savedInvitation.getToken());
         assertEquals(role, savedInvitation.getRole());
     }
+
+    @Test
+    void cleanupExpiredInvitations_WithDeletedCountGreaterThanZero_LogsMessage() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        when(invitationRepository.deleteByExpiresAtBefore(fixedNow)).thenReturn(5L);
+
+        invitationService.cleanupExpiredInvitations();
+        verify(invitationRepository).deleteByExpiresAtBefore(fixedNow);
+    }
+
+    @Test
+    void cleanupExpiredInvitations_WithDeletedCountZero_DoesNotLogMessage() {
+        LocalDateTime fixedNow = LocalDateTime.of(2026, Month.JUNE, 23, 12, 0, 0);
+        Instant fixedInstant = fixedNow.atZone(ZoneId.of("UTC")).toInstant();
+        when(clock.instant()).thenReturn(fixedInstant);
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        when(invitationRepository.deleteByExpiresAtBefore(fixedNow)).thenReturn(0L);
+
+        invitationService.cleanupExpiredInvitations();
+        verify(invitationRepository).deleteByExpiresAtBefore(fixedNow);
+    }
 }

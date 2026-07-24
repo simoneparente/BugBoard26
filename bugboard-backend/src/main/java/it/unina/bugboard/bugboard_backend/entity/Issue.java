@@ -26,6 +26,9 @@ public class Issue {
     private UUID id;
 
     @Column(nullable = false)
+    private Long sequenceNumber;
+
+    @Column(nullable = false)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
