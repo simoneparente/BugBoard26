@@ -53,7 +53,8 @@ public class StreamingCsvIssueExporter implements StreamingIssueExporterStrategy
     }
 
     private void writeIssuesToStream(OutputStream output, List<IssueResponse> issues) {
-        try (OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
+        try {
+            OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
             for (IssueResponse issue : issues) {
                 StringBuilder line = new StringBuilder();
                 line.append(escapeCsvValue(issue.getId().toString())).append(";");
