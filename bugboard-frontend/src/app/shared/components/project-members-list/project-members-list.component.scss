@@ -82,15 +82,4 @@
   .members-list {
     max-height: 400px;
   }
-
-  .member-item {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .badge {
-      align-self: flex-start;
-      margin-top: 0.5rem;
-      margin-left: 0;
-    }
-  }
 }
