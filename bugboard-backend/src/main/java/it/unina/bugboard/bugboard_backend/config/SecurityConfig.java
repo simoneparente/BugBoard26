@@ -29,6 +29,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private static final String API_PREFIX = "/api/**";
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String TECHNICAL_ROLE = "TECHNICAL";
 
     @Value("${cors.allowed-origins:http://localhost:4200}")
     private String corsAllowedOrigins;
@@ -51,14 +54,14 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/auth/login", "/api/users/register", "/api/auth/logout").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**", "/api/invitations/**").hasRole(ADMIN_ROLE)
                         .requestMatchers("/api/auth/me").authenticated()
                         // Modalità Read-Only per utenti EXTERNAL:
                         // Solo ADMIN e TECHNICAL possono effettuare chiamate di modifica (POST, PUT, PATCH, DELETE)
-                        .requestMatchers(HttpMethod.POST, "/api/**").hasAnyRole("ADMIN", "TECHNICAL")
-                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyRole("ADMIN", "TECHNICAL")
-                        .requestMatchers(HttpMethod.PATCH, "/api/**").hasAnyRole("ADMIN", "TECHNICAL")
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN", "TECHNICAL")
+                        .requestMatchers(HttpMethod.POST, API_PREFIX).hasAnyRole(ADMIN_ROLE, TECHNICAL_ROLE)
+                        .requestMatchers(HttpMethod.PUT, API_PREFIX).hasAnyRole(ADMIN_ROLE, TECHNICAL_ROLE)
+                        .requestMatchers(HttpMethod.PATCH, API_PREFIX).hasAnyRole(ADMIN_ROLE, TECHNICAL_ROLE)
+                        .requestMatchers(HttpMethod.DELETE, API_PREFIX).hasAnyRole(ADMIN_ROLE, TECHNICAL_ROLE)
                         .anyRequest().authenticated())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exc -> exc
