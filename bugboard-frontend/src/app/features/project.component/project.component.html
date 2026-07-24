@@ -64,7 +64,7 @@
                   <span class="bi bi-calendar3 me-1"></span>{{ getLastModifiedDate(project) }}
                 </span>
 
-                @if (!isReadonly()) {
+                @if (isAdmin()) {
                   <a
                     class="bi bi-gear text-muted cursor-pointer transition-colors"
                     [routerLink]="['/projects', project.key.toUpperCase(), 'settings']"

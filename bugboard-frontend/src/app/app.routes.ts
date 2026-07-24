@@ -12,7 +12,7 @@ import { TagManagementComponent } from './features/tag-management.component/tag-
 import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
-import { notExternalGuard } from './core/auth/role.guard';
+import { notExternalGuard, adminGuard } from './core/auth/role.guard';
 import { ProjectSettingsComponent } from './features/project-settings.component/project-settings.component';
 import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
@@ -64,7 +64,7 @@ export const routes: Routes = [
         path: 'projects/:projectKey/settings',
         component: ProjectSettingsComponent,
         title: 'BugBoard26 - Project Settings',
-        canActivate: [notExternalGuard],
+        canActivate: [adminGuard],
       },
       {
         path: 'projects/create',
@@ -87,7 +87,7 @@ export const routes: Routes = [
         path: 'projects/:projectKey/report',
         component: ReportComponent,
         title: 'BugBoard26 - Report',
-        canActivate: [notExternalGuard],
+        canActivate: [adminGuard],
       },
       {
         path: 'projects/:projectKey/issues/create',

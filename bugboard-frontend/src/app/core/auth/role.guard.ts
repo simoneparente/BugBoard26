@@ -19,3 +19,18 @@ export const notExternalGuard: CanActivateFn = () => {
 
   return true;
 };
+
+/**
+ * Guard that only allows users with the ADMIN role to access the route.
+ * Redirects to the dashboard if the user is not an ADMIN.
+ */
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.userRole() === ROLES.ADMIN) {
+    return true;
+  }
+
+  return router.createUrlTree(['/dashboard']);
+};
