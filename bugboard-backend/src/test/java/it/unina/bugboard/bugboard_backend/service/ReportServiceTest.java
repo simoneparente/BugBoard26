@@ -66,7 +66,7 @@ class ReportServiceTest {
         when(projectRepository.findByKey("FRONT")).thenReturn(Optional.of(mockProject));
 
         // Project metrics
-        when(issueRepository.countByProjectIdAndCreatedAtBetween(eq(projectId), any(), any()))
+        when(issueRepository.countByProjectIdAndStatusNotInAndCreatedAtBetween(eq(projectId), any(), any(), any()))
                 .thenReturn(5L);
         when(issueRepository.countByProjectIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(IssueStatus.COMPLETED), any(), any()))
                 .thenReturn(3L);
@@ -76,7 +76,7 @@ class ReportServiceTest {
         // User metrics
         when(issueRepository.findDistinctUsersInvolvedInMonth(eq(projectId), any(), any(), eq(IssueStatus.COMPLETED)))
                 .thenReturn(List.of(mockUser));
-        when(issueRepository.countByProjectIdAndAssigneeIdAndCreatedAtBetween(eq(projectId), eq(mockUser.getId()), any(), any()))
+        when(issueRepository.countByProjectIdAndAssigneeIdAndStatusNotInAndCreatedAtBetween(eq(projectId), eq(mockUser.getId()), any(), any(), any()))
                 .thenReturn(2L);
         when(issueRepository.countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(eq(projectId), eq(mockUser.getId()), eq(IssueStatus.COMPLETED), any(), any()))
                 .thenReturn(1L);
@@ -121,7 +121,7 @@ class ReportServiceTest {
         });
 
         assertTrue(exception.getMessage().contains("not found"));
-        verify(issueRepository, never()).countByProjectIdAndCreatedAtBetween(any(), any(), any());
+        verify(issueRepository, never()).countByProjectIdAndStatusNotInAndCreatedAtBetween(any(), any(), any(), any());
         verify(monthlyProjectReportRepository, never()).save(any());
     }
 

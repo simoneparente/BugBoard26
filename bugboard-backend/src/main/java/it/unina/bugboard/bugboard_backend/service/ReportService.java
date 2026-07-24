@@ -54,9 +54,11 @@ public class ReportService {
         LocalDateTime monthStart = LocalDateTime.of(now.withDayOfMonth(1), LocalTime.MIN);
         LocalDateTime monthEnd = LocalDateTime.of(now.withDayOfMonth(now.lengthOfMonth()), LocalTime.MAX);
 
+        List<IssueStatus> excludedStatuses = List.of(IssueStatus.COMPLETED, IssueStatus.CLOSED);
+
         // --- Project-level metrics ---
-        long openedBugs = issueRepository.countByProjectIdAndCreatedAtBetween(
-                projectId, monthStart, monthEnd);
+        long openedBugs = issueRepository.countByProjectIdAndStatusNotInAndCreatedAtBetween(
+                projectId, excludedStatuses, monthStart, monthEnd);
 
         long managedBugs = issueRepository.countByProjectIdAndStatusAndUpdatedAtBetween(
                 projectId, IssueStatus.COMPLETED, monthStart, monthEnd);
@@ -74,8 +76,8 @@ public class ReportService {
         List<UserMonthlyProjectReport> userReportEntities = new ArrayList<>();
 
         for (User user : involvedUsers) {
-            long userOpened = issueRepository.countByProjectIdAndAssigneeIdAndCreatedAtBetween(
-                    projectId, user.getId(), monthStart, monthEnd);
+            long userOpened = issueRepository.countByProjectIdAndAssigneeIdAndStatusNotInAndCreatedAtBetween(
+                    projectId, user.getId(), excludedStatuses, monthStart, monthEnd);
 
             long userManaged = issueRepository.countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(
                     projectId, user.getId(), IssueStatus.COMPLETED, monthStart, monthEnd);

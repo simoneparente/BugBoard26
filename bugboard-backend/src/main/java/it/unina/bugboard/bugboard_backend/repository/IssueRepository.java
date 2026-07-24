@@ -44,8 +44,8 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     
     Issue findByIdAndProjectId(UUID issueId, UUID projectId);
 
-    // Count bugs opened (created) in the month for a project
-    long countByProjectIdAndCreatedAtBetween(UUID projectId, LocalDateTime start, LocalDateTime end);
+    // Count bugs opened (created) in the month for a project excluding specified statuses (COMPLETED, CLOSED)
+    long countByProjectIdAndStatusNotInAndCreatedAtBetween(UUID projectId, List<IssueStatus> statuses, LocalDateTime start, LocalDateTime end);
 
     // Count resolved bugs (status = COMPLETED, updatedAt in range) for a project
     long countByProjectIdAndStatusAndUpdatedAtBetween(UUID projectId, IssueStatus status, LocalDateTime start, LocalDateTime end);
@@ -53,8 +53,8 @@ public interface IssueRepository extends JpaRepository<Issue, UUID> {
     // Retrieve resolved bugs to calculate average resolution time
     List<Issue> findByProjectIdAndStatusAndUpdatedAtBetween(UUID projectId, IssueStatus status, LocalDateTime start, LocalDateTime end);
 
-    // Count bugs opened in the month for a specific user in a project
-    long countByProjectIdAndAssigneeIdAndCreatedAtBetween(UUID projectId, UUID userId, LocalDateTime start, LocalDateTime end);
+    // Count bugs opened in the month for a specific user in a project excluding specified statuses
+    long countByProjectIdAndAssigneeIdAndStatusNotInAndCreatedAtBetween(UUID projectId, UUID userId, List<IssueStatus> statuses, LocalDateTime start, LocalDateTime end);
 
     // Count resolved bugs in the month for a specific user in a project
     long countByProjectIdAndAssigneeIdAndStatusAndUpdatedAtBetween(UUID projectId, UUID userId, IssueStatus status, LocalDateTime start, LocalDateTime end);
