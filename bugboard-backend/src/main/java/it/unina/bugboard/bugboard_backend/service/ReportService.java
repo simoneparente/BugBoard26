@@ -147,7 +147,10 @@ public class ReportService {
 
         double totalHours = resolvedIssues.stream()
                 .mapToDouble(issue -> {
-                    Duration duration = Duration.between(issue.getCreatedAt(), issue.getUpdatedAt());
+                    Duration duration = Duration.between(
+                        issue.getCreatedAt().atZone(ZoneId.systemDefault()),
+                        issue.getUpdatedAt().atZone(ZoneId.systemDefault())
+                    );
                     return duration.toMinutes() / 60.0;
                 })
                 .sum();
