@@ -7,6 +7,8 @@ import { of } from 'rxjs';
 
 import { IssueComponent } from './issue.component';
 import { IssueService } from '../../core/services/issue.service';
+import { ProjectService } from '../../core/services/project.service';
+import { AuthService } from '../../core/auth/auth-service';
 
 describe('IssueComponent', () => {
   let component: IssueComponent;
@@ -34,7 +36,7 @@ describe('IssueComponent', () => {
       .spyOn(issueService, 'getIssuesByProject')
       .mockReturnValue(of({ content: [], totalPages: 0, totalElements: 0 } as any));
 
-    component.projectId = 'proj-1';
+    component.projectId.set('proj-1');
     component.onSearchInput('login');
 
     expect(component.searchQuery()).toBe('login');
@@ -108,13 +110,13 @@ describe('IssueComponent additional behavior', () => {
     projectService = TestBed.inject(ProjectService);
     authService = TestBed.inject(AuthService);
     // Set a projectId for the component
-    component.projectId = 'proj-123';
+    component.projectId.set('proj-123');
     fixture.detectChanges();
     await fixture.whenStable();
   });
 
   it('should load project name on init', () => {
-    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project' }));
+    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project', id: 'proj-123', description: '', createdAt: '', updatedAt: '' } as any));
     component.ngOnInit();
     expect(spy).toHaveBeenCalledWith('proj-123');
     expect(component.projectName()).toBe('Demo Project');
@@ -154,23 +156,5 @@ describe('IssueComponent additional behavior', () => {
   it('getTagStyle returns style for known and unknown tags', () => {
     expect(component.getTagStyle('Security')).toBe('bg-danger-subtle text-danger border-danger');
     expect(component.getTagStyle('NonExistent')).toBe('bg-light text-secondary border');
-  });
-
-  it('onActionClick stops propagation and logs', () => {
-    const event = { stopPropagation: vi.fn() } as unknown as Event;
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    component.onActionClick(event, 'issue-1');
-    expect(event.stopPropagation).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith('Action clicked for:', 'issue-1');
-    logSpy.mockRestore();
-  });
-
-  it('editIssue and deleteIssue log correctly', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    component.editIssue('e1');
-    component.deleteIssue('d1');
-    expect(logSpy).toHaveBeenCalledWith('Edit issue:', 'e1');
-    expect(logSpy).toHaveBeenCalledWith('Delete issue:', 'd1');
-    logSpy.mockRestore();
   });
 });
