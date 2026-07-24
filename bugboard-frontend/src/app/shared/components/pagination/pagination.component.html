@@ -1,18 +1,4 @@
-<nav
-  aria-label="Page navigation"
-  class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 py-3"
->
-  <!-- Page Info (Left side) -->
-  <div class="text-muted small">
-    Showing page
-    <span class="fw-semibold text-dark">{{ displayPageNumber(currentPage()) }}</span> of
-    <span class="fw-semibold text-dark">{{ totalPages() }}</span>
-    @if (totalElements() > 0) {
-      <span class="mx-1">•</span>
-      <span class="fw-semibold text-dark">{{ totalElements() }}</span> total items
-    }
-  </div>
-
+<nav aria-label="Page navigation" class="d-flex align-items-center justify-content-end py-3">
   <!-- Pagination Controls (Right side) -->
   <ul class="pagination pagination-sm mb-0">
     <!-- Previous Button -->
