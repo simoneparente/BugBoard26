@@ -12,7 +12,7 @@ export class IssueService {
   private readonly apiService = inject(ApiService);
 
   public getIssuesByProject(
-    projectId: string,
+    projectKey: string,
     status: string = 'ALL',
     priority: string = 'ALL',
     search: string = '',
@@ -22,7 +22,7 @@ export class IssueService {
     sortDirection: string = 'desc',
   ): Observable<Page<IssueResponse>> {
     return this.apiService.issues.getByProject(
-      projectId,
+      projectKey,
       status,
       priority,
       search,
@@ -33,52 +33,56 @@ export class IssueService {
     );
   }
 
-  public createIssue(projectId: string, issue: IssueRequest): Observable<IssueResponse> {
-    return this.apiService.issues.create(projectId, issue);
+  public createIssue(projectKey: string, issue: IssueRequest): Observable<IssueResponse> {
+    return this.apiService.issues.create(projectKey, issue);
   }
 
-  public getIssueById(projectId: string, issueId: string): Observable<IssueResponse> {
-    return this.apiService.issues.getById(projectId, issueId);
+  public getIssueById(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
+    return this.apiService.issues.getById(projectKey, sequenceNumber);
   }
 
   public assignIssue(
-    projectId: string,
-    issueId: string,
+    projectKey: string,
+    sequenceNumber: string,
     assigneeId: string,
   ): Observable<IssueResponse> {
-    return this.apiService.issues.assign(projectId, issueId, assigneeId);
+    return this.apiService.issues.assign(projectKey, sequenceNumber, assigneeId);
   }
 
-  public removeAssignee(projectId: string, issueId: string): Observable<IssueResponse> {
-    return this.apiService.issues.removeAssignee(projectId, issueId);
+  public removeAssignee(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
+    return this.apiService.issues.removeAssignee(projectKey, sequenceNumber);
   }
 
-  public setStatus(projectId: string, issueId: string, status: string): Observable<IssueResponse> {
-    return this.apiService.issues.setStatus(projectId, issueId, status);
+  public setStatus(
+    projectKey: string,
+    sequenceNumber: string,
+    status: string,
+  ): Observable<IssueResponse> {
+    return this.apiService.issues.setStatus(projectKey, sequenceNumber, status);
   }
 
-  public startProgress(projectId: string, issueId: string): Observable<IssueResponse> {
-    return this.apiService.issues.startProgress(projectId, issueId);
+  public startProgress(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
+    return this.apiService.issues.startProgress(projectKey, sequenceNumber);
   }
 
-  public acceptIssue(projectId: string, issueId: string): Observable<IssueResponse> {
-    return this.apiService.issues.accept(projectId, issueId);
+  public acceptIssue(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
+    return this.apiService.issues.accept(projectKey, sequenceNumber);
   }
 
-  public rollbackStatus(projectId: string, issueId: string): Observable<IssueResponse> {
-    return this.apiService.issues.previous(projectId, issueId);
+  public rollbackStatus(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
+    return this.apiService.issues.previous(projectKey, sequenceNumber);
   }
 
-  public deleteIssue(projectId: string, issueId: string): Observable<void> {
-    return this.apiService.issues.delete(projectId, issueId);
+  public deleteIssue(projectKey: string, sequenceNumber: string): Observable<void> {
+    return this.apiService.issues.delete(projectKey, sequenceNumber);
   }
 
   public getAllUsers(): Observable<UserResponse[]> {
     return this.apiService.users.getAll();
   }
 
-  public uploadAttachment(issueId: string, file: File): Observable<any> {
-    return this.apiService.issues.uploadAttachment(issueId, file);
+  public uploadAttachment(sequenceNumber: string, file: File): Observable<any> {
+    return this.apiService.issues.uploadAttachment(sequenceNumber, file);
   }
 
   public generateUploadUrl(
