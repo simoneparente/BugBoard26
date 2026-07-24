@@ -87,7 +87,7 @@ export class BreadcrumbService {
               } else {
                 const issueId = segments[3].replace(new RegExp(`^${projectKey}-`, 'i'), '');
                 items.push({
-                  label: `Issue ${issueId}`,
+                  label: `Issue #${issueId}`,
                   url: `/projects/${projectKey}/issues/${segments[3]}`,
                   icon: 'bi-ticket-detailed',
                 });

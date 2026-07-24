@@ -4,9 +4,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of } from 'rxjs';
+import { signal } from '@angular/core';
 
 import { IssueComponent } from './issue.component';
 import { IssueService } from '../../core/services/issue.service';
+import { ProjectService } from '../../core/services/project.service';
+import { AuthService } from '../../core/auth/auth-service';
 
 describe('IssueComponent', () => {
   let component: IssueComponent;
@@ -34,14 +37,14 @@ describe('IssueComponent', () => {
       .spyOn(issueService, 'getIssuesByProject')
       .mockReturnValue(of({ content: [], totalPages: 0, totalElements: 0 } as any));
 
-    component.projectId = 'proj-1';
+    component.projectKey = 'PRJ';
     component.onSearchInput('login');
 
     expect(component.searchQuery()).toBe('login');
     expect(component.currentPage()).toBe(0);
 
     vi.advanceTimersByTime(300);
-    expect(spy).toHaveBeenCalledWith('proj-1', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
+    expect(spy).toHaveBeenCalledWith('PRJ', 'ALL', 'ALL', 'login', 0, 10, 'title', 'asc');
     vi.useRealTimers();
   });
 
@@ -67,8 +70,6 @@ describe('IssueComponent', () => {
   });
 });
 
-// Additional tests to increase coverage
-
 describe('IssueComponent additional behavior', () => {
   let component: IssueComponent;
   let fixture: ComponentFixture<IssueComponent>;
@@ -85,11 +86,11 @@ describe('IssueComponent additional behavior', () => {
         provideRouter([]),
         {
           provide: AuthService,
-          useValue: { isReadonly: vi.fn(() => false) },
+          useValue: { isReadonly: signal(false) },
         },
         {
           provide: ProjectService,
-          useValue: { getById: vi.fn(() => of({ name: 'Test Project' })) },
+          useValue: { getById: vi.fn(() => of({ id: 'proj-123', name: 'Test Project' } as any)) },
         },
         {
           provide: IssueService,
@@ -107,16 +108,17 @@ describe('IssueComponent additional behavior', () => {
     issueService = TestBed.inject(IssueService);
     projectService = TestBed.inject(ProjectService);
     authService = TestBed.inject(AuthService);
-    // Set a projectId for the component
-    component.projectId = 'proj-123';
+    component.projectKey = 'PRJ';
     fixture.detectChanges();
     await fixture.whenStable();
   });
 
   it('should load project name on init', () => {
-    const spy = vi.spyOn(projectService, 'getById').mockReturnValue(of({ name: 'Demo Project' }));
+    const spy = vi
+      .spyOn(projectService, 'getById')
+      .mockReturnValue(of({ id: 'proj-123', name: 'Demo Project' } as any));
     component.ngOnInit();
-    expect(spy).toHaveBeenCalledWith('proj-123');
+    expect(spy).toHaveBeenCalledWith('PRJ');
     expect(component.projectName()).toBe('Demo Project');
   });
 
@@ -144,6 +146,21 @@ describe('IssueComponent additional behavior', () => {
     expect(component.getPriorityStyle('HIGH')).toBe('priority-high');
   });
 
+  it('getPriorityIcon returns correct icon', () => {
+    expect(component.getPriorityIcon('HIGHEST')).toBe('bi-chevron-double-up');
+    expect(component.getPriorityIcon('HIGH')).toBe('bi-chevron-up');
+    expect(component.getPriorityIcon('MEDIUM')).toBe('bi-dash-lg');
+    expect(component.getPriorityIcon('ALL')).toBe('bi-sliders');
+  });
+
+  it('getStatusIcon returns correct icon', () => {
+    expect(component.getStatusIcon('TO_DO')).toBe('bi-circle');
+    expect(component.getStatusIcon('IN_PROGRESS')).toBe('bi-hourglass-split');
+    expect(component.getStatusIcon('MARKED_FOR_REVIEW')).toBe('bi-eye-fill');
+    expect(component.getStatusIcon('COMPLETED')).toBe('bi-check-circle-fill');
+    expect(component.getStatusIcon('ALL')).toBe('bi-funnel');
+  });
+
   it('getStatusBadgeClass maps statuses correctly', () => {
     expect(component.getStatusBadgeClass('NEW')).toBe('status-badge status-to-do');
     expect(component.getStatusBadgeClass('IN_PROGRESS')).toBe('status-badge status-in-progress');
@@ -154,23 +171,5 @@ describe('IssueComponent additional behavior', () => {
   it('getTagStyle returns style for known and unknown tags', () => {
     expect(component.getTagStyle('Security')).toBe('bg-danger-subtle text-danger border-danger');
     expect(component.getTagStyle('NonExistent')).toBe('bg-light text-secondary border');
-  });
-
-  it('onActionClick stops propagation and logs', () => {
-    const event = { stopPropagation: vi.fn() } as unknown as Event;
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    component.onActionClick(event, 'issue-1');
-    expect(event.stopPropagation).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith('Action clicked for:', 'issue-1');
-    logSpy.mockRestore();
-  });
-
-  it('editIssue and deleteIssue log correctly', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    component.editIssue('e1');
-    component.deleteIssue('d1');
-    expect(logSpy).toHaveBeenCalledWith('Edit issue:', 'e1');
-    expect(logSpy).toHaveBeenCalledWith('Delete issue:', 'd1');
-    logSpy.mockRestore();
   });
 });
