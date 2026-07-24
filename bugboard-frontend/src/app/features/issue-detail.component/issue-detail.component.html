@@ -9,16 +9,50 @@
     </a>
 
     @if (issue()) {
-      <button
-        type="button"
-        class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
-        (click)="onOpenDeleteModal()"
-        [disabled]="isReadonly()"
-        [class.disabled]="isReadonly()"
-        title="{{ isReadonly() ? 'Read‑only users cannot delete issues' : '' }}"
-      >
-        <i class="bi bi-trash-fill"></i> Delete Issue
-      </button>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        @if (isEditingIssue) {
+          <button
+            type="button"
+            class="btn btn-light btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
+            (click)="onCancelEditIssue()"
+            [disabled]="isSavingIssue()"
+          >
+            <i class="bi bi-x-lg"></i> Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
+            (click)="onSaveIssueChanges()"
+            [disabled]="isSavingIssue()"
+          >
+            @if (isSavingIssue()) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              <i class="bi bi-check-lg"></i>
+            }
+            Save Changes
+          </button>
+        } @else if (!isReadonly()) {
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
+            (click)="onStartEditIssue()"
+          >
+            <i class="bi bi-pencil-square"></i> Edit Issue
+          </button>
+        }
+
+        <button
+          type="button"
+          class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
+          (click)="onOpenDeleteModal()"
+          [disabled]="isReadonly() || isEditingIssue"
+          [class.disabled]="isReadonly() || isEditingIssue"
+          title="{{ isReadonly() ? 'Read-only users cannot delete issues' : '' }}"
+        >
+          <i class="bi bi-trash-fill"></i> Delete Issue
+        </button>
+      </div>
     }
   </div>
 
@@ -68,7 +102,17 @@
           </span>
         </div>
 
-        <h2 class="fw-bold text-dark mt-2 mb-2">{{ item.title }}</h2>
+        @if (isEditingIssue) {
+          <input
+            type="text"
+            class="form-control form-control-lg fw-bold text-dark mt-2 mb-2 issue-title-input"
+            [(ngModel)]="editIssueModel.title"
+            maxlength="256"
+            placeholder="Issue title"
+          />
+        } @else {
+          <h2 class="fw-bold text-dark mt-2 mb-2">{{ item.title }}</h2>
+        }
 
         <div class="text-muted small d-flex flex-wrap gap-4 align-items-center mt-3">
           <span>
@@ -95,9 +139,19 @@
             </h5>
           </div>
           <div class="card-body p-4">
-            <div class="description-content text-dark">
-              {{ item.description || 'No description provided.' }}
-            </div>
+            @if (isEditingIssue) {
+              <textarea
+                class="form-control description-edit-field"
+                rows="8"
+                [(ngModel)]="editIssueModel.description"
+                maxlength="1000"
+                placeholder="Issue description"
+              ></textarea>
+            } @else {
+              <div class="description-content text-dark">
+                {{ item.description || 'No description provided.' }}
+              </div>
+            }
           </div>
         </div>
 
@@ -174,8 +228,103 @@
           <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
             <h5 class="fw-bold text-dark mb-0"><i class="bi bi-tags me-2 text-primary"></i>Tags</h5>
           </div>
-          <div class="card-body p-4">
-            @if (item.tags && item.tags.length > 0) {
+          <div class="card-body p-4 tags-dropdown-wrapper position-relative">
+            @if (isEditingIssue) {
+              @if (isLoadingTags) {
+                <div class="text-muted small p-2 bg-light rounded text-center">
+                  <span
+                    class="spinner-border spinner-border-sm text-primary me-2"
+                    role="status"
+                  ></span>
+                  Loading tags...
+                </div>
+              } @else {
+                @if (selectedEditTags.length > 0) {
+                  <div class="selected-tags-container mb-2">
+                    <div class="d-flex flex-wrap gap-2">
+                      @for (tag of selectedEditTags; track tag.id) {
+                        <button
+                          type="button"
+                          class="selected-tag-chip"
+                          [style.--tag-color]="tag.color || '#0d6efd'"
+                          [style.--tag-color-light]="(tag.color || '#0d6efd') + '20'"
+                          (click)="removeEditTag(tag)"
+                          title="Click to remove tag"
+                        >
+                          <span class="tag-dot"></span>
+                          <span class="tag-name">{{ tag.name }}</span>
+                          <i class="bi bi-x-lg remove-icon ms-1"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <p class="text-muted small mb-3">No tags assigned to this issue.</p>
+                }
+
+                @if (availableTags && availableTags.length > 0) {
+                  <div class="position-relative">
+                    <i
+                      class="bi bi-tag position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                    ></i>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm ps-5 bg-light rounded-pill border-0 shadow-none"
+                      placeholder="Search or add tags..."
+                      [(ngModel)]="tagSearchQuery"
+                      (focus)="isTagDropdownOpen = true"
+                      (click)="isTagDropdownOpen = true"
+                    />
+                    @if (tagSearchQuery) {
+                      <button
+                        type="button"
+                        class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
+                        (click)="tagSearchQuery = ''"
+                        aria-label="Clear tag search query"
+                        title="Clear tag search"
+                      >
+                        <i class="bi bi-x-circle-fill"></i>
+                      </button>
+                    }
+                  </div>
+
+                  @if (isTagDropdownOpen) {
+                    <div class="tags-popover-menu shadow-lg border rounded-3 bg-white mt-1">
+                      <div class="popover-list p-2">
+                        @for (tag of filteredAvailableTags; track tag.id) {
+                          <div
+                            class="popover-tag-item d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
+                            [style.--tag-color]="tag.color || '#0d6efd'"
+                            [style.--tag-color-light]="(tag.color || '#0d6efd') + '20'"
+                            (click)="selectEditTag(tag)"
+                          >
+                            <div class="d-flex align-items-center gap-2">
+                              <span class="tag-dot"></span>
+                              <span class="fw-medium text-dark small">{{ tag.name }}</span>
+                            </div>
+                            <i class="bi bi-plus-lg text-primary opacity-75"></i>
+                          </div>
+                        }
+
+                        @if (filteredAvailableTags.length === 0) {
+                          <div class="text-muted small fst-italic p-3 text-center">
+                            @if (tagSearchQuery) {
+                              <span>No tags matching "{{ tagSearchQuery }}"</span>
+                            } @else {
+                              <span>All tags selected.</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="text-muted small fst-italic p-2 bg-light rounded text-center">
+                    No tags available for this project.
+                  </div>
+                }
+              }
+            } @else if (item.tags && item.tags.length > 0) {
               <div class="d-flex flex-wrap gap-2">
                 @for (tag of item.tags; track tag.id) {
                   <span

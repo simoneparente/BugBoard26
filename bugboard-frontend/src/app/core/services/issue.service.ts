@@ -39,6 +39,14 @@ export class IssueService {
     return this.apiService.issues.create(projectKey, issue);
   }
 
+  public updateIssue(
+    projectKey: string,
+    sequenceNumber: string,
+    issue: IssueRequest,
+  ): Observable<IssueResponse> {
+    return this.apiService.issues.update(projectKey, sequenceNumber, issue);
+  }
+
   public getIssueById(projectKey: string, sequenceNumber: string): Observable<IssueResponse> {
     return this.apiService.issues.getById(projectKey, sequenceNumber);
   }

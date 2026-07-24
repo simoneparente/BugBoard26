@@ -39,6 +39,14 @@ public class IssueController {
         return ResponseEntity.ok(mapToResponseDTO(issue));
     }
 
+    @PutMapping("/{sequenceNumber}")
+    public ResponseEntity<IssueResponse> updateIssue(@PathVariable String projectKey,
+            @PathVariable Long sequenceNumber,
+            @Valid @RequestBody IssueRequest request) {
+        Issue updatedIssue = issueService.updateIssue(projectKey, sequenceNumber, request);
+        return ResponseEntity.ok(mapToResponseDTO(updatedIssue));
+    }
+
     @GetMapping
     public ResponseEntity<Page<IssueResponse>> getIssuesByProject(@PathVariable String projectKey,
             @RequestParam(required = false, defaultValue = "ALL") String status,

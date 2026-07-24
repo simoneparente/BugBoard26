@@ -89,6 +89,11 @@ export class ApiService {
     },
     create: (projectKey: string, payload: any) =>
       this.http.post<IssueResponse>(`${this.baseUrl}/projects/${projectKey}/issues`, payload),
+    update: (projectKey: string, sequenceNumber: string, payload: any) =>
+      this.http.put<IssueResponse>(
+        `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}`,
+        payload,
+      ),
     getById: (projectKey: string, sequenceNumber: string) =>
       this.http.get<IssueResponse>(
         `${this.baseUrl}/projects/${projectKey}/issues/${sequenceNumber}`,

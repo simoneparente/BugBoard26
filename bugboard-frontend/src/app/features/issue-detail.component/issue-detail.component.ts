@@ -15,9 +15,11 @@ import { AuthService } from '../../core/auth/auth-service';
 import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { ProjectService } from '../../core/services/project.service';
+import { TagService } from '../../core/services/tag.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ConfirmationModalService } from '../../core/services/confirmation-modal.service';
-import { IssueResponse } from '../../core/issue.model';
+import { IssueRequest, IssueResponse } from '../../core/issue.model';
+import { TagResponse } from '../../core/tag.model';
 import { UserResponse } from '../../core/auth/auth.models';
 import { AssigneeRecommendation } from '../../core/assignee-recommendation.model';
 import { BreadcrumbService } from '../../core/services/breadcrumb.service';
@@ -38,6 +40,7 @@ export class IssueDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly issueService = inject(IssueService);
   private readonly projectService = inject(ProjectService);
+  private readonly tagService = inject(TagService);
   private readonly notificationService = inject(NotificationService);
   private readonly confirmationModalService = inject(ConfirmationModalService);
   private readonly breadcrumbService = inject(BreadcrumbService);
@@ -53,9 +56,22 @@ export class IssueDetailComponent implements OnInit {
   public readonly isUpdatingAssignee = signal<boolean>(false);
   public readonly isReadonly = computed(() => this.authService.isReadonly());
   public readonly isUpdatingStatus = signal<boolean>(false);
+  public readonly isSavingIssue = signal<boolean>(false);
 
   public isUserDropdownOpen: boolean = false;
   public userSearchQuery: string = '';
+  public isEditingIssue: boolean = false;
+  public isTagDropdownOpen: boolean = false;
+  public isLoadingTags: boolean = false;
+  public tagSearchQuery: string = '';
+  public availableTags: TagResponse[] = [];
+  public selectedEditTags: TagResponse[] = [];
+  public editIssueModel: Pick<IssueRequest, 'title' | 'description' | 'priority' | 'type'> = {
+    title: '',
+    description: '',
+    priority: 'MEDIUM',
+    type: 'BUG',
+  };
 
   public projectKey: string = '';
   public sequenceNumber: string = '';
@@ -119,6 +135,9 @@ export class IssueDetailComponent implements OnInit {
     this.issueService.getIssueById(this.projectKey, this.sequenceNumber).subscribe({
       next: (data) => {
         this.issue.set(data);
+        if (this.isReadonly()) {
+          this.onCancelEditIssue();
+        }
         if (data.projectName) {
           this.breadcrumbService.setProjectName(data.projectName);
         }
@@ -133,6 +152,99 @@ export class IssueDetailComponent implements OnInit {
         } else {
           this.error.set('Failed to load issue details. Please try again later.');
         }
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private loadAvailableTags(): void {
+    if (!this.projectKey) return;
+
+    this.isLoadingTags = true;
+    this.tagService.getTagsByProjectKey(this.projectKey).subscribe({
+      next: (tags) => {
+        this.availableTags = tags || [];
+        this.isLoadingTags = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load project tags:', err);
+        this.availableTags = [];
+        this.isLoadingTags = false;
+        this.notificationService.showError('Tags Error', 'Failed to load project tags.');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  public onStartEditIssue(): void {
+    const issue = this.issue();
+    if (!issue || this.isReadonly()) return;
+
+    this.editIssueModel = {
+      title: issue.title || '',
+      description: issue.description || '',
+      priority: issue.priority || 'MEDIUM',
+      type: issue.type || 'BUG',
+    };
+    this.selectedEditTags = [...(issue.tags || [])];
+    this.tagSearchQuery = '';
+    this.isTagDropdownOpen = false;
+    this.isEditingIssue = true;
+
+    if (this.availableTags.length === 0) {
+      this.loadAvailableTags();
+    }
+  }
+
+  public onCancelEditIssue(): void {
+    this.isEditingIssue = false;
+    this.isTagDropdownOpen = false;
+    this.tagSearchQuery = '';
+    this.selectedEditTags = [];
+  }
+
+  public onSaveIssueChanges(): void {
+    const currentIssue = this.issue();
+    if (!currentIssue || this.isSavingIssue() || this.isReadonly()) return;
+
+    const title = this.editIssueModel.title.trim();
+    const description = this.editIssueModel.description.trim();
+    if (!title || !description) {
+      this.notificationService.showError('Missing Fields', 'Title and description are required.');
+      return;
+    }
+
+    const payload: IssueRequest = {
+      title,
+      description,
+      priority: this.editIssueModel.priority,
+      type: this.editIssueModel.type,
+      status: currentIssue.status,
+      assigneeUsername:
+        currentIssue.assigneeUsername && currentIssue.assigneeUsername !== 'Unassigned'
+          ? currentIssue.assigneeUsername
+          : undefined,
+      tags: this.selectedEditTags,
+    };
+
+    this.isSavingIssue.set(true);
+    this.issueService.updateIssue(this.projectKey, this.sequenceNumber, payload).subscribe({
+      next: (updatedIssue) => {
+        this.issue.set(updatedIssue);
+        this.isSavingIssue.set(false);
+        this.isEditingIssue = false;
+        this.isTagDropdownOpen = false;
+        this.notificationService.showSuccess('Issue Updated', 'Changes saved successfully.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error updating issue:', err);
+        this.isSavingIssue.set(false);
+        this.notificationService.showError(
+          'Update Failed',
+          err.error?.message || 'Failed to update the issue. Please try again.',
+        );
         this.cdr.detectChanges();
       },
     });
@@ -190,12 +302,45 @@ export class IssueDetailComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   public onDocumentClick(event: MouseEvent): void {
-    const clickedInside = this.elementRef.nativeElement
+    const nativeEl = this.elementRef.nativeElement;
+    const clickedInsideAssignee = nativeEl
       .querySelector('.assignee-search-wrapper')
       ?.contains(event.target);
-    if (!clickedInside) {
+    if (!clickedInsideAssignee) {
       this.isUserDropdownOpen = false;
     }
+
+    const clickedInsideTags = nativeEl
+      .querySelector('.tags-dropdown-wrapper')
+      ?.contains(event.target);
+    if (!clickedInsideTags) {
+      this.isTagDropdownOpen = false;
+    }
+  }
+
+  public get filteredAvailableTags(): TagResponse[] {
+    const query = (this.tagSearchQuery || '').trim().toLowerCase();
+    return (this.availableTags || []).filter(
+      (tag) =>
+        !this.isEditTagSelected(tag) && (query === '' || tag.name.toLowerCase().includes(query)),
+    );
+  }
+
+  public isEditTagSelected(tag: TagResponse): boolean {
+    return this.selectedEditTags.some((selectedTag) => selectedTag.id === tag.id);
+  }
+
+  public selectEditTag(tag: TagResponse): void {
+    if (!this.isEditTagSelected(tag)) {
+      this.selectedEditTags.push(tag);
+    }
+    this.tagSearchQuery = '';
+  }
+
+  public removeEditTag(tag: TagResponse): void {
+    this.selectedEditTags = this.selectedEditTags.filter(
+      (selectedTag) => selectedTag.id !== tag.id,
+    );
   }
 
   public selectUserAssignee(user: UserResponse): void {
