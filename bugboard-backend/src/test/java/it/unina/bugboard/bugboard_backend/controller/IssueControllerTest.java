@@ -193,7 +193,6 @@ class IssueControllerTest {
 
     @Test
     void getIssuesByProjectKey_Success_ReturnsStatus200AndPagedJson() throws Exception {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
         Page<Issue> pagedResult = new PageImpl<>(List.of(dummyIssue));
 
         when(issueService.getIssuesByProjectKey(eq(projectKey), eq("ALL"), eq("ALL"), eq(null), any(Pageable.class)))
