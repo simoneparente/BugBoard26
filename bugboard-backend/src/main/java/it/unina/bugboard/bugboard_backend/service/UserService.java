@@ -71,6 +71,7 @@ public class UserService {
         return mapToResponse(savedUser);
     }
 
+
     private UserResponse mapToResponse(User user) {
         return new UserResponse(
                 user.getId(),

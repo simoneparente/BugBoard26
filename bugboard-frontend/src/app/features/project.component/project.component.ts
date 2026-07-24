@@ -45,6 +45,8 @@ export class ProjectComponent implements OnInit {
     return user?.role === 'ADMIN';
   });
 
+  public readonly isReadonly = this.authService.isReadonly;
+
   ngOnInit(): void {
     this.loadProjects();
   }
@@ -118,10 +120,10 @@ export class ProjectComponent implements OnInit {
           'Project Deleted',
           'The project has been successfully deleted.',
         );
+        this.loadProjects();
       },
       error: () => {
         this.error.set('There was an error deleting the project. Please try again.');
-        this.loadProjects();
       },
     });
   }

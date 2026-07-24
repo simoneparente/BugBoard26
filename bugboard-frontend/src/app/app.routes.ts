@@ -12,6 +12,8 @@ import { TagManagementComponent } from './features/tag-management.component/tag-
 import { IssueComponent } from './features/issue.component/issue.component';
 import { LayoutComponent } from './layout/layout.component';
 import { CreateProjectComponent } from './features/create-project.component/create-project.component';
+import { notExternalGuard } from './core/auth/role.guard';
+import { ProjectSettingsComponent } from './features/project-settings.component/project-settings.component';
 import { IssueDetailComponent } from './features/issue-detail.component/issue-detail.component';
 
 const authGuard = (_route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
@@ -59,9 +61,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
       },
       {
+        path: 'projects/:projectKey/settings',
+        component: ProjectSettingsComponent,
+        title: 'BugBoard26 - Project Settings',
+        canActivate: [notExternalGuard],
+      },
+      {
         path: 'projects/create',
         component: CreateProjectComponent,
         title: 'BugBoard26 - Create Project',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectKey',
@@ -72,16 +81,19 @@ export const routes: Routes = [
         path: 'projects/:projectKey/tags',
         component: TagManagementComponent,
         title: 'BugBoard26 - Tag Management',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectKey/report',
         component: ReportComponent,
         title: 'BugBoard26 - Report',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectKey/issues/create',
         component: CreateIssueComponent,
         title: 'BugBoard26 - Create Issue',
+        canActivate: [notExternalGuard],
       },
       {
         path: 'projects/:projectKey/issues/:sequenceNumber',

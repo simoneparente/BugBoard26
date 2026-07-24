@@ -10,6 +10,6 @@ export interface ProjectResponse {
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   issues?: IssueResponse[];
-  tags?: TagResponse[];
   members?: UserResponse[];
+  tags?: TagResponse[];
 }

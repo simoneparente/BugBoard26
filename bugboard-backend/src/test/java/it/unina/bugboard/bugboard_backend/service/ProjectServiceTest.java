@@ -359,6 +359,81 @@ class ProjectServiceTest {
             assertEquals(1, recommendations.size());
             assertEquals(1, recommendations.get(0).getWorkloadScore());
         }
+
+        @Test
+        void addMemberToProject_Success() {
+            UUID memberUserId = UUID.randomUUID();
+            User newMember = User.builder().id(memberUserId).username("newmember").build();
+            dummyProject.setMembers(new java.util.ArrayList<>());
+
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(userRepository.findById(memberUserId)).thenReturn(Optional.of(newMember));
+            when(projectRepository.save(dummyProject)).thenReturn(dummyProject);
+
+            Project result = projectService.addMemberToProject(projectId, memberUserId);
+
+            assertNotNull(result);
+            assertEquals(1, result.getMembers().size());
+            verify(projectRepository, times(1)).save(dummyProject);
+        }
+
+        @Test
+        void addMemberToProject_AlreadyMember_DoesNotDuplicate() {
+            UUID memberUserId = UUID.randomUUID();
+            User newMember = User.builder().id(memberUserId).username("existingmember").build();
+            dummyProject.setMembers(new java.util.ArrayList<>(List.of(newMember)));
+
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(userRepository.findById(memberUserId)).thenReturn(Optional.of(newMember));
+            when(projectRepository.save(dummyProject)).thenReturn(dummyProject);
+
+            Project result = projectService.addMemberToProject(projectId, memberUserId);
+
+            assertNotNull(result);
+            assertEquals(1, result.getMembers().size());
+            verify(projectRepository, times(1)).save(dummyProject);
+        }
+
+        @Test
+        void addMemberToProject_ThrowsException_WhenUserNotFound() {
+            UUID memberUserId = UUID.randomUUID();
+
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(userRepository.findById(memberUserId)).thenReturn(Optional.empty());
+
+            assertThrows(it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException.class, () -> {
+                projectService.addMemberToProject(projectId, memberUserId);
+            });
+        }
+
+        @Test
+        void removeMemberFromProject_Success() {
+            UUID memberUserId = UUID.randomUUID();
+            User memberToRemove = User.builder().id(memberUserId).username("membertoremove").build();
+            dummyProject.setMembers(new java.util.ArrayList<>(List.of(memberToRemove)));
+
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(userRepository.findById(memberUserId)).thenReturn(Optional.of(memberToRemove));
+            when(projectRepository.save(dummyProject)).thenReturn(dummyProject);
+
+            Project result = projectService.removeMemberFromProject(projectId, memberUserId);
+
+            assertNotNull(result);
+            assertEquals(0, result.getMembers().size());
+            verify(projectRepository, times(1)).save(dummyProject);
+        }
+
+        @Test
+        void removeMemberFromProject_ThrowsException_WhenUserNotFound() {
+            UUID memberUserId = UUID.randomUUID();
+
+            when(projectRepository.findById(projectId)).thenReturn(Optional.of(dummyProject));
+            when(userRepository.findById(memberUserId)).thenReturn(Optional.empty());
+
+            assertThrows(it.unina.bugboard.bugboard_backend.exception.ResourceNotFoundException.class, () -> {
+                projectService.removeMemberFromProject(projectId, memberUserId);
+            });
+        }
     }
 
     @Nested

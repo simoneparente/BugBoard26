@@ -13,6 +13,9 @@
         type="button"
         class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm"
         (click)="onOpenDeleteModal()"
+        [disabled]="isReadonly()"
+        [class.disabled]="isReadonly()"
+        title="{{ isReadonly() ? 'Read‑only users cannot delete issues' : '' }}"
       >
         <i class="bi bi-trash-fill"></i> Delete Issue
       </button>
@@ -203,16 +206,23 @@
             @if (item.assigneeUsername && item.assigneeUsername !== 'Unassigned') {
               <div
                 class="assigned-user-chip"
-                [class.non-removable-chip]="item.status === 'COMPLETED' || item.status === 'CLOSED'"
+                [class.non-removable-chip]="
+                  isReadonly() || item.status === 'COMPLETED' || item.status === 'CLOSED'
+                "
                 (click)="
-                  item.status !== 'COMPLETED' && item.status !== 'CLOSED' && onRemoveAssignee()
+                  !isReadonly() &&
+                    item.status !== 'COMPLETED' &&
+                    item.status !== 'CLOSED' &&
+                    onRemoveAssignee()
                 "
                 [title]="
-                  item.status === 'COMPLETED'
-                    ? 'Cannot remove assignee from a completed issue'
-                    : item.status === 'CLOSED'
-                      ? 'Cannot change assignee on closed issue'
-                      : 'Click to remove assignee'
+                  isReadonly()
+                    ? 'Read‑only users cannot modify the assignee'
+                    : item.status === 'COMPLETED'
+                      ? 'Cannot remove assignee from a completed issue'
+                      : item.status === 'CLOSED'
+                        ? 'Cannot change assignee on closed issue'
+                        : 'Click to remove assignee'
                 "
               >
                 <div class="d-flex align-items-center gap-2">
@@ -223,14 +233,8 @@
                   </div>
                   <span class="assignee-label-text fw-semibold">{{ item.assigneeUsername }}</span>
                 </div>
-                @if (item.status !== 'COMPLETED' && item.status !== 'CLOSED') {
+                @if (!isReadonly() && item.status !== 'COMPLETED' && item.status !== 'CLOSED') {
                   <i class="bi bi-x-lg remove-icon"></i>
-                } @else {
-                  <span
-                    class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 small"
-                  >
-                    <i class="bi bi-lock-fill me-1"></i> Locked
-                  </span>
                 }
               </div>
             } @else {
@@ -244,114 +248,120 @@
                 </div>
               } @else {
                 <!-- Recommended Assignees (Lightest Workload) -->
-                @if (recommendations() && recommendations().length > 0) {
-                  <div class="mb-3">
-                    <div
-                      class="text-muted extra-small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1"
-                      style="font-size: 0.725rem; letter-spacing: 0.5px"
-                    >
-                      <i class="bi bi-stars text-warning"></i> Consigliati (Carico Minore)
-                    </div>
-                    <div class="d-flex flex-column gap-1">
-                      @for (rec of recommendations(); track rec.user.id) {
-                        <div
-                          class="p-2 rounded border bg-light d-flex align-items-center justify-content-between cursor-pointer"
-                          (click)="selectUserAssignee(rec.user)"
-                          [title]="'Clicca per assegnare a ' + rec.user.username"
-                        >
-                          <div class="d-flex align-items-center gap-2">
-                            <div
-                              class="avatar-circle bg-warning-subtle text-warning-emphasis fw-bold d-flex align-items-center justify-content-center rounded-circle"
-                              style="width: 28px; height: 28px; font-size: 0.75rem"
-                            >
-                              {{ rec.user.username.substring(0, 2) | uppercase }}
-                            </div>
-                            <div>
-                              <div class="fw-semibold text-dark small">{{ rec.user.username }}</div>
-                              <div class="text-muted extra-small" style="font-size: 0.7rem">
-                                Carico: <strong>{{ rec.workloadScore }}</strong> ({{
-                                  rec.activeIssueCount
-                                }}
-                                {{ rec.activeIssueCount === 1 ? 'issue attiva' : 'issue attive' }})
-                              </div>
-                            </div>
-                          </div>
-                          <span
-                            class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 extra-small"
-                          >
-                            Assegna <i class="bi bi-arrow-right ms-1"></i>
-                          </span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Searchable User Filter Input & Floating Popover -->
-                <div class="assignee-search-wrapper position-relative">
-                  <div class="position-relative">
-                    <i
-                      class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
-                    ></i>
-                    <input
-                      type="text"
-                      class="form-control form-control-sm ps-5 bg-light rounded-pill border shadow-none"
-                      placeholder="Search user to assign..."
-                      [(ngModel)]="userSearchQuery"
-                      (focus)="isUserDropdownOpen = true"
-                      (click)="isUserDropdownOpen = true"
-                    />
-                    @if (userSearchQuery) {
-                      <button
-                        type="button"
-                        class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
-                        (click)="userSearchQuery = ''"
-                        aria-label="Clear user search query"
-                        title="Clear user search"
+                @if (!isReadonly()) {
+                  @if (recommendations() && recommendations().length > 0) {
+                    <div class="mb-3">
+                      <div
+                        class="text-muted extra-small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-1"
+                        style="font-size: 0.725rem; letter-spacing: 0.5px"
                       >
-                        <i class="bi bi-x-circle-fill"></i>
-                      </button>
-                    }
-                  </div>
-
-                  <!-- Floating Users Popover Dropdown -->
-                  @if (isUserDropdownOpen && users() && users().length > 0) {
-                    <div
-                      class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3"
-                    >
-                      <div class="popover-list p-2" style="max-height: 200px; overflow-y: auto">
-                        @for (u of filteredUsers; track u.id) {
+                        <i class="bi bi-stars text-warning"></i> Consigliati (Carico Minore)
+                      </div>
+                      <div class="d-flex flex-column gap-1">
+                        @for (rec of recommendations(); track rec.user.id) {
                           <div
-                            class="popover-user-item d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
-                            (click)="selectUserAssignee(u)"
+                            class="p-2 rounded border bg-light d-flex align-items-center justify-content-between cursor-pointer"
+                            (click)="selectUserAssignee(rec.user)"
+                            [title]="'Clicca per assegnare a ' + rec.user.username"
                           >
                             <div class="d-flex align-items-center gap-2">
                               <div
-                                class="avatar-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center rounded-circle"
-                                style="width: 26px; height: 26px; font-size: 0.7rem"
+                                class="avatar-circle bg-warning-subtle text-warning-emphasis fw-bold d-flex align-items-center justify-content-center rounded-circle"
+                                style="width: 28px; height: 28px; font-size: 0.75rem"
                               >
-                                {{ u.username.substring(0, 2) | uppercase }}
+                                {{ rec.user.username.substring(0, 2) | uppercase }}
                               </div>
                               <div>
-                                <div class="fw-medium text-dark small">{{ u.username }}</div>
+                                <div class="fw-semibold text-dark small">
+                                  {{ rec.user.username }}
+                                </div>
                                 <div class="text-muted extra-small" style="font-size: 0.7rem">
-                                  {{ u.role }}
+                                  Carico: <strong>{{ rec.workloadScore }}</strong> ({{
+                                    rec.activeIssueCount
+                                  }}
+                                  {{
+                                    rec.activeIssueCount === 1 ? 'issue attiva' : 'issue attive'
+                                  }})
                                 </div>
                               </div>
                             </div>
-                            <i class="bi bi-plus-lg text-primary opacity-75"></i>
-                          </div>
-                        }
-
-                        @if (filteredUsers.length === 0) {
-                          <div class="text-muted small fst-italic p-3 text-center">
-                            <span>No users matching "{{ userSearchQuery }}"</span>
+                            <span
+                              class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 extra-small"
+                            >
+                              Assegna <i class="bi bi-arrow-right ms-1"></i>
+                            </span>
                           </div>
                         }
                       </div>
                     </div>
                   }
-                </div>
+
+                  <!-- Searchable User Filter Input & Floating Popover -->
+                  <div class="assignee-search-wrapper position-relative">
+                    <div class="position-relative">
+                      <i
+                        class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                      ></i>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm ps-5 bg-light rounded-pill border shadow-none"
+                        placeholder="Search user to assign..."
+                        [(ngModel)]="userSearchQuery"
+                        (focus)="isUserDropdownOpen = true"
+                        (click)="isUserDropdownOpen = true"
+                      />
+                      @if (userSearchQuery) {
+                        <button
+                          type="button"
+                          class="btn btn-sm text-muted position-absolute top-50 end-0 translate-middle-y me-2 p-0 border-0"
+                          (click)="userSearchQuery = ''"
+                          aria-label="Clear user search query"
+                          title="Clear user search"
+                        >
+                          <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Floating Users Popover Dropdown -->
+                    @if (isUserDropdownOpen && users() && users().length > 0) {
+                      <div
+                        class="users-popover-menu shadow-lg border rounded-3 bg-white mt-1 position-absolute w-100 start-0 z-3"
+                      >
+                        <div class="popover-list p-2" style="max-height: 200px; overflow-y: auto">
+                          @for (u of filteredUsers; track u.id) {
+                            <div
+                              class="popover-user-item d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
+                              (click)="selectUserAssignee(u)"
+                            >
+                              <div class="d-flex align-items-center gap-2">
+                                <div
+                                  class="avatar-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center rounded-circle"
+                                  style="width: 26px; height: 26px; font-size: 0.7rem"
+                                >
+                                  {{ u.username.substring(0, 2) | uppercase }}
+                                </div>
+                                <div>
+                                  <div class="fw-medium text-dark small">{{ u.username }}</div>
+                                  <div class="text-muted extra-small" style="font-size: 0.7rem">
+                                    {{ u.role }}
+                                  </div>
+                                </div>
+                              </div>
+                              <i class="bi bi-plus-lg text-primary opacity-75"></i>
+                            </div>
+                          }
+
+                          @if (filteredUsers.length === 0) {
+                            <div class="text-muted small fst-italic p-3 text-center">
+                              <span>No users matching "{{ userSearchQuery }}"</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
               }
             }
 
@@ -379,92 +389,93 @@
               </span>
             </div>
 
-            <!-- Workflow Buttons -->
-            <p class="text-muted small mb-2">Available Actions:</p>
-
-            <div class="d-grid gap-2">
-              <!-- TO_DO -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
-              @if (item.status === 'TO_DO' || item.status === 'NEW' || item.status === 'OPEN') {
-                <button
-                  class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="
-                    isUpdatingStatus() ||
-                    !item.assigneeUsername ||
-                    item.assigneeUsername === 'Unassigned'
-                  "
-                  (click)="onStartProgress()"
-                >
-                  <i class="bi bi-play-circle-fill fs-6"></i> Start Progress
-                </button>
-                @if (!item.assigneeUsername || item.assigneeUsername === 'Unassigned') {
-                  <div class="text-danger small text-center mt-1">
-                    <i class="bi bi-info-circle me-1"></i> Assign a user above to start progress
-                  </div>
+            <!-- Workflow Buttons (hidden for read-only EXTERNAL users) -->
+            @if (!isReadonly()) {
+              <p class="text-muted small mb-2">Available Actions:</p>
+              <div class="d-grid gap-2">
+                <!-- TO_DO -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
+                @if (item.status === 'TO_DO' || item.status === 'NEW' || item.status === 'OPEN') {
+                  <button
+                    class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="
+                      isUpdatingStatus() ||
+                      !item.assigneeUsername ||
+                      item.assigneeUsername === 'Unassigned'
+                    "
+                    (click)="onStartProgress()"
+                  >
+                    <i class="bi bi-play-circle-fill fs-6"></i> Start Progress
+                  </button>
+                  @if (!item.assigneeUsername || item.assigneeUsername === 'Unassigned') {
+                    <div class="text-danger small text-center mt-1">
+                      <i class="bi bi-info-circle me-1"></i> Assign a user above to start progress
+                    </div>
+                  }
                 }
-              }
 
-              <!-- IN_PROGRESS -> MARKED_FOR_REVIEW (Target: Blue MARKED_FOR_REVIEW) -->
-              @if (item.status === 'IN_PROGRESS') {
-                <button
-                  class="btn btn-status-marked-for-review d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onAccept()"
-                >
-                  <i class="bi bi-send-fill fs-6"></i> Submit for Review
-                </button>
-              }
+                <!-- IN_PROGRESS -> MARKED_FOR_REVIEW (Target: Blue MARKED_FOR_REVIEW) -->
+                @if (item.status === 'IN_PROGRESS') {
+                  <button
+                    class="btn btn-status-marked-for-review d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onAccept()"
+                  >
+                    <i class="bi bi-send-fill fs-6"></i> Submit for Review
+                  </button>
+                }
 
-              <!-- MARKED_FOR_REVIEW -> COMPLETED (Target: Green COMPLETED) or NOT_FIXED (Target: Red NOT_FIXED) -->
-              @if (item.status === 'MARKED_FOR_REVIEW') {
-                <button
-                  class="btn btn-status-completed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onApprove()"
-                >
-                  <i class="bi bi-check-circle-fill fs-6"></i> Approve & Complete
-                </button>
-                <button
-                  class="btn btn-status-not-fixed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onRejectNotFixed()"
-                >
-                  <i class="bi bi-x-circle-fill fs-6"></i> Reject (Not Fixed)
-                </button>
-              }
+                <!-- MARKED_FOR_REVIEW -> COMPLETED (Target: Green COMPLETED) or NOT_FIXED (Target: Red NOT_FIXED) -->
+                @if (item.status === 'MARKED_FOR_REVIEW') {
+                  <button
+                    class="btn btn-status-completed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onApprove()"
+                  >
+                    <i class="bi bi-check-circle-fill fs-6"></i> Approve & Complete
+                  </button>
+                  <button
+                    class="btn btn-status-not-fixed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onRejectNotFixed()"
+                  >
+                    <i class="bi bi-x-circle-fill fs-6"></i> Reject (Not Fixed)
+                  </button>
+                }
 
-              <!-- NOT_FIXED -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
-              @if (item.status === 'NOT_FIXED') {
-                <button
-                  class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onStartProgress()"
-                >
-                  <i class="bi bi-arrow-repeat fs-6"></i> Re-open / Start Progress
-                </button>
-              }
+                <!-- NOT_FIXED -> IN_PROGRESS (Target: Orange IN_PROGRESS) -->
+                @if (item.status === 'NOT_FIXED') {
+                  <button
+                    class="btn btn-status-in-progress d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onStartProgress()"
+                  >
+                    <i class="bi bi-arrow-repeat fs-6"></i> Re-open / Start Progress
+                  </button>
+                }
 
-              <!-- CLOSE ISSUE (Available for all active statuses except CLOSED and COMPLETED) -->
-              @if (item.status !== 'CLOSED' && item.status !== 'COMPLETED') {
-                <button
-                  class="btn btn-status-closed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-medium mt-1 shadow-sm"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onCloseIssue()"
-                >
-                  <i class="bi bi-x-square-fill"></i> Close Issue
-                </button>
-              }
+                <!-- CLOSE ISSUE (Available for all active statuses except CLOSED and COMPLETED) -->
+                @if (item.status !== 'CLOSED' && item.status !== 'COMPLETED') {
+                  <button
+                    class="btn btn-status-closed d-flex align-items-center justify-content-center gap-2 rounded-3 fw-medium mt-1 shadow-sm"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onCloseIssue()"
+                  >
+                    <i class="bi bi-x-square-fill"></i> Close Issue
+                  </button>
+                }
 
-              <!-- ROLLBACK -->
-              @if (item.status !== 'TO_DO') {
-                <button
-                  class="btn btn-sm btn-link text-secondary text-decoration-none d-flex align-items-center justify-content-center gap-1 mt-1"
-                  [disabled]="isUpdatingStatus()"
-                  (click)="onRollback()"
-                >
-                  <i class="bi bi-arrow-counterclockwise"></i> Rollback to previous state
-                </button>
-              }
-            </div>
+                <!-- ROLLBACK -->
+                @if (item.status !== 'TO_DO') {
+                  <button
+                    class="btn btn-sm btn-link text-secondary text-decoration-none d-flex align-items-center justify-content-center gap-1 mt-1"
+                    [disabled]="isUpdatingStatus()"
+                    (click)="onRollback()"
+                  >
+                    <i class="bi bi-arrow-counterclockwise"></i> Rollback to previous state
+                  </button>
+                }
+              </div>
+            }
 
             @if (isUpdatingStatus()) {
               <div class="mt-2 text-center text-muted small">

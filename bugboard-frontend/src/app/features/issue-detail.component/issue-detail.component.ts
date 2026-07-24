@@ -2,6 +2,7 @@ import {
   Component,
   OnInit,
   signal,
+  computed,
   inject,
   PLATFORM_ID,
   ChangeDetectorRef,
@@ -10,6 +11,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/auth/auth-service';
 import { FormsModule } from '@angular/forms';
 import { IssueService } from '../../core/services/issue.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -29,6 +31,7 @@ import { environment } from '../../../environments/environment';
 })
 export class IssueDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly issueService = inject(IssueService);
   private readonly projectService = inject(ProjectService);
@@ -44,6 +47,7 @@ export class IssueDetailComponent implements OnInit {
   public readonly isLoading = signal<boolean>(true);
   public readonly error = signal<string | null>(null);
   public readonly isUpdatingAssignee = signal<boolean>(false);
+  public readonly isReadonly = computed(() => this.authService.isReadonly());
   public readonly isUpdatingStatus = signal<boolean>(false);
   public readonly showDeleteModal = signal<boolean>(false);
   public readonly isDeleting = signal<boolean>(false);

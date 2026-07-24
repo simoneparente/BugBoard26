@@ -64,10 +64,18 @@
                   <span class="bi bi-calendar3 me-1"></span>{{ getLastModifiedDate(project) }}
                 </span>
 
-                <span
-                  class="bi bi-trash text-danger cursor-pointer"
-                  (click)="deleteProject(project.key, $event)"
-                ></span>
+                @if (!isReadonly()) {
+                  <a
+                    class="bi bi-gear text-muted cursor-pointer transition-colors me-2"
+                    [routerLink]="['/projects', project.key, 'settings']"
+                    (click)="$event.stopPropagation()"
+                    title="Project Settings"
+                  ></a>
+                  <span
+                    class="bi bi-trash text-danger cursor-pointer"
+                    (click)="deleteProject(project.key, $event)"
+                  ></span>
+                }
               </div>
             </div>
           </div>

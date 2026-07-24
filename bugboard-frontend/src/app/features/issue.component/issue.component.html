@@ -17,32 +17,41 @@
     <div
       class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-start justify-content-md-end"
     >
-      <!-- Manage Tags Button -->
-      <button
-        class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
-        type="button"
-        [routerLink]="['/projects', projectKey, 'tags']"
-      >
-        <i class="bi bi-tags"></i> Manage Tags
-      </button>
+      @if (!isReadonly()) {
+        <!-- Manage Tags Button -->
+        <button
+          class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'tags']"
+        >
+          <i class="bi bi-tags"></i> Manage Tags
+        </button>
 
-      <!-- View Report Button -->
-      <button
-        class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
-        type="button"
-        [routerLink]="['/projects', projectKey, 'report']"
-      >
-        <i class="bi bi-file-earmark-bar-graph"></i> View Report
-      </button>
+        <!-- View Report Button -->
+        <button
+          class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'report']"
+        >
+          <i class="bi bi-file-earmark-bar-graph"></i> View Report
+        </button>
 
-      <!-- New Issue Button -->
-      <button
-        class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
-        type="button"
-        [routerLink]="['/projects', projectKey, 'issues', 'create']"
-      >
-        <i class="bi bi-plus-lg"></i> New Issue
-      </button>
+        <!-- New Issue Button -->
+        <button
+          class="btn btn-primary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0"
+          type="button"
+          [routerLink]="['/projects', projectKey, 'issues', 'create']"
+        >
+          <i class="bi bi-plus-lg"></i> New Issue
+        </button>
+      } @else {
+        <!-- Readonly badge shown to stakeholders -->
+        <span
+          class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 d-flex align-items-center gap-1"
+        >
+          <i class="bi bi-eye"></i> View Only
+        </span>
+      }
     </div>
   </div>
 
