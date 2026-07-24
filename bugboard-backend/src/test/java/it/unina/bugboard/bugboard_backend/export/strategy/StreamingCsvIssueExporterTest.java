@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -71,7 +70,7 @@ class StreamingCsvIssueExporterTest {
     }
 
     @Test
-    void exportStream_WritesCsvHeaderAndBom() throws IOException {
+    void exportStream_WritesCsvHeaderAndBom() {
         doAnswer(invocation -> {
             StreamingCsvIssueExporter.PageProcessor processor = invocation.getArgument(0);
             processor.processPage(List.of(testIssue));
@@ -93,7 +92,7 @@ class StreamingCsvIssueExporterTest {
     }
 
     @Test
-    void exportStream_HandlesEmptyIssuesList() throws IOException {
+    void exportStream_HandlesEmptyIssuesList() {
         doAnswer(invocation -> {
             StreamingCsvIssueExporter.PageProcessor processor = invocation.getArgument(0);
             processor.processPage(List.of());
@@ -109,7 +108,7 @@ class StreamingCsvIssueExporterTest {
     }
 
     @Test
-    void exportStream_HandlesMultiplePages() throws IOException {
+    void exportStream_HandlesMultiplePages() {
         doAnswer(invocation -> {
             StreamingCsvIssueExporter.PageProcessor processor = invocation.getArgument(0);
             processor.processPage(List.of(testIssue));
@@ -129,7 +128,7 @@ class StreamingCsvIssueExporterTest {
     }
 
     @Test
-    void exportStream_HandlesNullAndSpecialValues() throws IOException {
+    void exportStream_HandlesNullAndSpecialValues() {
         IssueResponse specialIssue = IssueResponse.builder()
                 .id(UUID.randomUUID())
                 .title("value;with;semi")
