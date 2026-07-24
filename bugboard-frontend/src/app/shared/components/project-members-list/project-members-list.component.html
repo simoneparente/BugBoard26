@@ -49,9 +49,14 @@
                 {{ (member.username || 'UN').substring(0, 2) | uppercase }}
               </div>
               <div class="flex-grow-1" style="min-width: 0">
-                <div class="d-flex align-items-center justify-content-between gap-2">
-                  <div class="fw-medium text-dark text-truncate">{{ member.username }}</div>
-                  <span [class]="getRoleColor(member.role)" class="flex-shrink-0">
+                <div
+                  class="d-flex align-items-center justify-content-between gap-2"
+                  style="min-width: 0"
+                >
+                  <div class="fw-medium text-dark text-truncate" style="min-width: 0">
+                    {{ member.username }}
+                  </div>
+                  <span [class]="getRoleColor(member.role) + ' flex-shrink-0'">
                     {{ member.role }}
                   </span>
                 </div>
