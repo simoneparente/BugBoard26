@@ -45,6 +45,8 @@ export class ProjectComponent implements OnInit {
     return user?.role === 'ADMIN';
   });
 
+  public readonly isReadonly = this.authService.isReadonly;
+
   ngOnInit(): void {
     this.loadProjects();
   }

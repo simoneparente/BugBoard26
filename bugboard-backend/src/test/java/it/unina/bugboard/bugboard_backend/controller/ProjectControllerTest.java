@@ -160,4 +160,44 @@ class ProjectControllerTest {
         assertEquals(1, responseEntity.getBody().size());
         verify(projectService, times(1)).getRecommendedAssignees(projectId);
     }
+
+    @Test
+    void addMember_ReturnsOkResponse() {
+        UUID projectId = dummyProject.getId();
+        UUID userId = UUID.randomUUID();
+
+        when(projectService.addMemberToProject(projectId, userId)).thenReturn(dummyProject);
+        when(projectMapper.toResponse(dummyProject)).thenReturn(ProjectResponse.builder()
+                .id(projectId)
+                .name(dummyProject.getName())
+                .build());
+
+        ResponseEntity<ProjectResponse> responseEntity = projectController.addMember(projectId, userId);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        assertEquals(projectId, responseEntity.getBody().getId());
+        verify(projectService, times(1)).addMemberToProject(projectId, userId);
+    }
+
+    @Test
+    void removeMember_ReturnsOkResponse() {
+        UUID projectId = dummyProject.getId();
+        UUID userId = UUID.randomUUID();
+
+        when(projectService.removeMemberFromProject(projectId, userId)).thenReturn(dummyProject);
+        when(projectMapper.toResponse(dummyProject)).thenReturn(ProjectResponse.builder()
+                .id(projectId)
+                .name(dummyProject.getName())
+                .build());
+
+        ResponseEntity<ProjectResponse> responseEntity = projectController.removeMember(projectId, userId);
+
+        assertNotNull(responseEntity);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        assertEquals(projectId, responseEntity.getBody().getId());
+        verify(projectService, times(1)).removeMemberFromProject(projectId, userId);
+    }
 }

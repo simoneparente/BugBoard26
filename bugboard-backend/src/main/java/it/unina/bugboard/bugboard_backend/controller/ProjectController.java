@@ -1,15 +1,7 @@
 package it.unina.bugboard.bugboard_backend.controller;
 
-import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
-import java.util.List;
-import java.util.UUID;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import it.unina.bugboard.bugboard_backend.dto.AddProjectMembersRequest;
+import it.unina.bugboard.bugboard_backend.dto.AssigneeRecommendationResponse;
 import it.unina.bugboard.bugboard_backend.dto.ProjectRequest;
 import it.unina.bugboard.bugboard_backend.dto.ProjectResponse;
 import it.unina.bugboard.bugboard_backend.dto.UserResponse;
@@ -20,6 +12,14 @@ import it.unina.bugboard.bugboard_backend.mapper.UserMapper;
 import it.unina.bugboard.bugboard_backend.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -30,7 +30,7 @@ public class ProjectController {
     private final ProjectMapper projectMapper;
     private final UserMapper userMapper;
 
-    @PostMapping 
+    @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest) {
         Project project = projectService.createProject(projectRequest);
         return new ResponseEntity<>(projectMapper.toResponse(project), HttpStatus.CREATED);
@@ -59,6 +59,22 @@ public class ProjectController {
     public ResponseEntity<Void> deleteProject(@PathVariable UUID id) {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<ProjectResponse> addMember(
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId) {
+        Project project = projectService.addMemberToProject(projectId, userId);
+        return ResponseEntity.ok(projectMapper.toResponse(project));
+    }
+
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<ProjectResponse> removeMember(
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId) {
+        Project project = projectService.removeMemberFromProject(projectId, userId);
+        return ResponseEntity.ok(projectMapper.toResponse(project));
     }
 
     @GetMapping("/{projectId}/members")
