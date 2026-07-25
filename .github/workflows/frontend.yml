@@ -2,9 +2,9 @@ name: Frontend CI (Lint & Format Check)
 
 on:
   push:
-    branches: [ main, develop, 'feature/*' ]
+    branches: [ main, development, 'feature/*' ]
   pull_request:
-    branches: [ main, develop, 'feature/*' ]
+    branches: [ main, development, 'feature/*' ]
 
 jobs:
   format-check:
