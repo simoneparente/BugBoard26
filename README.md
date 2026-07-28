@@ -1,4 +1,4 @@
-# BugBoard26
+# [BugBoard26](https://bugboard26-frontend.icyisland-a27a4eea.italynorth.azurecontainerapps.io/)
 
 BugBoard26 is a collaborative issue-tracking platform for software teams. It provides a shared workspace for reporting, assigning, prioritizing, tracking, and resolving issues throughout a project's lifecycle.
 
